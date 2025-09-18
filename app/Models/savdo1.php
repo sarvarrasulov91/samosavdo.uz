@@ -14,6 +14,8 @@ class savdo1 extends Model
 
     protected $table = [];
 
+    protected $guarded = [];
+
     function __construct($filialid=null, array $attributes = [] )
     {
         parent::__construct($attributes);

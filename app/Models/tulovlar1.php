@@ -11,20 +11,8 @@ class tulovlar1 extends Model
 {
     use HasFactory;
     protected $table = [];
-    
-    protected $fillable = [
-        'kun',
-        'tulovturi',
-        'shartnomaid',
-        'naqd',
-        'pastik',
-        'hr',
-        'click',
-        'avtot',
-        'chegirma',
-        'umumiysumma',
-        'user_id',
-    ];
+
+    protected $guarded = [];
 
     function __construct($filialid=null, array $attributes = [] )
     {
@@ -36,7 +24,7 @@ class tulovlar1 extends Model
     {
         return $this->belongsTo(shartnoma1::class,'shartnomaid');
     }
-    
+
     public function User(): BelongsTo
     {
         return $this->belongsTo(User::class);

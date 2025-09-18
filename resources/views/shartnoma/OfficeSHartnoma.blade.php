@@ -75,9 +75,12 @@
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
+
             function tabyuklash() {
+
                 var id = $('#filial').val();
                 var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
                 if (id > 0) {
                     $.ajax({
                         url: "{{ route('OfficeSHartnoma.index') }}/" + id,
@@ -95,13 +98,8 @@
             }
 
 
-
-            // In your Javascript (external .js resource or <script> tag)
             $(document).ready(function() {
-                $('#filial').select2();
-            });
 
-            $(document).ready(function() {
                 tabyuklash();
                 $("#qidirish").keyup(function() {
                     var value = $(this).val().toLowerCase();
@@ -113,6 +111,8 @@
                 $("#filial").change(function() {
                     tabyuklash();
                 });
+
+                $('#filial').select2();
             })
 
 
@@ -224,12 +224,14 @@
 
 
             $(document).on('click', '#tulov_uchrish', function() {
+
                 var id = $(this).data('shid');
-                var stid = $(this).data('stid');
                 var tulovid = $(this).data('tulovid');
-                var filial = $('#filial').val();
+                var filial = $(this).data('filial');
                 var status = 'tulovuchrish';
+
                 var uzid = confirm(tulovid + ' ИД даги тўлов ўчирилмокда. ТАСДИҚЛАНГ !!!');
+
                 if (uzid == true) {
                     $.ajaxSetup({
                         headers: {
@@ -243,7 +245,6 @@
                             id: id,
                             tulovid: tulovid,
                             status: status,
-                            stid:stid,
                             filial: filial
                         },
                         success: function(response) {

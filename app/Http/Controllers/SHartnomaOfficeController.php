@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,6 @@ use App\Models\savdo1;
 use App\Models\ktovar1;
 use App\Models\tmqaytarish;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -26,11 +26,11 @@ class SHartnomaOfficeController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
-            return view('shartnoma.OfficeSHartnoma', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial ]);
+
+            return view('shartnoma.OfficeSHartnoma', ['filial' => $filial ]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -89,7 +89,7 @@ class SHartnomaOfficeController extends Controller
             //йиллик фойиз
             $foiz = (($foiz / 12) * $shartnom->muddat);
             $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-            
+
             $umumiySumma = $savdosumma-$oldindantulov-$chegirma+$xis_foiz;
 
             $date1 = new DateTime($shartnom->kun);
@@ -99,7 +99,7 @@ class SHartnomaOfficeController extends Controller
             $birkunlikfoiz = $xis_foiz / ($dukun);
 
             $krxiob2 = 0;
-            
+
             if ($shartnom->tug_sana >= date("Y-m-d")) {
                 $date11 = new DateTime($shartnom->kun);
                 $date22 = new DateTime(date("Y-m-d"));
@@ -107,16 +107,16 @@ class SHartnomaOfficeController extends Controller
                 $dukun2 = $interval1->days;
                 $months = ($interval1->y * 12) + $interval1->m;
                 $krxiob2 = $xis_foiz - ($birkunlikfoiz * $dukun2);
-                
+
                 $joqarzm = ($umumiySumma / $shartnom->muddat) * $months - $tulov;
                 $prSumma = $joqarzm - ($umumiySumma / $shartnom->muddat);
-                
+
                 $tkun = date('Y-m', strtotime($xis_oyi)) . '-' . date('d', strtotime($shartnom->kun));
-                
+
                 if ($tkun >= date("Y-m-d")) {
                     $joqarzm = $prSumma;
                 }
-                
+
                 if ($joqarzm < 1000) {
                     $joqarzm = 0;
                 }
@@ -141,7 +141,7 @@ class SHartnomaOfficeController extends Controller
                                         <path d="M12.3223 8.25211L16.0863 12.0001L12.3223 15.7481" stroke="#130F26" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </a>
-                                
+
                                 </h3>
                             </div>
                             <div class="c-details" style="margin-top: -10px;">
@@ -236,170 +236,110 @@ class SHartnomaOfficeController extends Controller
                     <tr class="align-middle text-center text-primary">
                         <th>№</th>
                         <th>Ойлар</th>
-                        <th>Карздорлик</th>
-                        <th>Хисобланди</th>
-                        <th>Тани</th>
-                        <th>%</th>
+                        <th>Утган Карздорлик</th>
+                        <th>График тулови</th>
                         <th>Тўлади</th>
                     </tr>
                 </thead>
                 <tbody>';
 
-            $boshi = date("d.m.Y", strtotime($shartnom->kun));
-            $ohiri = date("d.m.Y", strtotime($shartnom->tug_sana));
-
-            $i = 1;
-            $zadd01 = 0;
-            $zadk01 = 0;
-            $nach01 = 0;
-            $tani01 = 0;
-            $foiz01 = 0;
-            $koyi = $shartnom->muddat;
             $kkuni = $shartnom->kun;
-            $du22 = $shartnom->kun;
 
             $i = 0;
+            $zadd01 = $grafik = 0;
+            $opljami = $nachjami = $zaddjami = 0;
 
-            $sumasos = 0;
-            $foizjami = 0;
-            $opljami = 0;
-            $tanijami = 0;
-            $nachjami = 0;
-            $zaddjami = 0;
-            $zadkjami = 0;
+            while ($i <= $muddat) {
 
-            while ($i <= $koyi) {
+                $tekshuzgar2 = strtotime("+$i month", strtotime($kkuni));
+                $tekshtuga2  = strtotime("last day of +$i month", strtotime($kkuni));
 
+                // Keyingi oy sanasi
+                $du22 = ($tekshuzgar2 >= $tekshtuga2)
+                    ? date("Y-m-d", strtotime("last day of +$i month", strtotime($kkuni)))
+                    : date("Y-m-d", strtotime("+$i month", strtotime($kkuni)));
 
-                $tekshuzgar2 = strtotime(+$i . " month", strtotime($kkuni));
-                $tekshtuga2 = strtotime('last day of +' . $i . ' month', strtotime($kkuni));
-                if ($tekshuzgar2 >= $tekshtuga2) {
-                    $du2 = date('Y', strtotime('last day of' . +$i . ' month', strtotime($kkuni)));
-                } else {
-                    $du2 = date("Y", strtotime(+$i . "month", strtotime($kkuni)));
-                }
-
-                $boshioy = date("m", strtotime($du22));
-                if ($boshioy == 01) {
-                    $du2 = "Январь " . $du2 . " й";
-                } elseif ($boshioy == 2) {
-                    $du2 = "Февраль " . $du2 . " й";
-                } elseif ($boshioy == 3) {
-                    $du2 = "Март " . $du2 . " й";
-                } elseif ($boshioy == 4) {
-                    $du2 = "Апрель " . $du2 . " й";
-                } elseif ($boshioy == 5) {
-                    $du2 = "Май " . $du2 . " й";
-                } elseif ($boshioy == 6) {
-                    $du2 = "Июнь " . $du2 . " й";
-                } elseif ($boshioy == 7) {
-                    $du2 = "Июль " . $du2 . " й";
-                } elseif ($boshioy == 8) {
-                    $du2 = "Август " . $du2 . " й";
-                } elseif ($boshioy == 9) {
-                    $du2 = "Сентябрь " . $du2 . " й";
-                } elseif ($boshioy == 10) {
-                    $du2 = "Октябрь " . $du2 . " й";
-                } elseif ($boshioy == 11) {
-                    $du2 = "Ноябрь " . $du2 . " й";
-                } elseif ($boshioy == 12) {
-                    $du2 = "Декабрь " . $du2 . " й";
-                }
+                // Carbon orqali oy va yilni olish
+                $du2 = Carbon::parse($du22)->locale('ru')->translatedFormat('Y-F');
 
                 //Тулов жамланяпти
                 $boshibaza = date("Y-m-", strtotime($du22)) . "01";
 
-                $tulovlar = new tulovlar1($filial);
+                $tulovlari = new tulovlar1($filial);
 
-                $rsumsql = $tulovlar->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('xis_oyi', $boshibaza)->where('status', 'Актив')->sum('umumiysumma');
+                $opl01 = $tulovlari->where('tulovturi', 'Шартнома')
+                    ->where('shartnomaid', $shartnom->id)
+                    ->where('xis_oyi', $boshibaza)
+                    ->where('status', 'Актив')
+                    ->sum('umumiysumma');
 
-                $opl01 = $rsumsql;
                 $ksumma = ($savdosumma) - ($oldindantulov + $chegirma);
-                $muddat = $shartnom->muddat;
-                $foiz = $xis_foiz;
-                $bugungikun = date("Y-m-d");
-                $date1 = new DateTime($shartnom->kun);
-                $date2 = new DateTime($shartnom->tug_sana);
-                $interval = $date1->diff($date2);
-                $dukun = $interval->days;
-                $birkunlikfoiz = $foiz / $dukun;
 
-                if (date("Y-m", strtotime($shartnom->tug_sana)) == date("Y-m", strtotime($du22))) {
-                    $ykunkun = date("d", strtotime($shartnom->tug_sana)) * 1;
-                    $krxiob = ($birkunlikfoiz * $ykunkun);
-                } elseif (date("Y-m", strtotime($shartnom->kun)) == date("Y-m", strtotime($du22))) {
-                    $date = new DateTime($du22);
-                    $date->modify('last day of this month');
-                    $date2 = $date->format('d');
-                    $date3 = $date2 - date("d", strtotime($shartnom->kun));
-                    $krxiob = ($birkunlikfoiz * $date3);
-                } elseif (date("Y-m", strtotime($shartnom->tug_sana)) > date("Y-m", strtotime($du22))) {
-                    $date = new DateTime($du22);
-                    $date->modify('last day of this month');
-                    $date2 = $date->format('d');
-                    $krxiob = ($birkunlikfoiz * $date2);
-                }
+                // Joriy oy bo‘lsa sariq rang
+                $trclass = (date('Y-m', strtotime($du22)) == date('Y-m'))
+                    ? 'align-middle text-center text-warning'
+                    : 'align-middle text-center';
 
-                if ($shartnom->tug_sana >= date("Y-m-d")) {
-                    $date11 = new DateTime($shartnom->kun);
-                    $date22 = new DateTime(date("Y-m-d"));
-                    $interval1 = $date11->diff($date22);
-                    $dukun2 = $interval1->days;
-                    $krxiob2 = $foiz - ($birkunlikfoiz * $dukun2);
-                } else {
-                    $krxiob2 = 0;
-                }
+                echo '
+                        <tr class="'.$trclass.'">
+                            <td>' . $i . '</td>
+                            <td>' . $du2 . '</td>
+                            <td>' . number_format($zadd01, 2, ",", " ") . '</td>
+                            <td>' . number_format($grafik, 2, ",", " ") . '</td>
+                            <td>' . number_format($opl01, 2, ",", " ") . '</td>
+                        </tr>';
 
-                if($krxiob==0){
-                    $krxiob=$birkunlikfoiz;
-                }
+                $zadd01 = ($zadd01 + $grafik) - $opl01;
 
+                $opljami += $opl01;
+                $nachjami += $grafik;
+                $zaddjami  = abs($zadd01);
 
-                echo '<tr class="align-middle text-center">
-                        <td>' . $i . '</td>
-                        <td>' . $du2 . '</td>
-                        <td>' . number_format($zadd01, 2, ",", " ") . '</td>
-                        <td>' . number_format($tani01 + $krxiob, 2, ",", " ") . '</td>
-                        <td>' . number_format($tani01, 2, ",", " ") . '</td>
-                        <td>' . number_format($krxiob, 2, ",", " ") . '</td>
-                        <td>' . number_format($opl01, 2, ",", " ") . '</td>
-                        ';
+                $grafik = ($ksumma + $xis_foiz) / $muddat;
+
                 $i++;
 
-                $zadd01 = ($zadd01 + $tani01 + $krxiob) - ($opl01 + $zadk01);
+            }   // while tugadi
 
-                $tanijami += $tani01;
-                $foizjami += $krxiob;
-                $opljami += $opl01;
-                $nachjami += $tani01 + $krxiob;
-                $zaddjami = $zadd01;
-                if ($zaddjami < 0) {
-                    $zaddjami = $zaddjami * -1;
-                }
+            // kechikkan tulovlarni ko'rsatish
 
-                $tani01 = $ksumma / $shartnom->muddat;
-                $tekshuzgar = strtotime(+$i . " month", strtotime($kkuni));
-                $tekshtuga = strtotime('last day of +' . $i . ' month', strtotime($kkuni));
-                if ($tekshuzgar >= $tekshtuga) {
-                    $du22 = date('d.m.Y', strtotime('last day of' . +$i . ' month', strtotime($kkuni)));
-                } else {
-                    $du22 = date("d.m.Y", strtotime(+$i . "month", strtotime($kkuni)));
-                }
-            };
+            $kechTulov = 0;
+            $lateTulovlar = $tulovlari->where('tulovturi', 'Шартнома')
+                ->where('shartnomaid', $shartnom->id)
+                ->where('xis_oyi', '>', $boshibaza)
+                ->where('status', 'Актив')
+                ->groupBy('xis_oyi')
+                ->selectRaw('sum(umumiysumma) as umumiysumma, max(kun) as kun') // Modify as needed
+                ->get();
 
+            foreach ($lateTulovlar as $item){
+
+                $trclass = (date('Y-m', strtotime($item->kun)) == date('Y-m'))
+                    ? 'align-middle text-center text-warning'
+                    : 'align-middle text-center';
+
+                echo '
+                    <tr class="'.$trclass.'">
+                        <td>' . $i++ . '</td>
+                        <td>' . Carbon::parse($item->kun)->locale('ru')->translatedFormat('Y-F') . '</td>
+                        <td>' . number_format($zadd01, 2, ",", " ") . '</td>
+                        <td>' . number_format(0, 2, ",", " ") . '</td>
+                        <td>' . number_format($item->umumiysumma, 2, ",", " ") . '</td>
+                    </tr>';
+
+                $zadd01 -= $item->umumiysumma;
+                $kechTulov += $item->umumiysumma;
+            }
 
             echo '
-                        <tr class="align-middle text-center fw-bold">
-                            <td colspan="2">Жами:</td>
-                            <td>' . number_format($zaddjami, 2, ",", " ") . '</td>
-                            <td>' . number_format($nachjami, 2, ",", " ") . '</td>
-                            <td>' . number_format($tanijami, 2, ",", " ") . '</td>
-                            <td>' . number_format($foizjami, 2, ",", " ") . '</td>
-                            <td>' . number_format($opljami, 2, ",", " ") . '</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                    <tr class="align-middle text-center fw-bold">
+                        <td colspan="2">Жами:</td>
+                        <td>' . number_format($zaddjami - $kechTulov, 2, ",", " ") . '</td>
+                        <td>' . number_format($nachjami, 2, ",", " ") . '</td>
+                        <td>' . number_format($opljami + $kechTulov, 2, ",", " ") . '</td>
+                    </tr>
+                </tbody>
+            </table>
 
             <table class="table table-bordered table-hover">
                 <tr class="align-middle fw-bold text-center">
@@ -433,66 +373,79 @@ class SHartnomaOfficeController extends Controller
                   	<tbody id="tab1">';
 
 
-                    $tulovlar = new tulovlar1($filial);
-                    $tulovlarshj = $tulovlar->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->orwhere('tulovturi', 'Олдиндан тўлов')->where('shartnomaid', $shartnom->id)->orwhere('tulovturi', 'Брон')->where('shartnomaid', $shartnom->id)->orderBy('id', 'desc')->get();
+                        $tulovlar = new tulovlar1($filial);
+                        $tulovlar = $tulovlar->where('shartnomaid', $shartnom->id)
+                            ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
+                            ->orderByDesc('id')
+                            ->get();
 
+                        $i = 1;
+                        $totals = [
+                            'naqd' => 0,
+                            'pastik' => 0,
+                            'hr' => 0,
+                            'click' => 0,
+                            'avtot' => 0,
+                        ];
 
-            $i = 1;
-            $jnaqd = 0;
-            $jpastik = 0;
-            $jhr = 0;
-            $jclick = 0;
-            $javtot = 0;
-            $colorqator = " ";
+                        foreach ($tulovlar as $t) {
+                            $isActive = $t->status === 'Актив' && in_array($t->tulovturi, ['Шартнома', 'Олдиндан тўлов']);
+                            $rowClass = $isActive ? '' : 'text-danger';
 
-            foreach ($tulovlarshj as $tulovlarsh) {
+                            if ($isActive) {
+                                $totals['naqd']  += $t->naqd;
+                                $totals['pastik']+= $t->pastik;
+                                $totals['hr']    += $t->hr;
+                                $totals['click'] += $t->click;
+                                $totals['avtot'] += $t->avtot;
+                            }
 
-                if($tulovlarsh->status=='Актив' && $tulovlarsh->tulovturi=='Шартнома' OR $tulovlarsh->status=='Актив' && $tulovlarsh->tulovturi=='Олдиндан тўлов'){
-                    $colorqator = " ";
-                    $jnaqd += $tulovlarsh->naqd;
-                    $jpastik += $tulovlarsh->pastik;
-                    $jhr += $tulovlarsh->hr;
-                    $jclick += $tulovlarsh->click;
-                    $javtot += $tulovlarsh->avtot;
-                }else{
-                    $colorqator = "text-danger";
-                }
+                            $rowTotal = $t->naqd + $t->pastik + $t->hr + $t->click + $t->avtot;
 
-                echo "
-                            <tr class='text-center align-middle $colorqator'>
-                                <td>" . $i . "</td>
-                                <td>" . $tulovlarsh->tulovturi . "</td>
-                                <td>" . date('d.m.Y', strtotime($tulovlarsh->kun)) . "</td>
-                                <td>" . number_format($tulovlarsh->naqd, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->pastik, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->hr, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->click, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->avtot, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->naqd + $tulovlarsh->pastik+$tulovlarsh->hr+$tulovlarsh->click+$tulovlarsh->avtot, 0, ',', ' ') . "</td>
-                                <td>" . $tulovlarsh->status . "</td>
-                                <td> <button id='tulov_uchrish' data-tulovid='".$tulovlarsh->id."' data-shid='".$shartnom->id."' type='button' class='btn btn-outline-danger btn-sm ms-2'><i class='flaticon-381-substract-1'></i></button> </td>
+                            echo "
+                            <tr class='text-center align-middle {$rowClass}'>
+                                <td>{$i}</td>
+                                <td>{$t->tulovturi}</td>
+                                <td>" . date('d.m.Y', strtotime($t->kun)) . "</td>
+                                <td>" . number_format($t->naqd, 0, ',', ' ') . "</td>
+                                <td>" . number_format($t->pastik, 0, ',', ' ') . "</td>
+                                <td>" . number_format($t->hr, 0, ',', ' ') . "</td>
+                                <td>" . number_format($t->click, 0, ',', ' ') . "</td>
+                                <td>" . number_format($t->avtot, 0, ',', ' ') . "</td>
+                                <td>" . number_format($rowTotal, 0, ',', ' ') . "</td>
+                                <td>{$t->status}</td>
+                                <td>
+                                    <button
+                                        id='tulov_uchrish'
+                                        data-tulovid='{$t->id}'
+                                        data-filial='{$filial}'
+                                        data-shid='{$shartnom->id}'
+                                        type='button'
+                                        class='btn btn-outline-danger btn-sm ms-2'>
+                                        <i class='flaticon-381-substract-1'></i>
+                                    </button>
+                                </td>
                             </tr>";
-                $i++;
-            }
-            echo '
-                        <tr class="text-center align-middle fw-bold">
-                            <td></td>
-                            <td>ЖАМИ</td>
-                            <td></td>
-                            <td>' . number_format($jnaqd, 0, ",", " ") . '</td>
-                            <td>' . number_format($jpastik, 0, ",", " ") . '</td>
-                            <td>' . number_format($jhr, 0, ",", " ") . '</td>
-                            <td>' . number_format($jclick, 0, ",", " ") . '</td>
-                            <td>' . number_format($javtot, 0, ",", " ") . '</td>
-                            <td>' . number_format($jnaqd+$jpastik+$jhr+$jclick+$javtot, 0, ",", " ") . '</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                   	</tbody>
+                            $i++;
+                        }
+                        echo'
+                            <tr class="text-center align-middle fw-bold">
+                                <td></td>
+                                <td>ЖАМИ</td>
+                                <td></td>
+                                <td> '.number_format($totals['naqd'], 0, ',', ' ').'</td>
+                                <td> '.number_format($totals['pastik'], 0, ',', ' ').' </td>
+                                <td> '.number_format($totals['hr'], 0, ',', ' ').' </td>
+                                <td> '.number_format($totals['click'], 0, ',', ' ').' </td>
+                                <td> '.number_format($totals['avtot'], 0, ',', ' ').' </td>
+                                <td> '.number_format(array_sum($totals), 0, ',', ' ').' </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                    </tbody>
                 </table>
                 <br>
-                <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>
-           ';
+                <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>';
 
             $savdo = new savdo1($filial);
             $savdomodel = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
@@ -508,7 +461,12 @@ class SHartnomaOfficeController extends Controller
                        <th>Суммаси</th>
                        <th>Штрих коди</th>
                         <th>
-                            <button id="tovar_qushish" data-shid="'. $shartnom->id .'" type="button" class="btn btn-outline-primary btn-sm ms-2"><i class="flaticon-381-plus"></i></button>
+                            <button
+                                id="tovar_qushish"
+                                data-shid="'. $shartnom->id .'"
+                                type="button" class="btn btn-outline-primary btn-sm ms-2">
+                                <i class="flaticon-381-plus"></i>
+                            </button>
                         </th>
 
                    </tr>
@@ -519,7 +477,7 @@ class SHartnomaOfficeController extends Controller
             foreach ($savdomodel as $savdomode) {
                 echo "
                    <tr class='text-center align-middle'>
-                       <td>" . $i . "</td>
+                       <td>" . $i++ . "</td>
                        <td>" . $savdomode->tmodel_id . "</td>
                        <td>" . $savdomode->unix_id . "</td>
                        <td>" . date('d.m.Y', strtotime($savdomode->created_at)) . "</td>
@@ -529,7 +487,6 @@ class SHartnomaOfficeController extends Controller
                        <td> <button id='tovar_uchrish' data-stid='".$savdomode->id."' data-shid='".$shartnom->id."' type='button' class='btn btn-outline-danger btn-sm ms-2'><i class='flaticon-381-substract-1'></i></button> </td>
                     </tr>";
                 $jami += $savdomode->msumma;
-                $i++;
             }
             echo '
                    <tr class="text-center align-middle fw-bold">
@@ -576,7 +533,7 @@ class SHartnomaOfficeController extends Controller
                     $model = new shartnoma1($id);
                     $shartnoma = $model->whereIn('status', ['Актив', 'Ёпилган'])->orderBy('id', 'desc')->get();
                     foreach ($shartnoma as $shartnom){
-                        
+
                         $trClass = ($shartnom->status == 'Ёпилган') ? 'align-middle text-success' : 'align-middle';
 
                         $savdo = new savdo1($id);
@@ -757,11 +714,11 @@ class SHartnomaOfficeController extends Controller
     public function update(Request $request, string $id)
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            
+
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            
+
             if($request->status == 'tqushish'){
-                
+
                 $savdo = new savdo1($request->filial);
                 $savdounix_id = $savdo->where('status', 'Актив')->where('unix_id', $request->savdo_id)->count();
                 if ($savdounix_id >= 1) {
@@ -783,9 +740,9 @@ class SHartnomaOfficeController extends Controller
             }elseif($request->status == 'tuchirish'){
 
                 if (!empty($request->stid)) {
-                    
+
                     $shtrix_kod = 0;
-                    
+
                     $savdo = new savdo1($request->filial);
                     $savdosumma = $savdo->where('status', 'Шартнома')->where('id', $request->stid)->first();
 
@@ -795,12 +752,12 @@ class SHartnomaOfficeController extends Controller
                         // Handle the case where no record is found
                         $shtrix_kod = 0;
                     }
-                    
+
                     if($shtrix_kod > 0){
 
                         $Counttovar = new ktovar1($request->filial);
                         $Counttovar1 = $Counttovar->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->count();
-                        
+
                         if ($Counttovar1 > 0) {
 
                             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
@@ -831,8 +788,8 @@ class SHartnomaOfficeController extends Controller
                                             ->limit(1)
                                             ->update([
                                                 'status' => "Удалит",
-                                                'del_user_id' => Auth::user()->id,
-                                                'del_kun' => date('Y-m-d H:i:s'),
+                                                'del_user_id' => Auth::id(),
+                                                'del_kun' => now(),
                                                 'del_xis_oyi' => $xis_oyi,
                                             ]);
 
@@ -940,8 +897,8 @@ class SHartnomaOfficeController extends Controller
                         $savdUpdated = $savdorem->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
                             ->update([
                                 'status' => "Удалит",
-                                'del_user_id' => Auth::user()->id,
-                                'del_kun' => date('Y-m-d H:i:s'),
+                                'del_user_id' => Auth::id(),
+                                'del_kun' => now(),
                                 'del_xis_oyi' => $xis_oyi,
                         ]);
 
@@ -953,56 +910,44 @@ class SHartnomaOfficeController extends Controller
                     }
                 }
 
-            }elseif($request->status == 'tulovuchrish'){
+            } elseif ($request->status == 'tulovuchrish'){
 
                 $tulovlar = new tulovlar1($request->filial);
-                $tulovKun = $tulovlar
+                $tulov = $tulovlar
                     ->where('id', $request->tulovid)
+                    ->where('shartnomaid', $request->id)
                     ->where('status', 'Актив')
-                    ->value('kun');
+                    ->first();
 
-                // agar tulov shu kuni o'chirilsa udalit bo'ladi 
-                
-                if($tulovKun == date("Y-m-d")){
-                    
-                     $tulovlarUpdated = $tulovlar
-                    ->where('id', $request->tulovid)
-                    ->where('status', 'Актив')
-                    ->limit(1)
-                    ->update([
+                if (date('Y-m-d', strtotime($tulov->kun)) == date("Y-m-d")) {
+
+                     $tulov->update([
                         'status' => "Удалит",
-                        'del_user_id' => Auth::user()->id,
+                        'del_user_id' => Auth::id(),
                         'del_kun' => now(),
-                        
                     ]);
-                    
-                }else{
-                    
-                    // agar tulov boshqa kuni ochirilsa bron boladi
-                    
-                   $tulovlarUpdated = $tulovlar
-                    ->where('id', $request->tulovid)
-                    ->where('status', 'Актив')
-                    ->limit(1)
-                    ->update([
+
+                    return response()->json(['message' => 'Тўлов учирилди.'], 200);
+
+                } else {
+
+                   $tulov->update([
                         'tulovturi' => "Брон",
-                        'bron_user_id' => Auth::user()->id,
+                        'bron_user_id' => Auth::id(),
                         'bron_kun' => now(),
                         'bron_xis_oyi' => $xis_oyi,
-                    ]);  
+                    ]);
+
+                    return response()->json(['message' => 'Тўлов бронга олинди.'], 200);
                 }
-               
 
-                    if ($tulovlarUpdated) {
-                        return response()->json(['message' => 'Тўлов бронга олинди.'], 200);
-                    } else {
-                        return response()->json(['message' => 'Тўловни ўчиришда хатолик.'], 200);
-                    }
-            }else{
+                return response()->json(['message' => "Tulovni o'chirishda xatolik"], 200);
 
-                return response()->json(['message' => "Хатолик"], 200);
+            } else {
+
+                return response()->json(['message' => "Yuborilgan statusda xatolik"], 200);
             }
-        }else{
+        } else {
             return response()->json(['message' => "Хатолик!!! <br> Админга мурожат қилинг."], 200);
         }
     }
@@ -1018,11 +963,11 @@ class SHartnomaOfficeController extends Controller
             $tulov = 0;
             $savdosumma = 0;
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            
+
             $tulovlar = new tulovlar1(1);
             $oldindantulov = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
             $tulov = $tulovlar->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-            
+
             $savdolar = new savdo1(1);
             $savdosumma = $savdolar->where('status', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('msumma');
 
@@ -1037,18 +982,18 @@ class SHartnomaOfficeController extends Controller
                     'yo_user_id' => Auth::user()->id,
                     'skidka' => 0,
                 ]);
-                
+
                 if ($shartnoma1) {
                     $message = 'Шартнома мажбурий шакилда ёпилди.';
                 } else {
-                    
+
                     $message = "Шартномани ёпишда хатолик. $shartnoma";
                 }
-                
+
             }else{
                 $message = "Шартномани ёпишдан олдин товарларни ва туловларни кайтаринг.";
             }
-            
+
             return response()->json(['message' => $message], 200);
         }else{
             return response()->json(['message' => "Хатолик!!! <br> Шартномани ўчириш учун админга мурожат қилинг."], 200);
