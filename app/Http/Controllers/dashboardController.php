@@ -6,17 +6,12 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 use App\Models\valyuta;
 use App\Models\tmodel;
 use App\Models\brend;
 use App\Models\user;
-use App\Models\mfy;
 use App\Models\mijozlar;
 use App\Models\shartnoma1;
-use App\Models\tashrif;
 
 class dashboardController extends Controller
 {
@@ -25,8 +20,6 @@ class dashboardController extends Controller
      */
     public function index()
     {
-
-        //$xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $valyuta = valyuta::where('id',2)->value('valyuta_narhi');
         $tmodel = tmodel::count('id');
         $brend = brend::count('id');
@@ -54,14 +47,17 @@ class dashboardController extends Controller
         ->groupBy('tashrif_id')
         ->get();
 
-
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         return view('dashboard',[
-                        'lavozim_name'=>$lavozim_name,'filial_name'=>$filial_name,'xis_oyi'=>$xis_oyi,
-                        'valyuta'=>$valyuta, 'tmodel'=>$tmodel,'brend'=>$brend,'userlar'=>$userlar,
-                        'mijozsoni'=>$mijozsoni,'mfy'=>$mfy,'shartnomasoni'=>$shartnomasoni, 'mtashrif'=>$mtashrif,'mijozlarkun'=>$mijozlarkun
-                    ]);
+            'valyuta' => $valyuta,
+            'tmodel' => $tmodel,
+            'brend' => $brend,
+            'userlar' => $userlar,
+            'mijozsoni' => $mijozsoni,
+            'mfy' => $mfy,
+            'shartnomasoni' => $shartnomasoni,
+            'mtashrif' => $mtashrif,
+            'mijozlarkun' => $mijozlarkun
+        ]);
     }
 
     /**
