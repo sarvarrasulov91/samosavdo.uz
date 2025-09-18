@@ -26,7 +26,7 @@ class dashboardController extends Controller
     public function index()
     {
 
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+        //$xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $valyuta = valyuta::where('id',2)->value('valyuta_narhi');
         $tmodel = tmodel::count('id');
         $brend = brend::count('id');
