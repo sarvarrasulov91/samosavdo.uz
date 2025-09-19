@@ -9,8 +9,6 @@ use App\Models\valyuta;
 use App\Models\boshqaharajat1;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 
 
 
@@ -21,15 +19,20 @@ class BoshqaXarajatlarController extends Controller
      */
     public function index()
     {
-
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
+
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
             $turharajat = turharajat::get();
             $valyuta = valyuta::where('id', '1')->get();
             $chiqim =  boshqaharajat1::where('.status', 'Актив')->where('xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
-            return view('kassa.boshqaxarajat', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'turharajat' => $turharajat, 'valyuta' => $valyuta, 'chiqim'=>$chiqim]);
+
+            return view('kassa.boshqaxarajat', [
+                'xis_oyi' => $xis_oyi,
+                'turharajat' => $turharajat,
+                'valyuta' => $valyuta,
+                'chiqim' => $chiqim
+            ]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -102,6 +105,7 @@ class BoshqaXarajatlarController extends Controller
             $chiqim->xis_oy = $xis_oyi;
             $chiqim->user_id = Auth::user()->id;
             $chiqim->save();
+
             if ($chiqim->id) {
                 $message = 'Маълумот сақланди.';
             } else {

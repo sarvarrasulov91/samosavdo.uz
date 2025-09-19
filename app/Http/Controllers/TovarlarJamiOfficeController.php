@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ktovar1;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -19,11 +17,10 @@ class TovarlarJamiOfficeController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->get();
-            return view('tovarlar.OfficeJamiTovarlar', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial]);
+
+            return view('tovarlar.OfficeJamiTovarlar', ['filial' => $filial]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -80,12 +77,12 @@ class TovarlarJamiOfficeController extends Controller
                         $ktovar = new ktovar1($id);
                         $model=$ktovar->where('status', '!=', 'Актив')->where('status', '!=', 'Удалит')->orderBy('id', 'desc')->get();
                         foreach ($model as $mode){
-                            
+
                             $valyuta = $mode->valyuta->valyuta_narhi;
                             $kirim_narxi = $mode->snarhi;
                             $natsenka = $mode->tur->natsenka_id;
                             $trans_xarajat = $mode->tur->transport_id;
-                            
+
                             echo'
                             <tr>
                                 <td>' . $mode->id . '</td>

@@ -19,13 +19,16 @@ class TovarTurController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $transport = transport::get();
             $natsenka1 = natsenka::get();
             $tur = tur::where('status', 'Актив')->orderBy('id', 'desc')->get();
-            return view('tovarlar.tur.index', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'tur' => $tur, 'xis_oyi' => $xis_oyi, 'transport'=>$transport, 'natsenka1'=>$natsenka1]);
+
+            return view('tovarlar.tur.index', ['tur' => $tur,
+                'transport' => $transport,
+                'natsenka1' => $natsenka1
+            ]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

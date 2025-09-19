@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\xissobotoy;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ktovar1;
 use App\Models\filial;
-use App\Models\lavozim;
 use App\Models\NarxChange;
 
 class TovarlarSotilmaganOfficeController extends Controller
@@ -18,11 +16,10 @@ class TovarlarSotilmaganOfficeController extends Controller
     public function index()
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+
             $filial = filial::where('status', 'Актив')->get();
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-            return view('tovarlar.OfficeSotilmaganTovarlar', ['xis_oyi' => $xis_oyi, 'filial' => $filial, 'filial_name' => $filial_name, 'lavozim_name' => $lavozim_name]);
+
+            return view('tovarlar.OfficeSotilmaganTovarlar', ['filial' => $filial]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -69,7 +66,7 @@ class TovarlarSotilmaganOfficeController extends Controller
                 </tr>
             </thead>
             <tbody id="tab1">';
-            
+
                 $ktovar = new ktovar1($request->filial);
                 $model=$ktovar->where('status', 'Сотилмаган')->orderBy('id', 'desc')->get();
                 foreach ($model as $mode){
@@ -77,7 +74,7 @@ class TovarlarSotilmaganOfficeController extends Controller
                     $kirim_narxi = $mode->snarhi;
                     $natsenka = $mode->tur->natsenka_id;
                     $trans_xarajat = $mode->tur->transport_id;
-                    
+
                     echo'
                     <tr>
                         <td>' . $mode->id . '</td>

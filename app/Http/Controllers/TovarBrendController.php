@@ -1,16 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\brend;
-use App\Models\natsenka;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 use Illuminate\Support\Facades\Auth;
-
-
 
 
 class TovarBrendController extends Controller
@@ -21,12 +14,10 @@ class TovarBrendController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
             // $natsenka1 = natsenka::get();
             $brend = brend::where('status', 'Актив')->orderBy('brend.id', 'desc')->get();
-            return view('tovarlar.brend.index', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'brend' => $brend, 'xis_oyi' => $xis_oyi]);
+
+            return view('tovarlar.brend.index', ['brend' => $brend]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

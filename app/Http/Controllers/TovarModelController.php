@@ -2,13 +2,9 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\tmodel;
 use App\Models\tur;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 use App\Models\brend;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,13 +16,16 @@ class TovarModelController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $tur = tur::where('status', 'Актив')->get();
             $brend = brend::where('status', 'Актив')->get();
             $model = tmodel::where('status', 'Актив')->orderBy('id', 'desc')->get();
-            return view('tovarlar.model.index', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'brend' => $brend, 'xis_oyi' => $xis_oyi, 'tur' => $tur,'model'=>$model]);
+
+            return view('tovarlar.model.index', [
+                'brend' => $brend,
+                'tur' => $tur,
+                'model' => $model
+            ]);
 
         } else {
             Auth::guard('web')->logout();

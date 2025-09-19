@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Models\pastavshik;
 use App\Models\chiqim_taminot;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -22,51 +21,8 @@ class XisobotTaminotchiController extends Controller
 
 
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
 
-            $duombor = date("m", strtotime($xis_oyi));
-            switch ($duombor) {
-                case 1:
-                    $du2 = "Январь " . date("Y");
-                    break;
-                case 2:
-                    $du2 = "Февраль " . date("Y");
-                    break;
-                case 3:
-                    $du2 = "Март " . date("Y");
-                    break;
-                case 4:
-                    $du2 = "Апрель " . date("Y");
-                    break;
-                case 5:
-                    $du2 = "Май " . date("Y");
-                    break;
-                case 6:
-                    $du2 = "Июнь " . date("Y");
-                    break;
-                case 7:
-                    $du2 = "Июль " . date("Y");
-                    break;
-                case 8:
-                    $du2 = "Август " . date("Y");
-                    break;
-                case 9:
-                    $du2 = "Сентябрь " . date("Y");
-                    break;
-                case 10:
-                    $du2 = "Октябрь " . date("Y");
-                    break;
-                case 11:
-                    $du2 = "Ноябрь " . date("Y");
-                    break;
-                case 12:
-                    $du2 = "Декабрь " . date("Y");
-                    break;
-            }
-
-            return view('xisobotlar.taminotchlar', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'du2' => $du2]);
+            return view('xisobotlar.taminotchlar');
 
         }else{
             Auth::guard('web')->logout();
@@ -85,7 +41,6 @@ class XisobotTaminotchiController extends Controller
     {
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-
 
             $i = 1;
             $umzadd01s = 0;

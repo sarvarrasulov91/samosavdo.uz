@@ -22,7 +22,7 @@ class ClientController extends Controller
     public function index()
     {
         $search = request()->query('search');
-     
+
         if($search){
             $clients = mijozlar::query()
                 ->where('last_name', 'LIKE', "%$search%")
@@ -41,22 +41,13 @@ class ClientController extends Controller
         }
 
         $mfy = mfy::all();
-        $xis_oyi = xissobotoy::query()->latest('id')->value('xis_oy');
         $tuman = tuman::all();
-        
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        
+
         return view('clients.index', [
-            
-            'filial_name' => $filial_name, 
-            'lavozim_name' => $lavozim_name,
-            'xis_oyi' => $xis_oyi, 
-            'tuman' => $tuman, 
-            'mfy' => $mfy, 
+            'tuman' => $tuman,
+            'mfy' => $mfy,
             'clients' => $clients
-            
-            ]);
+        ]);
     }
 
     /**
@@ -71,9 +62,9 @@ class ClientController extends Controller
         $ishJoy = MijozlarIshJoy::all();
         $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
         $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        
+
         return view('clients.create', [
-            'filial_name' => $filial_name, 
+            'filial_name' => $filial_name,
             'lavozim_name' => $lavozim_name,
             'xis_oyi' => $xis_oyi,
             'tuman' => $tuman,
@@ -104,7 +95,7 @@ class ClientController extends Controller
         // if ($x !== $pinflDate) {
         //     return back()->with('message', 'Xatolik: Tug‘ilgan sana va PINFL mos emas!');
         // }
-        
+
         $tekshiruv = mijozlar::where(function ($query) use ($request) {
             $query->where('pinfl', $request->jshshir)
                 ->orWhere('passport_sn', $request->p_seriya . $request->p_nomer);
@@ -114,11 +105,11 @@ class ClientController extends Controller
             $vaqt = date('d.m.Y', strtotime($tekshiruv->created_at));
             return
                 "Bu mijoz bazada mavjud. <br><br>
-                $tekshiruv->last_name $tekshiruv->first_name $tekshiruv->middle_name <br><br> 
-                $vaqt kuni $tekshiruv->id nomerda ro'yhatdan o'tgan. <br><br> 
+                $tekshiruv->last_name $tekshiruv->first_name $tekshiruv->middle_name <br><br>
+                $vaqt kuni $tekshiruv->id nomerda ro'yhatdan o'tgan. <br><br>
                 Bazadan qidirib ko'ring.";
         }else{
-    
+
             $mijozlar = new mijozlar;
             $mijozlar->last_name = ucfirst(strtolower($request->last_name));
             $mijozlar->first_name = ucfirst(strtolower($request->first_name));
@@ -142,7 +133,7 @@ class ClientController extends Controller
             $mijozlar->user_id = Auth::user()->id;
             $mijozlar->filial_id = Auth::user()->filial_id;
             $mijozlar->save();
-    
+
             return redirect()->route('clients.index')->with('message', "Malumot saqlandi.");
         }
     }
@@ -169,15 +160,15 @@ class ClientController extends Controller
 
         $mfy = mfy::get();
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $viloyat = viloyat::get(); 
+        $viloyat = viloyat::get();
         $tuman = tuman::get();
         $client = mijozlar::findOrFail($id);
         $ishJoy = MijozlarIshJoy::get();
         $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
         $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        
+
         return view('clients.edit', [
-            'filial_name' => $filial_name, 
+            'filial_name' => $filial_name,
             'lavozim_name' => $lavozim_name,
             'client'=>$client,
             'xis_oyi' => $xis_oyi,
@@ -221,7 +212,7 @@ class ClientController extends Controller
             'yo_user_id' => Auth::user()->id, // Record who made the change
             'filial_id' => $oldMijoz->filial_id
         ]);
-        
+
         // change original record
         $client = mijozlar::where('id', $id)->update([
             'last_name' => ucfirst(strtolower($request->last_name)),
@@ -244,7 +235,7 @@ class ClientController extends Controller
             'kasb' => $request->kasb,
             'maosh' => $request->oylik,
            ]);
-    
+
             return redirect()->route('showClient', ['id' => $id])->with('message', "Malumot saqlandi.");
     }
 
@@ -273,9 +264,9 @@ class ClientController extends Controller
         $lavozimName = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
 
         return view('clients.show', [
-            'client' => $client, 
-            'xis_oyi' => $xis_oyi, 
-            'ishTuman' => $ishTuman, 
+            'client' => $client,
+            'xis_oyi' => $xis_oyi,
+            'ishTuman' => $ishTuman,
             'ishViloyat' => $ishViloyatName,
             'filial_name' => $filialName,
             'lavozim_name' => $lavozimName

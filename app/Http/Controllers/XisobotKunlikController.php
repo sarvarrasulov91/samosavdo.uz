@@ -24,21 +24,13 @@ class XisobotKunlikController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-
-
-        if(Auth::user()->lavozim_id==1){
+        if(Auth::user()->lavozim_id == 1){
             $filial = filial::where('status', 'Актив')->whereNotIn('id', [10])->get();
         }else{
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
         }
         return view('xisobotlar.kunlik', [
-            'filial_name' => $filial_name, 
-            'lavozim_name' => $lavozim_name, 
-            'filial' => $filial, 
-            'xis_oyi' => $xis_oyi
+            'filial' => $filial,
         ]);
     }
 
@@ -637,7 +629,7 @@ class XisobotKunlikController extends Controller
             $SPDavrOrasiAvtot += $SPDavrOrasi->avtot;
             $SPDavrOrasiJami += $SPDavrOrasi->naqd+$SPDavrOrasi->pastik+$SPDavrOrasi->hr+$SPDavrOrasi->click+$SPDavrOrasi->avtot;
         }
-        
+
         echo '<div class="row justify-content-md-center">
             <h3 class=" text-center text-primary"><b> КАССА ХИСОБОТИ</b></h3>
             <div class="col-xl-12">
@@ -694,7 +686,7 @@ class XisobotKunlikController extends Controller
                             <td class="badge-pill text-danger">' . number_format($CHDavrOrasiBron, 2, ',', ' ') . '</td>
                             <td class="badge-pill text-danger">' . number_format($TOyBoshiBron+$TDavrOrasiBron-$CHOyBoshiBron-$CHDavrOrasiBron, 2, ',', ' ') . '</td>
                         </tr>
-                        
+
                         <tr class="text-center align-middle">
                             <td><span class="text-muted fw-bold">ЖАМИ</span></td>
                             <td class="badge-pill text-primary fw-bold">' . number_format($TOyBoshiJasmi-$CHOyBoshiJami-$SPOyBoshiJami, 2, ',', ' ') . '</td>
@@ -705,7 +697,7 @@ class XisobotKunlikController extends Controller
                     </tbody>
                 </table>
             </div>';
-            
+
             //chegirma olib tashlandi
                     // <tr class="text-center align-middle">
                     //     <td><span class="text-muted">Чегирма</span></td>
@@ -715,7 +707,7 @@ class XisobotKunlikController extends Controller
                     //     <td class="badge-pill text-danger">' . number_format($TOyBoshiChegirma+$TDavrOrasiChegirma-$CHOyBoshiChegirma-$CHDavrOrasiChegirma, 2, ',', ' ') . '</td>
                     // </tr>
 
-            
+
             // Fond savdolar taxlili
 
         echo '<br><div class="row justify-content-md-center">
@@ -748,10 +740,10 @@ class XisobotKunlikController extends Controller
                 $fotnaqd = 0;
                 $fotpalatik = 0;
                 $fchegirma = 0;
-                
+
                 $fsumma0 = new savdo1($request->filial);
                 $fsumma = $fsumma0->where('fond_id', $fid)->where('status', 'Фонд')->whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->sum('msumma');
-                
+
                 $fond0 = new fond1($request->filial);
                 $fond01=$fond0->where('fond_id', $fid)->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
 
@@ -759,7 +751,7 @@ class XisobotKunlikController extends Controller
                     $fsoni++;
                     $TulovfondlarDavrOras = new tulovlar1($request->filial);
                     $TulovfondlarDavrOra=$TulovfondlarDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->where('tulovturi', 'Фонд')->where('shartnomaid', $fond0->id)->get();
-    
+
                     foreach ($TulovfondlarDavrOra as $TulovfondlarDavrOr) {
                         $fotnaqd += $TulovfondlarDavrOr->naqd;
                         $fotpalatik += $TulovfondlarDavrOr->pastik;
@@ -799,8 +791,8 @@ class XisobotKunlikController extends Controller
                         </table>
                     </div>
                     </div>';
-                    
-                    
+
+
         // Shartnomalar taxlilini korish
 
         echo '<br><div class="row justify-content-md-center">
@@ -840,20 +832,20 @@ class XisobotKunlikController extends Controller
 
 
                 $shartnoma = new shartnoma1($request->filial);
-                    
+
                 $shartnoma1 = $shartnoma->whereBetween('kun', [$boshkun, $yakunkun])
                     ->where(function($query){
                     $query->where('status', 'Актив')->orWhere('status', 'Ёпилган');
                     })->get();
-                    
+
                 foreach ($shartnoma1 as $shart) {
                     $shsoni++;
                     $savdo = new savdo1($request->filial);
                     $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
-                    
+
                     $oldindantulovinfo = new tulovlar1($request->filial);
                     $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
-                    
+
                     $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('chegirma');
 
                     $foiz = xissobotoy::where('xis_oy', $shart->xis_oyi)->value('foiz');
@@ -864,11 +856,11 @@ class XisobotKunlikController extends Controller
 
                     //йиллик фойиз
                     $foiz = (($foiz / 12) * $shart->muddat);
-                    
+
                     if ($shart->kun < "2023-12-05"){
                         $xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
                     }else{
-                        $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);  
+                        $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
                     }
 
                     $shtsumma += $savdosumma-$chegirma;
@@ -878,13 +870,13 @@ class XisobotKunlikController extends Controller
                     $ushsoni += $shsoni;
                     $ushtsumma += $shtsumma;
                     $ushqsumma += $shqsumma;
-                        
-                
+
+
                 // Yopilgan shartnomalar sonini aniqlash
-                    
+
                 $shartnoma1 = $shartnoma->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Ёпилган')->get();
                 foreach ($shartnoma1 as $shart) {
-                    
+
                     $oldindantulovinfo = new tulovlar1($request->filial);
                     $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
                     $grafiktulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
@@ -893,12 +885,12 @@ class XisobotKunlikController extends Controller
                     $jamitulov += $oldindantulov+$grafiktulov;
                     $yoshsoni ++;
                     $yoshtsumma += $savdosumma;
-                    
+
                 }
                     $uyoshsoni += $yoshsoni;
                     $uyoshsumma += $yoshtsumma;
                     $ujamitulov += $jamitulov;
-                    
+
                 echo '
                         <tr class="text-center align-middle">
                             <td>' . $filia->id . '</td>
@@ -927,7 +919,7 @@ class XisobotKunlikController extends Controller
                     </div>
                     </div>';
 
-        
+
 
         /*Naqda savdoni taxlilini korish*/
 
@@ -972,16 +964,16 @@ class XisobotKunlikController extends Controller
                 $savdosumma = $savdosumma->where('status', 'Нақд')->where('shartnoma_id', $naqd->id)->sum('msumma');
                 $nssoni ++;
                 $nssumma += $savdosumma;
-                
+
                 $naqdchegirma = new tulovlar1($filia->id);
                 $chegirmasum = $naqdchegirma->where('tulovturi', 'Нақд')->where('status', 'Актив')->where('shartnomaid', $naqd->id)->sum('chegirma');
                 $chegirmasumma += $chegirmasum;
-                
+
             }
                 $unssoni += $nssoni;
                 $unssumma += $nssumma;
                 $uchegirmasumma += $chegirmasumma;
-                
+
             $naqdsavdo1=$naqdsavdo->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Удалит')->get();
             foreach ($naqdsavdo1 as $naqd) {
                 $savdosumma = new savdo1($request->filial);
@@ -991,7 +983,7 @@ class XisobotKunlikController extends Controller
             }
                 $uyonssoni += $yonssoni;
                 $uyonssumma += $yonssumma;
-            
+
             echo '
                     <tr class="text-center align-middle">
                         <td>' . $filia->id . '</td>
@@ -1012,16 +1004,16 @@ class XisobotKunlikController extends Controller
         </tbody>
                 </table>
             </div>
-            </div>'; 
+            </div>';
 
 
             /*Naqda savdoni taxlilini tugadi*/
-            
-            
-            
-            
+
+
+
+
              /*Bonus savdoni taxlilini ko'rish*/
-             
+
             echo '<br><div class="row justify-content-md-center">
                 <h3 class=" text-center text-primary"><b>Бонус савдолар тахлили</b></h3>
                 <div class="col-xl-12">
@@ -1055,10 +1047,10 @@ class XisobotKunlikController extends Controller
                     }
                         $ubssoni += $bssoni;
                         $ubssumma += $bssumma;
-                        
-                    
+
+
                     //Bonuslar  tulov summasi sonini aniqlash
-                    $tulovlar = new tulovlar1($filia->id);  
+                    $tulovlar = new tulovlar1($filia->id);
                     $tulovlar1=$tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
                     foreach ($tulovlar1 as $tulov) {
                         $bonussavdo = new tulovlar1($filia->id);
@@ -1071,7 +1063,7 @@ class XisobotKunlikController extends Controller
 
 
                         //O'chirilgan bonus savdo sonini aniqlash
-                        
+
                     $bonussavdo2=$bonussavdo->whereBetween('del_kun', [$boshkun, $yakunkun])->where('status','Удалит')->get();
                     foreach ($bonussavdo2 as $bonus) {
                         $yobssoni ++;
@@ -1079,7 +1071,7 @@ class XisobotKunlikController extends Controller
                     }
                         $uyobssoni += $yobssoni;
                         $uyobssumma += $yobssumma;
-                    
+
                     echo '
                             <tr class="text-center align-middle">
                                 <td>' . $filia->id . '</td>
@@ -1091,7 +1083,7 @@ class XisobotKunlikController extends Controller
                             </tr>';
                 }
 
-                
+
                 echo '
                     <tr class="text-center align-middle">
                     <td></td>
@@ -1104,9 +1096,9 @@ class XisobotKunlikController extends Controller
                 </tbody>
                         </table>
                     </div>
-                    </div>'; 
-             
-             
+                    </div>';
+
+
             /*Bonus savdoni taxlilini tugadi*/
 
 

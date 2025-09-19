@@ -4,14 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use App\Models\savdobonus1;
-use App\Models\tulovlar1;
 use App\Models\savdo1;
 use App\Models\ktovar1;
 use App\Models\tmqaytarish;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -23,11 +19,11 @@ class DasturNazoratiController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
-            return view('qushmchalar.DasturNazorati', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial ]);
+
+            return view('qushmchalar.DasturNazorati', ['filial' => $filial ]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
