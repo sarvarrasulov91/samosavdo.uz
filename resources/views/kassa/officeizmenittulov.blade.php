@@ -86,7 +86,7 @@
                                 <input type="date" name="yangikun" id="yangikun" class="form-control form-control-sm text-center">
                                 <span id="yangikun_error" class="text-danger error-text"></span>
                             </div>
-                            
+
                             <div class="p-1">
                                 <label>Тулов тури
                                     <span class="text-danger">*</span>
@@ -138,7 +138,7 @@
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
-        
+
         function tabyuklash() {
                 var boshkun = $('#boshkun').val();
                 var yakunkun = $('#yakunkun').val();
@@ -163,8 +163,9 @@
                     });
                 }
             }
-            
+
         $(document).ready(function() {
+
                 $("#qidirish").keyup(function() {
                     var value = $(this).val().toLowerCase();
                     $("#tab1 tr").filter(function() {
@@ -176,8 +177,8 @@
                     placeholder: "Филиал...",
                 });
 
-                $("#yakunkun").val(new Date().toISOString().substring(0, 10));
                 $("#boshkun").val(new Date().toISOString().substring(0, 8) + '01');
+                $("#yakunkun").val(new Date().toISOString().substring(0, 10));
 
                 $('#tasdiqlash').on('click', function() {
                     var boshkun = $('#boshkun').val();
@@ -214,7 +215,7 @@
                     type: 'PUT',
                     data: formData,
                     filial: filial,
-                    
+
                     success: function(response) {
                         toastr.success(response.message);
                         $('#edit').modal('hide');
@@ -279,7 +280,7 @@
                             status: status,
                             filial2: filial
                         },
-                        
+
                         success: function(response) {
                             toastr.success(response.message);
                             var csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -292,7 +293,7 @@
                                     filial2: filial,
                                 },
                                 success: function(data) {
-                                
+
                                     // $('#shartnoma_show').modal('hide');
                                     tabyuklash();
                                 }

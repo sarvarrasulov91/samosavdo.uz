@@ -70,7 +70,7 @@ class SHartnomaOfficeController extends Controller
             $tulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
 
 
-            $tsana = date('d.m.Y', strtotime($shartnom->t_sana));
+            $tsana = date('d.m.Y', strtotime($shartnom->mijozlar->t_sana));
             $kun = date('d.m.Y', strtotime($shartnom->kun));
             $muddat = number_format($shartnom->muddat, 0, ',', ' ');
             $shsana = number_format($savdosumma, 2, ',', ' ');
@@ -166,9 +166,7 @@ class SHartnomaOfficeController extends Controller
                                         <span>Тугилган йили</span>
                                         <p class="text-primary">' . $tsana . '</p>
                                     </li>
-                                    <div class="text-center p-1">
-                                        <button id="shyopish" data-shid="'.$shartnom->id.'" type="button" class="btn btn-danger light text-center">Шартномани муддатидан олдин ёпиш </button>
-                                    </div>
+
                                 </ul>
                             </div>
                         </div>
@@ -227,6 +225,12 @@ class SHartnomaOfficeController extends Controller
                             }
                             echo'
                         </ul>
+                    </div>
+                </div>
+                <div class="col-xl-12">
+                    <div class="text-center p-1">
+                        <button id="shartnoma_delete" data-shid="'.$shartnom->id.'" type="button" class="btn btn-danger light text-center">Shartnomani udalit qilish </button>
+                        <button id="shartnoma_yopish" data-shid="'.$shartnom->id.'" type="button" class="btn btn-success light text-center m-3">Shartnomani yopish </button>
                     </div>
                 </div>
             </div>
@@ -508,8 +512,11 @@ class SHartnomaOfficeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
+        $startDate = $request->get('startDate');
+        $endDate = $request->get('endDate');
+
          echo'
             <table
                 class="table table-bordered text-center align-middle table-hover"
@@ -531,13 +538,17 @@ class SHartnomaOfficeController extends Controller
 
                     $jami = 0;
                     $model = new shartnoma1($id);
-                    $shartnoma = $model->whereIn('status', ['Актив', 'Ёпилган'])->orderBy('id', 'desc')->get();
+                    $shartnoma = $model->whereIn('status', ['Актив', 'Ёпилган'])
+                        ->whereBetween('kun', [$startDate, $endDate])
+                        ->orderBy('id', 'desc')
+                        ->get();
+
                     foreach ($shartnoma as $shartnom){
 
                         $trClass = ($shartnom->status == 'Ёпилган') ? 'align-middle text-success' : 'align-middle';
 
                         $savdo = new savdo1($id);
-                        $savdosummasi=$savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $savdosummasi = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
                         $oldindantulov = new tulovlar1($id);
                         $oldindantulovsummasi = $oldindantulov->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
@@ -941,8 +952,6 @@ class SHartnomaOfficeController extends Controller
                     return response()->json(['message' => 'Тўлов бронга олинди.'], 200);
                 }
 
-                return response()->json(['message' => "Tulovni o'chirishda xatolik"], 200);
-
             } else {
 
                 return response()->json(['message' => "Yuborilgan statusda xatolik"], 200);
@@ -955,48 +964,99 @@ class SHartnomaOfficeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+        $filial = $request->filial;
+        $shStatus = $request->shStatus;
 
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $oldindantulov = 0;
-            $tulov = 0;
-            $savdosumma = 0;
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $tulovlar = new tulovlar1(1);
-            $oldindantulov = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-            $tulov = $tulovlar->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
+            if ($shStatus == 'shartnoma_delete') {
 
-            $savdolar = new savdo1(1);
-            $savdosumma = $savdolar->where('status', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('msumma');
+                $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            if($oldindantulov == 0 && $tulov == 0 && $savdosumma == 0){
-                $shartnoma = new shartnoma1(1);
-                $shartnoma1 = $shartnoma->where('id', $id)->where('status', 'Актив')
-                ->update([
-                    'izox' => "Шартнома мажбурий шакилда ёпилди",
-                    'status' => 'Удалит',
-                    'yo_sana' => now(),
-                    'yo_xis_oyi' => $xis_oyi,
-                    'yo_user_id' => Auth::user()->id,
-                    'skidka' => 0,
-                ]);
+                $tulovlar = new tulovlar1($filial);
+                $oldindantulov = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
+                $tulov = $tulovlar->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
 
-                if ($shartnoma1) {
-                    $message = 'Шартнома мажбурий шакилда ёпилди.';
-                } else {
+                $savdolar = new savdo1($filial);
+                $savdosumma = $savdolar->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
 
-                    $message = "Шартномани ёпишда хатолик. $shartnoma";
+                if($oldindantulov == 0 && $tulov == 0 && $savdosumma == 0){
+
+                    $shartnoma = new shartnoma1($filial);
+                    $shartnoma1 = $shartnoma->where('id', $id)->where('status', 'Актив')
+                        ->update([
+                            'izox' => "Shartnoma majburiy tarzda uchirildi",
+                            'status' => 'Удалит',
+                            'yo_sana' => now(),
+                            'yo_xis_oyi' => $xis_oyi,
+                            'yo_user_id' => Auth::id(),
+                            'skidka' => 0,
+                        ]);
+
+                    if ($shartnoma1) {
+                        $message = 'Shartnoma majburiy tarzda uchirildi';
+                    } else {
+
+                        $message = "Xatolik. $shartnoma";
+                    }
+
+                }else{
+                    $message = "Шартномани ёпишдан олдин товарларни ва туловларни кайтаринг.";
                 }
 
-            }else{
-                $message = "Шартномани ёпишдан олдин товарларни ва туловларни кайтаринг.";
+                return response()->json(['message' => $message], 200);
+
+            } elseif ($shStatus == 'shartnoma_yopish') {
+
+                $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+
+                $shartnoma = new shartnoma1($filial);
+                $shartnom = $shartnoma->where('id', $id)->where('status', 'Актив')->first();
+
+                $tulovlar = new tulovlar1($filial);
+                $oldindantulov = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
+                $chegirma = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('chegirma');
+                $tulov = $tulovlar->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
+
+                $savdolar = new savdo1($filial);
+                $savdosumma = $savdolar->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
+
+                $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
+
+                if($shartnom->fstatus == 0){
+                    $foiz = 0;
+                }
+                //йиллик фойиз
+                $foiz = (($foiz / 12) * $shartnom->muddat);
+                $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
+
+                $umumiySumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
+
+                $skidka = $umumiySumma - $tulov;
+
+                $shartnom->update([
+                    'izox' => "Shartnoma chegirma bilan yopildi",
+                    'status' => 'Ёпилган',
+                    'yo_sana' => now(),
+                    'yo_xis_oyi' => $xis_oyi,
+                    'yo_user_id' => Auth::id(),
+                    'skidka' => round($skidka, 0),
+                ]);
+
+                if ($shartnom) {
+                    $message = 'Shartnoma chegirma bilan yopildi';
+                } else {
+
+                    $message = "Shartnomani yopishda xatolik. $shartnom->id";
+                }
+
+                return response()->json(['message' => $message], 200);
             }
 
-            return response()->json(['message' => $message], 200);
         }else{
-            return response()->json(['message' => "Хатолик!!! <br> Шартномани ўчириш учун админга мурожат қилинг."], 200);
+            return response()->json(['message' => "Xatolik. Adminga murojaat qiling."], 200);
         }
 
     }

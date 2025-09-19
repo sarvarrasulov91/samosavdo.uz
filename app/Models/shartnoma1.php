@@ -13,6 +13,7 @@ class shartnoma1 extends Model
     use HasFactory;
 
     protected $table = [];
+    protected $guarded = [];
 
     function __construct($filialid=null, array $attributes = [] )
     {
@@ -25,7 +26,7 @@ class shartnoma1 extends Model
     {
         return $this->belongsTo(mijozlar::class);
     }
-    
+
     public function User(): BelongsTo
     {
         return $this->belongsTo(User::class);
