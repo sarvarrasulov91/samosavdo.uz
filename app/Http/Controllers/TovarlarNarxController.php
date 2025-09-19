@@ -18,11 +18,9 @@ class TovarlarNarxController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         $model = ktovar1::where('status', 'Сотилмаган')->orderBy('id', 'desc')->get();
-        return view('tovarlar.narx', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'model' => $model, 'xis_oyi' => $xis_oyi]);
+
+        return view('tovarlar.narx', ['model' => $model]);
     }
 
     /**
@@ -84,11 +82,7 @@ class TovarlarNarxController extends Controller
                 array_push($array, $arrayitem);
             }
 
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-
-            return view('tovarlar.narxpechat', ['arrayid' => $array, 'filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi]);
+            return view('tovarlar.narxpechat', ['arrayid' => $array]);
         }
     }
 

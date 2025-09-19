@@ -25,9 +25,7 @@ class NaqdSavdoController extends Controller
      */
     public function index()
     {
-
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-
             $mijozlar = mijozlar::where('status', '1')->where('m_type', '1')->get();
             $savdounix_id = savdo1::select('unix_id')->where('status', 'Актив')->orderBy('unix_id', 'desc')->groupBy('unix_id')->get();
             return view('kassa.naqdsavdo', ['savdounix_id' => $savdounix_id, 'mijozlar' => $mijozlar]);

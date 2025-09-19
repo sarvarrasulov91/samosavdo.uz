@@ -22,15 +22,17 @@ class KirimTovarOmborController extends Controller
 
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
 
             $model = ktovar1::
             whereNotIn('status', ['Актив', 'Удалит'])
             ->where('xis_oyi', $xis_oyi)
             ->orderBy('id', 'desc')->get();
 
-            return view('tovarlar.omborkirim', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi,'model'=>$model]);
+            return view('tovarlar.omborkirim', [
+                'xis_oyi' => $xis_oyi,
+                'model' => $model
+            ]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -61,7 +63,7 @@ class KirimTovarOmborController extends Controller
                 ->limit(1)
                 ->update([
                     'status' => 'Сотилмаган',
-                    'k_kun' => date('Y-m-d H:i:s'),
+                    'k_kun' => now(),
                     'k_user_id' => Auth::user()->id
                 ]);
 

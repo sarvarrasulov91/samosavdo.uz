@@ -19,7 +19,7 @@ class BlackListClientController extends Controller
     public function index()
     {
         $search = request()->query('search');
-     
+
         if($search){
             $clients = mijozlar::where(function ($query) use ($search){
                 $query->where('last_name', 'LIKE', "%$search%")
@@ -38,19 +38,11 @@ class BlackListClientController extends Controller
         }
 
         $mfy = mfy::get();
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $tuman = tuman::get();
-        
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        
+
         return view('clients.BlackListClient', [
-            
-            'filial_name' => $filial_name, 
-            'lavozim_name' => $lavozim_name,
-            'xis_oyi' => $xis_oyi, 
-            'tuman' => $tuman, 
-            'mfy' => $mfy, 
+            'tuman' => $tuman,
+            'mfy' => $mfy,
             'clients' => $clients
             ]);
     }

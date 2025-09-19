@@ -5,9 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ktovar1;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 
 
 class TovarlarJamiController extends Controller
@@ -18,9 +15,9 @@ class TovarlarJamiController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            
+
             $model2 = ktovar1::where('status', 'Сотилмаган')->orderBy('id', 'desc')->get();
-            
+
             return view('tovarlar.jamitovarlar', [
                 'model2'=>$model2
                 ]);
@@ -45,21 +42,21 @@ class TovarlarJamiController extends Controller
      */
     public function store(Request $request)
     {
-        
+
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
             $ttovarlar = $request->belginatija;
             if ($ttovarlar == null) {
                 return redirect()->route('barcod.index');
             } else {
-                
+
                 $array = [];
-                
+
                 foreach ($ttovarlar as $ttovarla) {
-                
+
                     $model = ktovar1::where('id', $ttovarla)->get();
-                
+
                     foreach ($model as $mode) {
-                
+
                         $arrayitem = [
                             "id" => $mode->id,
                             "tmodel_id" => $mode->tmodel_id,
@@ -69,11 +66,11 @@ class TovarlarJamiController extends Controller
                             "kun" => date('d.m.Y', strtotime($mode->kun)),
                             "shtrix_kod" => $mode->shtrix_kod,
                         ];
-                
+
                         array_push($array, $arrayitem);
                     }
-                }                
-                
+                }
+
                 return view('tovarlar.barcodpechat', ['arrayid' => $array]);
             }
         }else{
@@ -81,7 +78,7 @@ class TovarlarJamiController extends Controller
             session()->invalidate();
             session()->regenerateToken();
             return redirect('/');
-        }        
+        }
 
     }
 

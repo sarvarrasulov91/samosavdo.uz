@@ -18,11 +18,11 @@ class TovarQoldigiOfficeController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->get();
-            return view('tovarlar.tovarlartahlili', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial]);
+
+            return view('tovarlar.tovarlartahlili', ['filial' => $filial]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

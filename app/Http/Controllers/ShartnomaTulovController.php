@@ -8,10 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\tulovlar1;
 use App\Models\shartnoma1;
 use App\Models\savdo1;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 use DateTime;
@@ -23,13 +21,9 @@ class ShartnomaTulovController extends Controller
      */
     public function index()
     {
-
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-            $shartnoma = shartnoma1::where('.status', 'Актив')->orderBy('.id', 'desc')->get();
-            return view('kassa.shartnomatulov', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'shartnoma' => $shartnoma]);
+            $shartnoma = shartnoma1::where('status', 'Актив')->orderBy('id', 'desc')->get();
+            return view('kassa.shartnomatulov', ['shartnoma' => $shartnoma]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -104,7 +98,7 @@ class ShartnomaTulovController extends Controller
     public function store(Request $request)
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            
+
             $rules = [
                 'yangikun' => 'required',
                 'mijoz' => 'required',
@@ -155,7 +149,7 @@ class ShartnomaTulovController extends Controller
                 $id = $request->mijoz;
                 $shartnoma = shartnoma1::where('id', $id)->get();
                 foreach ($shartnoma as $shartnom) {
-                    
+
                     $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
                     if($shartnom->fstatus == 0){
@@ -170,40 +164,34 @@ class ShartnomaTulovController extends Controller
                     //йиллик фойиз
                     $foiz = (($foiz / 12) * $shartnom->muddat);
                     $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-                    
+
                     $umumiySumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
 
-                    $date111 = new DateTime($shartnom->kun);
-                    $date222 = new DateTime($shartnom->tug_sana);
-                    $interval = $date111->diff($date222);
+                    $date1 = new DateTime($shartnom->kun);
+                    $date2 = new DateTime($shartnom->tug_sana);
+                    $interval = $date1->diff($date2);
                     $dukun = $interval->days;
                     $birkunlikfoiz = $xis_foiz / $dukun;
 
                     $krxiob22 = 0;
-                    
-                    if ($shartnom->tug_sana >= date("Y-m-d")) {
-                        
-                        $date1111 = new DateTime($shartnom->kun);
-                        $date2222 = new DateTime(date("Y-m-d"));
-                        $interval1 = $date1111->diff($date2222);
+                    $joqarz = $umumiySumma - $tulov;
+
+                    if ( date("Y-m-d") <= $shartnom->tug_sana) {
+                        $date22 = new DateTime(date("Y-m-d"));
+                        $interval1 = $date1->diff($date22);
                         $dukun22 = $interval1->days;
                         $krxiob22 = $xis_foiz - ($birkunlikfoiz * $dukun22);
                         $joqarz = ($umumiySumma - $tulov - $krxiob22);
-                        
-                    } else {
-                        
-                        $joqarz = $umumiySumma - $tulov;
-                        
                     }
-                    
-                    $skidka = $krxiob22;
+
+                    $skidka = $umumiySumma - $tulov;
 
                     if ($joqarz <= 0) {
                         $fond = shartnoma1::where('id', $id)->where('status', 'Актив')->update([
                             'status' => 'Ёпилган',
                             'izox' => 'Тўлик тўланганлиги учун',
                             'yo_user_id' => Auth::user()->id,
-                            'yo_sana' => date('Y-m-d H:i:s'),
+                            'yo_sana' => now(),
                             'yo_xis_oyi' => $xis_oyi,
                             'skidka' => $skidka,
                         ]);
@@ -306,12 +294,12 @@ class ShartnomaTulovController extends Controller
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px;">Тўлов сана:</td>
                                 <td colspan="3" style="border: 1px solid black; border-collapse: collapse; padding: 1px;"><b>'.$tulovla->created_at.'</b></td>
                             </tr>
-                            
+
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px;">Тўловчи:</td>
                                 <td colspan="5"><b>'.$tulovla->shartnoma1->mijozlar->last_name.' '.$tulovla->shartnoma1->mijozlar->first_name.' '.$tulovla->shartnoma1->mijozlar->middle_name.'</b></td>
                             </tr>
-                            
+
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px; text-align: center; font-size: 7pt; text-align: center;" colspan="6">
                                     <b>'.date('d.m.Y', strtotime($tulovla->shartnoma1->kun)). ' кунги № ' .$tulovla->shartnomaid.' - сонли шартномага асосан</b>
@@ -363,12 +351,12 @@ class ShartnomaTulovController extends Controller
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px;">Тўлов сана:</td>
                                 <td colspan="3" style="border: 1px solid black; border-collapse: collapse; padding: 1px;"><b>'.$tulovla->created_at.'</b></td>
                             </tr>
-                            
+
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px;">Тўловчи:</td>
                                 <td colspan="5"><b>'.$tulovla->shartnoma1->mijozlar->last_name.' '.$tulovla->shartnoma1->mijozlar->first_name.' '.$tulovla->shartnoma1->mijozlar->middle_name.'</b></td>
                             </tr>
-                            
+
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px; text-align: center; font-size: 7pt; text-align: center;" colspan="6">
                                     <b>'.date('d.m.Y', strtotime($tulovla->shartnoma1->kun)). ' кунги № ' .$tulovla->shartnomaid.' - сонли шартномага асосан</b>
@@ -405,7 +393,7 @@ class ShartnomaTulovController extends Controller
                     </table>
                 </div>
             </div>
-            
+
             ';
         };
         return ;

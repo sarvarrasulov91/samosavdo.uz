@@ -22,21 +22,14 @@ class KunlikTaxlilController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        
+
         if((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив'){
-            
             $filial = filial::where('status', 'Актив')->whereNotIn('id', [10])->get();
-            
         }else{
-            
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
-            
         }
-        
-        return view('xisobotlar.kunliktaxlil', ['filial' => $filial, 'xis_oyi' => $xis_oyi, 'lavozim_name' => $lavozim_name, 'filial_name' => $filial_name]);
+
+        return view('xisobotlar.kunliktaxlil', ['filial' => $filial]);
     }
 
     /**
@@ -55,7 +48,7 @@ class KunlikTaxlilController extends Controller
 
         $boshkun = $request->boshkun;
         $yakunkun = $request->yakunkun;
-        
+
         // Shartnomalar taxlili ko'rish
 
         echo '<br><div class="row justify-content-md-center">
@@ -102,17 +95,17 @@ class KunlikTaxlilController extends Controller
                 $shqsumma = 0;
                 $fil_soni++;
 
-                $shartnoma = new shartnoma1($filia->id);  
+                $shartnoma = new shartnoma1($filia->id);
                 $shartnoma1 = $shartnoma->whereBetween('kun', [$boshkun, $yakunkun])
                 ->where(function($query) {
                     $query->where('status','Актив')->orWhere('status', 'Ёпилган');
                 })->get();
-                
+
                 foreach ($shartnoma1 as $shart) {
                     $shsoni++;
                     $savdo = new savdo1($filia->id);
                     $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
-                    
+
                     $oldindantulovinfo = new tulovlar1($filia->id);
                     $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
                     $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('chegirma');
@@ -126,9 +119,9 @@ class KunlikTaxlilController extends Controller
 
                     //йиллик фойиз
                     $foiz = (($foiz / 12) * $shart->muddat);
-                    
+
                     $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-                  
+
                     $shtsumma += $savdosumma - $chegirma;
                     $shqsumma += $savdosumma - $oldindantulov - $chegirma + $xis_foiz;
 
@@ -136,17 +129,17 @@ class KunlikTaxlilController extends Controller
                 $ushsoni += $shsoni;
                 $ushtsumma += $shtsumma;
                 $ushqsumma += $shqsumma;
-                    
+
                 // naqd savdo taxlilini aniqlash
-                    
+
                 $nssoni = 0;
                 $nssumma = 0;
                 $nchegirmasumma = 0;
-                
+
                 $naqdsavdo = new naqdsavdo1($filia->id);
                 $naqdsavdo1 = $naqdsavdo->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
                 foreach ($naqdsavdo1 as $naqd) {
-                    
+
                     $savdosumma = new savdo1($filia->id);
                     $savdosumma = $savdosumma->where('status', 'Нақд')->where('shartnoma_id', $naqd->id)->sum('msumma');
                     $nssoni++;
@@ -160,7 +153,7 @@ class KunlikTaxlilController extends Controller
                     $unssoni += $nssoni;
                     $unssumma += $nssumma;
                     $unchegirmasumma += $nchegirmasumma;
-                    
+
                 // fond savdo taxlilini aniqlash
                 $fssoni = 0;
                 $fssumma = 0;
@@ -169,7 +162,7 @@ class KunlikTaxlilController extends Controller
                 $fondsavdo = new fond1($filia->id);
                 $fondsavdo1 = $fondsavdo->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
                 foreach ($fondsavdo1 as $fond) {
-                    
+
                     $fsavdosumma = new savdo1($filia->id);
                     $fsavdosumma = $fsavdosumma->where('status', 'Фонд')->where('shartnoma_id', $fond->id)->sum('msumma');
                     $fssoni++;
@@ -191,7 +184,7 @@ class KunlikTaxlilController extends Controller
                     $btsoni=0;
                     $btsumma=0;
 
-                $savdobonus = new savdobonus1($filia->id);  
+                $savdobonus = new savdobonus1($filia->id);
                 $savdobonus1 = $savdobonus->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
                 foreach ($savdobonus1 as $bonus) {
                     $bssoni ++;
@@ -201,8 +194,8 @@ class KunlikTaxlilController extends Controller
                     $ubssumma += $bssumma;
 
                 //Bonuslar  tulov summasi sonini aniqlash
-                
-                $tulovlar = new tulovlar1($filia->id);  
+
+                $tulovlar = new tulovlar1($filia->id);
                 $tulovlar1 = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
                 foreach ($tulovlar1 as $tulov) {
                     $bonussavdo = new tulovlar1($filia->id);
@@ -250,9 +243,9 @@ class KunlikTaxlilController extends Controller
         </tbody>
                 </table>
             </div>
-            </div>'; 
+            </div>';
 
-    return;                
+    return;
 
     }
 
