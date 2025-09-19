@@ -358,98 +358,98 @@ class SHartnomaOfficeController extends Controller
             </table>
             <br>
             <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартнома учун тўланган тўловлар</h5>
-                <table class="table table-hover table-bordered text-center text-muted">
-                  	<thead>
-                 	   <tr class="text-primary">
-            	   	  		<th>№</th>
-                            <th>Номи</th>
-            		   		<th>Куни</th>
-            		   		<th>Нақд</th>
-            		   		<th>Платик</th>
-                            <th>Х-р</th>
-                            <th>Клик</th>
-                            <th>Бонус</th>
-            		   		<th>Жами</th>
-                            <th>Холати</th>
-                            <th></th>
-                    	</tr>
-                	</thead>
-                  	<tbody id="tab1">';
+            <table class="table table-hover table-bordered text-center text-muted">
+                <thead>
+                   <tr class="text-primary">
+                        <th>№</th>
+                        <th>Номи</th>
+                        <th>Куни</th>
+                        <th>Нақд</th>
+                        <th>Пластик</th>
+                        <th>Х-р</th>
+                        <th>Клик</th>
+                        <th>Бонус</th>
+                        <th>Жами</th>
+                        <th>Холати</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tab1">';
 
 
-                        $tulovlar = new tulovlar1($filial);
-                        $tulovlar = $tulovlar->where('shartnomaid', $shartnom->id)
-                            ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
-                            ->orderByDesc('id')
-                            ->get();
+                    $tulovlar = new tulovlar1($filial);
+                    $tulovlar = $tulovlar->where('shartnomaid', $shartnom->id)
+                        ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
+                        ->orderByDesc('id')
+                        ->get();
 
-                        $i = 1;
-                        $totals = [
-                            'naqd' => 0,
-                            'pastik' => 0,
-                            'hr' => 0,
-                            'click' => 0,
-                            'avtot' => 0,
-                        ];
+                    $i = 1;
+                    $totals = [
+                        'naqd' => 0,
+                        'pastik' => 0,
+                        'hr' => 0,
+                        'click' => 0,
+                        'avtot' => 0,
+                    ];
 
-                        foreach ($tulovlar as $t) {
-                            $isActive = $t->status === 'Актив' && in_array($t->tulovturi, ['Шартнома', 'Олдиндан тўлов']);
-                            $rowClass = $isActive ? '' : 'text-danger';
+                    foreach ($tulovlar as $t) {
+                        $isActive = $t->status === 'Актив' && in_array($t->tulovturi, ['Шартнома', 'Олдиндан тўлов']);
+                        $rowClass = $isActive ? '' : 'text-danger';
 
-                            if ($isActive) {
-                                $totals['naqd']  += $t->naqd;
-                                $totals['pastik']+= $t->pastik;
-                                $totals['hr']    += $t->hr;
-                                $totals['click'] += $t->click;
-                                $totals['avtot'] += $t->avtot;
-                            }
-
-                            $rowTotal = $t->naqd + $t->pastik + $t->hr + $t->click + $t->avtot;
-
-                            echo "
-                            <tr class='text-center align-middle {$rowClass}'>
-                                <td>{$i}</td>
-                                <td>{$t->tulovturi}</td>
-                                <td>" . date('d.m.Y', strtotime($t->kun)) . "</td>
-                                <td>" . number_format($t->naqd, 0, ',', ' ') . "</td>
-                                <td>" . number_format($t->pastik, 0, ',', ' ') . "</td>
-                                <td>" . number_format($t->hr, 0, ',', ' ') . "</td>
-                                <td>" . number_format($t->click, 0, ',', ' ') . "</td>
-                                <td>" . number_format($t->avtot, 0, ',', ' ') . "</td>
-                                <td>" . number_format($rowTotal, 0, ',', ' ') . "</td>
-                                <td>{$t->status}</td>
-                                <td>
-                                    <button
-                                        id='tulov_uchrish'
-                                        data-tulovid='{$t->id}'
-                                        data-filial='{$filial}'
-                                        data-shid='{$shartnom->id}'
-                                        type='button'
-                                        class='btn btn-outline-danger btn-sm ms-2'>
-                                        <i class='flaticon-381-substract-1'></i>
-                                    </button>
-                                </td>
-                            </tr>";
-                            $i++;
+                        if ($isActive) {
+                            $totals['naqd']  += $t->naqd;
+                            $totals['pastik']+= $t->pastik;
+                            $totals['hr']    += $t->hr;
+                            $totals['click'] += $t->click;
+                            $totals['avtot'] += $t->avtot;
                         }
-                        echo'
-                            <tr class="text-center align-middle fw-bold">
-                                <td></td>
-                                <td>ЖАМИ</td>
-                                <td></td>
-                                <td> '.number_format($totals['naqd'], 0, ',', ' ').'</td>
-                                <td> '.number_format($totals['pastik'], 0, ',', ' ').' </td>
-                                <td> '.number_format($totals['hr'], 0, ',', ' ').' </td>
-                                <td> '.number_format($totals['click'], 0, ',', ' ').' </td>
-                                <td> '.number_format($totals['avtot'], 0, ',', ' ').' </td>
-                                <td> '.number_format(array_sum($totals), 0, ',', ' ').' </td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                    </tbody>
-                </table>
-                <br>
-                <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>';
+
+                        $rowTotal = $t->naqd + $t->pastik + $t->hr + $t->click + $t->avtot;
+
+                        echo "
+                        <tr class='text-center align-middle {$rowClass}'>
+                            <td>{$i}</td>
+                            <td>{$t->tulovturi}</td>
+                            <td>" . date('d.m.Y', strtotime($t->kun)) . "</td>
+                            <td>" . number_format($t->naqd, 0, ',', ' ') . "</td>
+                            <td>" . number_format($t->pastik, 0, ',', ' ') . "</td>
+                            <td>" . number_format($t->hr, 0, ',', ' ') . "</td>
+                            <td>" . number_format($t->click, 0, ',', ' ') . "</td>
+                            <td>" . number_format($t->avtot, 0, ',', ' ') . "</td>
+                            <td>" . number_format($rowTotal, 0, ',', ' ') . "</td>
+                            <td>{$t->status}</td>
+                            <td>
+                                <button
+                                    id='tulov_uchrish'
+                                    data-tulovid='{$t->id}'
+                                    data-filial='{$filial}'
+                                    data-shid='{$shartnom->id}'
+                                    type='button'
+                                    class='btn btn-outline-danger btn-sm ms-2'>
+                                    <i class='flaticon-381-substract-1'></i>
+                                </button>
+                            </td>
+                        </tr>";
+                        $i++;
+                    }
+                    echo'
+                        <tr class="text-center align-middle fw-bold">
+                            <td></td>
+                            <td>ЖАМИ</td>
+                            <td></td>
+                            <td> '.number_format($totals['naqd'], 0, ',', ' ').'</td>
+                            <td> '.number_format($totals['pastik'], 0, ',', ' ').' </td>
+                            <td> '.number_format($totals['hr'], 0, ',', ' ').' </td>
+                            <td> '.number_format($totals['click'], 0, ',', ' ').' </td>
+                            <td> '.number_format($totals['avtot'], 0, ',', ' ').' </td>
+                            <td> '.number_format(array_sum($totals), 0, ',', ' ').' </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                </tbody>
+            </table>
+            <br>
+            <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>';
 
             $savdo = new savdo1($filial);
             $savdomodel = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
