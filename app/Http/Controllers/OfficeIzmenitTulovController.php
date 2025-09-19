@@ -21,13 +21,9 @@ class OfficeIzmenitTulovController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        $xis_oy = xissobotoy::get();
         $valyuta = valyuta::get();
         $filial = filial::where('status', 'Актив')->where('id', '!=', '10')->get();
-        return view('kassa.officeizmenittulov', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial, 'valyuta'=> $valyuta]);
+        return view('kassa.officeizmenittulov', ['filial' => $filial, 'valyuta' => $valyuta]);
     }
 
     /**
@@ -69,7 +65,7 @@ class OfficeIzmenitTulovController extends Controller
                 </tr>
             </thead>
             <tbody id="tab1">';
-            
+
         $jamiNaqd = 0;
         $jamiPlastik = 0;
         $jamiXR = 0;
@@ -78,24 +74,24 @@ class OfficeIzmenitTulovController extends Controller
         $jamiChegirma = 0;
         $jamiSumma = 0;
         $filial = $request->filial;
-        
+
         foreach ($tulovlar1 as $tulov) {
             $shartnoma1 = new shartnoma1($request->filial);
-            
+
             if ($tulov->tulovturi == 'Нақд'){
                 $shartnoma1 = new naqdsavdo1($request->filial);
             }
-            
+
             if ($tulov->tulovturi != 'Брон'){
-            
+
                 $shartnoma = $shartnoma1->where('id', $tulov->shartnomaid)->first();
                 $mijozlar = mijozlar::where('id', $shartnoma->mijozlar_id)->first();
                 $mijozName = $mijozlar->last_name . ' ' . $mijozlar->first_name . ' ' . $mijozlar->middle_name;
-        
+
             }else{
                 $mijozName = "";
             }
-            
+
             echo '
                 <tr class="text-center align-middle">
                     <td>' . $tulov->id . '</td>
@@ -112,13 +108,13 @@ class OfficeIzmenitTulovController extends Controller
                     <td>' . number_format($tulov->umumiysumma, 0, ',', ' ') . '</td>
                     <td>
                         <button id="tulovedit" class="btn btn-outline-primary btn-sm me-2 "
-                        data-filial="' . $filial . '" 
-                        data-id="' . $tulov->id . '" 
+                        data-filial="' . $filial . '"
+                        data-id="' . $tulov->id . '"
                         data-kun="' . $tulov->kun . '"
                         data-tulov_turi="' . $tulov->tulovturi . '"
                         data-shartnoma_id="' . $tulov->shartnomaid . '"
                         data-naqd="' . $tulov->naqd . '"
-                        data-pastik="' . $tulov->pastik . '" 
+                        data-pastik="' . $tulov->pastik . '"
                         data-hr="' . $tulov->hr . '"
                         data-click="' . $tulov->click . '"
                         data-avtot="' . $tulov->avtot . '"
@@ -132,7 +128,7 @@ class OfficeIzmenitTulovController extends Controller
                         data-filial="' . $filial . '" data-tulov_id="' . $tulov->id . '" ><i class="flaticon-381-substract-1"></i></button>
                     </td>
                 </tr>';
-                
+
             $jamiNaqd += $tulov->naqd;
             $jamiPlastik += $tulov->pastik;
             $jamiXR += $tulov->hr;
@@ -206,7 +202,7 @@ class OfficeIzmenitTulovController extends Controller
                     ]);
                 return response()->json(['message' => "To'lov bronga olindi."], 200);
             }
-           
+
         }else{
             $rules = [
                 'filial2' => 'required',
@@ -239,7 +235,7 @@ class OfficeIzmenitTulovController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
-            
+
             if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
                 $tulovlar = new tulovlar1($request->filial2);
                 $tulovlar1 = $tulovlar->where('id', $id)->where('status', 'Актив')->first();
@@ -262,15 +258,15 @@ class OfficeIzmenitTulovController extends Controller
                     return response()->json(['message' => 'Хато малумот киритилди.'], 200);
                 }
 
-                    
+
             }else{
                 return response()->json(['message' => "Xatolik. Adminga murojaat qiling."], 200);
-                
+
                 // Auth::guard('web')->logout();
                 // session()->invalidate();
                 // session()->regenerateToken();
                 // return redirect('/');
-            } 
+            }
         }
     }
 

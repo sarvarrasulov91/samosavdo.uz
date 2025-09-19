@@ -17,29 +17,34 @@
                 <div class="col-12">
                     <div class="card h-auto">
                         <div class="page-titles">
-                            <li id="select_div" class="nav-item" role="presentation">
-                                <select id="filial" name="filial" class="multi-select form-control">
-                                    <option value="10">Филиал...</option>
-                                    @foreach ($filial as $filia)
-                                        <option value="{{ $filia->id }}">{{ $filia->fil_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </li>
-                            <style>
-                                #select_div {
-                                    width: 150px !important;
-                                }
-                            </style>
-                            <ol class="breadcrumb">
-                                <li>
-                                    <h5 class="bc-title text-primary">
-                                        Шартномалар рўйхати
-                                    </h5>
-                                </li>
-                            </ol>
-                            <li class="nav-item" role="presentation">
-                            </li>
+                            <div class="row w-100">
+                                <div class="col-xl-1">
+                                    <input type="date" name="boshkun" class="form-control form-control-sm" id="boshkun"
+                                           placeholder=" ">
+                                </div>
+                                <div class="col-xl-1">
+                                    <input type="date" name="yakunkun" class="form-control form-control-sm"
+                                           id="yakunkun" placeholder=" ">
+                                </div>
+                                <div class="col-xl-2">
+                                    <select id="filial" name="filial" class="multi-select form-control">
+                                        <option value="0">Филиал...</option>
+                                        @foreach ($filial as $filia)
+                                            <option value="{{ $filia->id }}">{{ $filia->fil_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-xl-1">
+                                    <button id="tasdiqlash" class="btn btn-primary btn-xs"> Тасдиқлаш </button>
+                                </div>
+                                <div class="col-xl-5">
+
+                                </div>
+                                <div class="col-xl-1">
+                                    <button id="btnExportexcel" class="btn btn-success btn-xs ms-2"> Excel </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="people-list dz-scroll" id="tabprosfil">
@@ -79,7 +84,20 @@
             function tabyuklash() {
 
                 var id = $('#filial').val();
+                var startDate = $('#boshkun').val();
+                var endDate = $('#yakunkun').val();
+
                 var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+                if (boshkun > yakunkun) {
+                    alert("Sanada xatolik!");
+                    return;
+                }
+
+                if (id <= 0) {
+                    alert("Filialni tanlang!");
+                    return;
+                }
 
                 if (id > 0) {
                     $.ajax({
@@ -87,6 +105,8 @@
                         method: "GET",
                         data: {
                             filial: id,
+                            startDate: startDate,
+                            endDate: endDate,
                             _token: csrf
                         },
                         success: function(data) {
@@ -100,7 +120,6 @@
 
             $(document).ready(function() {
 
-                tabyuklash();
                 $("#qidirish").keyup(function() {
                     var value = $(this).val().toLowerCase();
                     $("#tab1 tr").filter(function() {
@@ -108,13 +127,15 @@
                     })
                 })
 
-                $("#filial").change(function() {
-                    tabyuklash();
-                });
-
                 $('#filial').select2();
+
+                $("#boshkun").val(new Date().toISOString().substring(0, 8) + '01');
+                $("#yakunkun").val(new Date().toISOString().substring(0, 10));
             })
 
+            $('#tasdiqlash').on('click', function() {
+                tabyuklash();
+            })
 
             $(document).on('click', '#modalshartshow', function() {
                 $('#shartnoma_show').modal('show');
@@ -136,8 +157,6 @@
                     }
                 })
             });
-
-
 
             $(document).on('click', '#tovar_qushish', function() {
                 var id = $(this).data('shid');
@@ -269,9 +288,14 @@
             });
 
 
-            $(document).on('click', '#shyopish', function() {
+            $(document).on('click', '#shartnoma_delete', function() {
+
                 var id = $(this).data('shid');
+                var filial = $('#filial').val();
+                var shStatus = 'shartnoma_delete';
+
                 var uzid = confirm(id + ' ИД даги шартнома ўчирилмокда. ТАСДИҚЛАНГ !!!');
+
                  if (uzid == true) {
                      $.ajaxSetup({
                          headers: {
@@ -283,6 +307,8 @@
                          method: "DELETE",
                          data: {
                              id: id,
+                             filial: filial,
+                             shStatus: shStatus
                          },
                          success: function(response) {
                              $('#shartnoma_show').modal('hide');
@@ -292,5 +318,37 @@
                      })
                  }
             })
+
+            $(document).on('click', '#shartnoma_yopish', function() {
+
+                var id = $(this).data('shid');
+                var filial = $('#filial').val();
+                var shStatus = 'shartnoma_yopish';
+
+                var uzid = confirm(id + ' ИД даги шартнома ўчирилмокда. ТАСДИҚЛАНГ !!!');
+
+                if (uzid == true) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        url: "{{ route('OfficeSHartnoma.index') }}/" + id,
+                        method: "DELETE",
+                        data: {
+                            id: id,
+                            filial: filial,
+                            shStatus: shStatus
+                        },
+                        success: function(response) {
+                            $('#shartnoma_show').modal('hide');
+                            toastr.success(response.message);
+                            tabyuklash();
+                        }
+                    })
+                }
+            })
+
         </script>
     @endsection
