@@ -1,6 +1,7 @@
 <?php
 
 // use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShartnomaIdController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\dashboardController;
 use App\Http\Controllers\UserController;
@@ -166,6 +167,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('ShartnomaNew', ShartnomaNewController::class);
         Route::resource('PortfelExpired', PortfelExpiredController::class);
         Route::resource('TovarXisobot', TovarXisobotController::class);
+        Route::resource('ShartnomaId', ShartnomaIdController::class);
 
 });
 require __DIR__ . '/auth.php';

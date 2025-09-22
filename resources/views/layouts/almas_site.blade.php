@@ -260,7 +260,7 @@
                             <li><a href="{{ route('dashboard') }}">Умумий тахлил</a></li>
                         </ul>
                     </li>
-                    
+
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -277,26 +277,28 @@
                         <ul aria-expanded="false">
                             @if (in_array($user, [1]))
                             <li><a href="{{ route('OfficeSHartnoma.index') }}"> Шартномалар </a></li>
+
                             <li><a href="{{ route('ShartnomaEdit.index') }}"> Шартнома тахрирлаш </a></li>
-                            
+
                             <li><a href="{{ route('OfficePortfel.index') }}"> Офис Портфел </a></li>
-                            
+
                             <li><a href="{{ route('SHartTahlil.index') }}"> Шартномалар тахлили </a></li>
                             <li><a href="{{ route('MfyBriktirish.index') }}"> МФЙ бириктириш </a></li>
                             @endif
-                            
+
                             @if (in_array($user, [2]))
                             <li><a href="{{ route('ShartnomaNew.index') }}"> New Шартнома </a></li>
                             <li><a href="{{ route('shartnomalar.index') }}"> Шартномалар </a></li>
-                            
+
                             <li><a href="{{ route('Portfel.index') }}"> Портфел </a></li>
-                            
+
                             @endif
+                            <li><a href="{{ route('ShartnomaId.index') }}"> Шартномалар ID </a></li>
                             <li><a href="{{ route('PortfelExpired.index') }}"> Портфел Муддати тугаган </a></li>
                             <li><a href="{{ route('yopilganshartnomalar.index') }}"> Ёпилган шартномалар </a></li>
                         </ul>
                     </li>
-                    
+
                     @if (in_array($user, [2]))
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
@@ -318,7 +320,7 @@
                         </ul>
                     </li>
                     @endif
-                    
+
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
                                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
@@ -349,7 +351,7 @@
                             @endif
                         </ul>
                     </li>
-                    
+
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
                                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
@@ -368,7 +370,7 @@
                             <li><a href="{{ route('tovartaminotqaytarish.index') }}"> Товарларни қайтариш</a></li>
                             <li><a href="{{ route('xatlov.index') }}"> Товарларни хатловдан ўтказиш</a></li>
                             @endif
-                            
+
                             @if (in_array($user, [2]))
                             <li><a href="{{ route('barcod.index') }}"> Шитрих-код чоп этиш </a></li>
                             <li><a href="{{ route('omborkirim.index') }}"> Товарларни кирим қилиб олиш</a></li>
@@ -377,14 +379,14 @@
                             <li><a href="{{ route('jamitovarlar.index') }}"> Жами товарлар</a></li>
                             <li><a href="{{ route('tovaralmashish.index') }}"> Товарлар алмашиш</a></li>
                             @endif
-                    
+
                             <li><a href="{{ route('OfficeSotilmaganTovarlar.index') }}"> Сотилмаган товарлар</a></li>
                             <li><a href="{{ route('chiqimtovarombor.index') }}"> Чиқим булган товарлар </a></li>
                             <li><a href="{{ route('AsosiyVosita.index') }}"> Асосий восита товарлар</a></li>
                         </ul>
-                        
+
                     </li>
-                    
+
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -408,7 +410,7 @@
                             <li><a href="{{ route('ValyutaAlmashish.index') }}"> Валюта алмаштириш </a></li>
                             <li><a href="{{ route('NaqdSavdoOffice.index') }}"> Нақд савдо </a></li>
                             @endif
-                            
+
                             @if (in_array($user, [2]))
                             <li><a href="{{ route('naqdsavdo.index') }}"> Нақд савдо </a></li>
                             <li><a href="{{ route('fondsavdo.index') }}"> Фонд савдо </a></li>
@@ -418,7 +420,7 @@
                             @endif
                         </ul>
                     </li>
-                    
+
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -426,7 +428,7 @@
                                     <path fill-rule="evenodd" clip-rule="evenodd"
                                         d="M18.634 13.4211C18.634 16.7009 16.7007 18.6342 13.4209 18.6342H6.28738C2.99929 18.6342 1.06238 16.7009 1.06238 13.4211V6.27109C1.06238 2.99584 2.26688 1.06259 5.54763 1.06259H7.38096C8.03913 1.06351 8.65879 1.37242 9.05296 1.89951L9.88988 3.01234C10.2859 3.53851 10.9055 3.84834 11.5637 3.84926H14.1579C17.446 3.84926 18.6596 5.52309 18.6596 8.86984L18.634 13.4211Z"
                                         stroke="#888888" stroke-linecap="round" stroke-linejoin="round" fill="#2ECC71"/>
-                                        
+
                                     <path d="M5.85754 12.2577H13.8646" stroke="#888888" stroke-linecap="round"
                                         stroke-linejoin="round" fill="#2ECC71"/>
                                 </svg>
@@ -444,7 +446,7 @@
                             <li><a href="{{ route('OfficeJamiTulovlar.index') }}"> Жами туловлар </a></li>
                         </ul>
                     </li>
-                    
+
                     @if (in_array($user, [2]))
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
@@ -469,7 +471,7 @@
                         </ul>
                     </li>
                     @endif
-                    
+
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
                                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
@@ -501,7 +503,7 @@
                             <li><a href="{{ route('TovarXisobot.index') }}"> Товарлар хисоботи ИНВ</a></li>
                         </ul>
                     </li>
-                    
+
                     @if (in_array($user, [1]))
                     <li><a class="has-arrow " href="javascript:void(0);" aria-expanded="false">
                             <div class="menu-icon">
