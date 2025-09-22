@@ -1,12 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\tur;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 use App\Models\transport;
 use App\Models\natsenka;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +18,7 @@ class TovarTurController extends Controller
 
             $transport = transport::get();
             $natsenka1 = natsenka::get();
+
             $tur = tur::where('status', 'Актив')->orderBy('id', 'desc')->get();
 
             return view('tovarlar.tur.index', ['tur' => $tur,
@@ -51,10 +48,11 @@ class TovarTurController extends Controller
     public function store(request $request)
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+
             $request->validate([
                 'trans_harajatid' => 'required',
                 'natsenka' => 'required',
-                'tovarturi' => 'required|min:3|max:30',
+                'tovarturi' => 'required',
             ]);
 
             $tur = new tur;
@@ -63,7 +61,9 @@ class TovarTurController extends Controller
             $tur->natsenka_id = $request->natsenka;
             $tur->user_id = Auth::user()->id;
             $tur->save();
+
             return redirect()->route('tur.index')->with('message','Маълумот сақланди.');
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

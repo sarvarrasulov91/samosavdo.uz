@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\ktovar1;
 use App\Models\tmodel;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 class TovarQoldigiOfficeController extends Controller
@@ -52,7 +51,22 @@ class TovarQoldigiOfficeController extends Controller
      */
     public function show(string $id)
     {
-          echo'
+        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+        $filiallar = filial::where('status', 'Актив')->get();
+
+        $i = 1;
+
+        // Umumiy yig‘indi
+        $totals = [
+            'TOBDSoni' => 0, 'TOBDSumma' => 0,
+            'TOBSSoni' => 0, 'TOBSSumma' => 0,
+            'TOBKDSoni' => 0, 'TOBKDSumma' => 0,
+            'TOBKSSoni' => 0, 'TOBKSSumma' => 0,
+            'TOBCHDSoni' => 0, 'TOBCHDSumma' => 0,
+            'TOBCHSSoni' => 0, 'TOBCHSSumma' => 0,
+        ];
+
+        echo '
             <table class="table table-bordered table-responsive-sm text-center align-middle" style="font-size: 12px;">
                 <thead>
                     <tr class="text-bold text-primary align-middle">
@@ -61,7 +75,7 @@ class TovarQoldigiOfficeController extends Controller
                         <th colspan="4">Ой бошига</th>
                         <th colspan="4">Кирим</th>
                         <th colspan="4">Чиқим</th>
-                        <th colspan="4">Ой Охирига</th>
+                        <th colspan="4">Ой охирига</th>
                     </tr>
                     <tr class="text-bold text-primary align-middle">
                         <th colspan="2">Доллар</th>
@@ -74,161 +88,117 @@ class TovarQoldigiOfficeController extends Controller
                         <th colspan="2">Сўм</th>
                     </tr>
                     <tr class="text-bold text-primary align-middle">
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
-                        <th>Сони</th>
-                        <th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
+                        <th>Сони</th><th>Суммаси</th>
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-                    $i=1;
 
-                    $UTOBDSoni=0;
-                    $UTOBDSumma=0;
-                    $UTOBSSoni=0;
-                    $UTOBSSumma=0;
+        foreach ($filiallar as $filialinfo) {
 
-                    $UTOBKDSoni=0;
-                    $UTOBKDSumma=0;
-                    $UTOBKSSoni=0;
-                    $UTOBKSSumma=0;
+            $data = (new ktovar1($filialinfo->id))
+                ->selectRaw("
+                        SUM(CASE WHEN valyuta_id=2 AND xis_oyi < ?
+                                 AND (status='Сотилмаган' OR ch_xis_oyi >= ?) THEN 1 ELSE 0 END) as TOBDSoni,
+                        SUM(CASE WHEN valyuta_id=2 AND xis_oyi < ?
+                                 AND (status='Сотилмаган' OR ch_xis_oyi >= ?) THEN narhi ELSE 0 END) as TOBDSumma,
+                        SUM(CASE WHEN valyuta_id=1 AND xis_oyi < ?
+                                 AND (status='Сотилмаган' OR ch_xis_oyi >= ?) THEN 1 ELSE 0 END) as TOBSSoni,
+                        SUM(CASE WHEN valyuta_id=1 AND xis_oyi < ?
+                                 AND (status='Сотилмаган' OR ch_xis_oyi >= ?) THEN narhi ELSE 0 END) as TOBSSumma,
 
-                    $UTOBCHDSoni=0;
-                    $UTOBCHDSumma=0;
-                    $UTOBCHSSoni=0;
-                    $UTOBCHSSumma=0;
+                        SUM(CASE WHEN valyuta_id=2 AND xis_oyi = ?
+                                 AND status NOT IN ('Удалит','Актив') THEN 1 ELSE 0 END) as TOBKDSoni,
+                        SUM(CASE WHEN valyuta_id=2 AND xis_oyi = ?
+                                 AND status NOT IN ('Удалит','Актив') THEN narhi ELSE 0 END) as TOBKDSumma,
+                        SUM(CASE WHEN valyuta_id=1 AND xis_oyi = ?
+                                 AND status NOT IN ('Удалит','Актив') THEN 1 ELSE 0 END) as TOBKSSoni,
+                        SUM(CASE WHEN valyuta_id=1 AND xis_oyi = ?
+                                 AND status NOT IN ('Удалит','Актив') THEN narhi ELSE 0 END) as TOBKSSumma,
 
-                    $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+                        SUM(CASE WHEN valyuta_id=2 AND ch_xis_oyi = ?
+                                 AND status != 'Удалит' THEN 1 ELSE 0 END) as TOBCHDSoni,
+                        SUM(CASE WHEN valyuta_id=2 AND ch_xis_oyi = ?
+                                 AND status != 'Удалit' THEN narhi ELSE 0 END) as TOBCHDSumma,
+                        SUM(CASE WHEN valyuta_id=1 AND ch_xis_oyi = ?
+                                 AND status != 'Удалit' THEN 1 ELSE 0 END) as TOBCHSSoni,
+                        SUM(CASE WHEN valyuta_id=1 AND ch_xis_oyi = ?
+                                 AND status != 'Удалit' THEN narhi ELSE 0 END) as TOBCHSSumma
+                    ", [
+                    $xis_oyi, $xis_oyi, $xis_oyi, $xis_oyi,
+                    $xis_oyi, $xis_oyi, $xis_oyi, $xis_oyi,
+                    $xis_oyi, $xis_oyi, $xis_oyi, $xis_oyi,
+                    $xis_oyi, $xis_oyi, $xis_oyi, $xis_oyi,
+                ])
+                ->first();
 
-                    $filial = filial::where('status', 'Актив')->get();
-                    foreach ($filial as $filialinfo){
+            // Ой охирига hisoblash
+            $TOBYDSoni   = $data->TOBDSoni + $data->TOBKDSoni - $data->TOBCHDSoni;
+            $TOBYDSumma  = $data->TOBDSumma + $data->TOBKDSumma - $data->TOBCHDSumma;
+            $TOBYSSoni   = $data->TOBSSoni + $data->TOBKSSoni - $data->TOBCHSSoni;
+            $TOBYSSumma  = $data->TOBSSumma + $data->TOBKSSumma - $data->TOBCHSSumma;
 
-                        $TOBDSoni=0;
-                        $TOBDSumma=0;
-                        $TOBSSoni=0;
-                        $TOBSSumma=0;
+            echo "<tr>
+                    <td>{$i}</td>
+                    <td>{$filialinfo->fil_name}</td>
 
-                        $TOBKDSoni=0;
-                        $TOBKDSumma=0;
-                        $TOBKSSoni=0;
-                        $TOBKSSumma=0;
+                    <td>".number_format($data->TOBDSoni,0,","," ")."</td>
+                    <td>".number_format($data->TOBDSumma,0,","," ")."</td>
+                    <td>".number_format($data->TOBSSoni,0,","," ")."</td>
+                    <td>".number_format($data->TOBSSumma,0,","," ")."</td>
 
-                        $TOBCHDSoni=0;
-                        $TOBCHDSumma=0;
-                        $TOBCHSSoni=0;
-                        $TOBCHSSumma=0;
+                    <td>".number_format($data->TOBKDSoni,0,","," ")."</td>
+                    <td>".number_format($data->TOBKDSumma,0,","," ")."</td>
+                    <td>".number_format($data->TOBKSSoni,0,","," ")."</td>
+                    <td>".number_format($data->TOBKSSumma,0,","," ")."</td>
 
-                        echo'
-                            <tr>
-                                <td>' . $i . '</td>
-                                <td>' . $filialinfo->fil_name . '</td>';
-                                    $ktovar = new ktovar1($filialinfo->id);
+                    <td>".number_format($data->TOBCHDSoni,0,","," ")."</td>
+                    <td>".number_format($data->TOBCHDSumma,0,","," ")."</td>
+                    <td>".number_format($data->TOBCHSSoni,0,","," ")."</td>
+                    <td>".number_format($data->TOBCHSSumma,0,","," ")."</td>
 
-                                    $TOBSSoni=$ktovar->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', 'Сотилмаган')->
-                                        orWhere('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('ch_xis_oyi', '>=', $xis_oyi)
-                                        ->count('id');
+                    <td>".number_format($TOBYDSoni,0,","," ")."</td>
+                    <td>".number_format($TOBYDSumma,0,","," ")."</td>
+                    <td>".number_format($TOBYSSoni,0,","," ")."</td>
+                    <td>".number_format($TOBYSSumma,0,","," ")."</td>
+                </tr>";
 
-                                    $TOBSSumma=$ktovar->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', 'Сотилмаган')->
-                                        orWhere('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('ch_xis_oyi', '>=', $xis_oyi)
-                                        ->sum('narhi');
-                                    $TOBDSoni=$ktovar->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', 'Сотилмаган')->
-                                        orWhere('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('ch_xis_oyi', '>=', $xis_oyi)
-                                        ->count('id');
-                                    $TOBDSumma=$ktovar->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', 'Сотилмаган')->
-                                        orWhere('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('ch_xis_oyi', '>=', $xis_oyi)
-                                        ->sum('narhi');
+            $i++;
 
-                                    $TOBKSSoni=$ktovar->where('valyuta_id', '1')->where('xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->where('status', '!=', 'Актив')->count('id');
-                                    $TOBKSSumma=$ktovar->where('valyuta_id', '1')->where('xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->where('status', '!=', 'Актив')->sum('narhi');
-                                    $TOBKDSoni=$ktovar->where('valyuta_id', '2')->where('xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->where('status', '!=', 'Актив')->count('id');
-                                    $TOBKDSumma=$ktovar->where('valyuta_id', '2')->where('xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->where('status', '!=', 'Актив')->sum('narhi');
+            // umumiy yig‘indi
+            foreach ($totals as $k => $v) {
+                $totals[$k] += $data->$k;
+            }
+        }
 
-                                    $TOBCHSSoni=$ktovar->where('valyuta_id', '1')->where('ch_xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->count('id');
-                                    $TOBCHSSumma=$ktovar->where('valyuta_id', '1')->where('ch_xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
-                                    $TOBCHDSoni=$ktovar->where('valyuta_id', '2')->where('ch_xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->count('id');
-                                    $TOBCHDSumma=$ktovar->where('valyuta_id', '2')->where('ch_xis_oyi', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+        echo "<tr class='text-bold'>
+                <td></td>
+                <td><b>ЖАМИ</b></td>
+                <td><b>".number_format($totals['TOBDSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBDSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBSSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBSSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBKDSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBKDSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBKSSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBKSSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBCHDSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBCHDSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBCHSSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBCHSSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBDSoni']+$totals['TOBKDSoni']-$totals['TOBCHDSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBDSumma']+$totals['TOBKDSumma']-$totals['TOBCHDSumma'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBSSoni']+$totals['TOBKSSoni']-$totals['TOBCHSSoni'],0,","," ")."</b></td>
+                <td><b>".number_format($totals['TOBSSumma']+$totals['TOBKSSumma']-$totals['TOBCHSSumma'],0,","," ")."</b></td>
+            </tr>";
 
-                                    echo'
-                                    <td>' . number_format($TOBDSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBDSumma, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBSSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBSSumma, 0, ",", " ") . '</td>
-
-                                    <td>' . number_format($TOBKDSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBKDSumma, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBKSSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBKSSumma, 0, ",", " ") . '</td>
-
-                                    <td>' . number_format($TOBCHDSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBCHDSumma, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBCHSSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBCHSSumma, 0, ",", " ") . '</td>
-
-                                    <td>' . number_format($TOBDSoni+$TOBKDSoni-$TOBCHDSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBDSumma+$TOBKDSumma-$TOBCHDSumma, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBSSoni+$TOBKSSoni-$TOBCHSSoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($TOBSSumma+$TOBKSSumma-$TOBCHSSumma, 0, ",", " ") . '</td>
-                                    </tr>
-                                ';
-                            $i++;
-
-                            $UTOBDSoni+=$TOBDSoni;
-                            $UTOBDSumma+=$TOBDSumma;
-                            $UTOBSSoni+=$TOBSSoni;
-                            $UTOBSSumma+=$TOBSSumma;
-
-                            $UTOBKDSoni+=$TOBKDSoni;
-                            $UTOBKDSumma+=$TOBKDSumma;
-                            $UTOBKSSoni+=$TOBKSSoni;
-                            $UTOBKSSumma+=$TOBKSSumma;
-
-                            $UTOBCHDSoni+=$TOBCHDSoni;
-                            $UTOBCHDSumma+=$TOBCHDSumma;
-                            $UTOBCHSSoni+=$TOBCHSSoni;
-                            $UTOBCHSSumma+=$TOBCHSSumma;
-                    }
-
-                     echo'
-                            <tr class="text-bold">
-                                <td></td>
-                                <td><b>ЖАМИ</b></td>
-                                <td><b>' . number_format($UTOBDSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBDSumma, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBSSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBSSumma, 0, ",", " ") . '</b></td>
-
-                                <td><b>' . number_format($UTOBKDSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBKDSumma, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBKSSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBKSSumma, 0, ",", " ") . '</b></td>
-
-                                <td><b>' . number_format($UTOBCHDSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBCHDSumma, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBCHSSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBCHSSumma, 0, ",", " ") . '</b></td>
-
-                                <td><b>' . number_format($UTOBDSoni+$UTOBKDSoni-$UTOBCHDSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBDSumma+$UTOBKDSumma-$UTOBCHDSumma, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBSSoni+$UTOBKSSoni-$UTOBCHSSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($UTOBSSumma+$UTOBKSSumma-$UTOBCHSSumma, 0, ",", " ") . '</b></td>
-
-                            </tr>
-                </tbody>
-            </table>';
-
-            return ;
+        echo "</tbody></table>";
     }
 
     /**
@@ -236,7 +206,19 @@ class TovarQoldigiOfficeController extends Controller
      */
     public function edit(string $id)
     {
-        echo'
+        $ktovar = (new ktovar1($id))
+            ->where('status', 'Сотилмаган')
+            ->selectRaw("
+                tmodel_id,
+                SUM(CASE WHEN valyuta_id = 1 THEN 1 ELSE 0 END) as sum_soni,
+                SUM(CASE WHEN valyuta_id = 1 THEN narhi ELSE 0 END) as sum_summasi,
+                SUM(CASE WHEN valyuta_id = 2 THEN 1 ELSE 0 END) as dollar_soni,
+                SUM(CASE WHEN valyuta_id = 2 THEN narhi ELSE 0 END) as dollar_summasi
+            ")
+            ->groupBy('tmodel_id')
+            ->get();
+
+        echo '
             <table class="table table-bordered table-responsive-sm text-center align-middle" style="font-size: 12px;">
                 <thead>
                     <tr class="text-bold text-primary align-middle">
@@ -257,55 +239,49 @@ class TovarQoldigiOfficeController extends Controller
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-                    $i=1;
-                    $TovarJamiDollarSoni=0;
-                    $TovarJamiDollasrummasi=0;
-                    $TovarJamiSumSoni=0;
-                    $TovarJamiSumsummasi=0;
-                    $ktovar = new ktovar1($id);
-                    $filial = $ktovar->select('tmodel_id')->where('status', 'Сотилмаган')->groupBy('tmodel_id')->get();
-                    foreach ($filial as $filialinfo){
 
-                        $model = tmodel::where('id', $filialinfo->tmodel_id)->first();
-                        $tmodel_name = $model->tur->tur_name .' '. $model->brend->brend_name .' '. $model->model_name ;
+                    $i = 1;
+                    $TovarJamiDollarSoni = 0;
+                    $TovarJamiDollasrummasi = 0;
+                    $TovarJamiSumSoni = 0;
+                    $TovarJamiSumsummasi = 0;
 
-                        echo'
-                            <tr>
-                                <td>' . $i . '</td>
-                                <td>' . $filialinfo->tmodel_id . '</td>
-                                <td>' . $tmodel_name . '</td>';
-                                    $rkrimtomarssoni = $ktovar->where('valyuta_id', 1)->where('status', 'Сотилмаган')->where('tmodel_id', $filialinfo->tmodel_id)->count('id');
-                                    $rkrimtomars = $ktovar->where('valyuta_id', 1)->where('status', 'Сотилмаган')->where('tmodel_id', $filialinfo->tmodel_id)->sum('narhi');
-                                    $rkrimtomardsoni = $ktovar->where('valyuta_id', 2)->where('status', 'Сотилмаган')->where('tmodel_id', $filialinfo->tmodel_id)->count('id');
-                                    $rkrimtomard = $ktovar->where('valyuta_id', 2)->where('status', 'Сотилмаган')->where('tmodel_id', $filialinfo->tmodel_id)->sum('narhi');
-                                    echo'
-                                    <td>' . number_format($rkrimtomardsoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($rkrimtomard, 0, ",", " ") . '</td>
-                                    <td>' . number_format($rkrimtomarssoni, 0, ",", " ") . '</td>
-                                    <td>' . number_format($rkrimtomars, 0, ",", " ") . '</td>
-                                    </tr>
-                                ';
-                            $i++;
-                            $TovarJamiDollarSoni+=$rkrimtomardsoni;
-                            $TovarJamiDollasrummasi+=$rkrimtomard;
-                            $TovarJamiSumSoni+=$rkrimtomarssoni;
-                            $TovarJamiSumsummasi+=$rkrimtomars;
+                    foreach ($ktovar as $row) {
+                        $model = tmodel::with(['tur', 'brend'])->find($row->tmodel_id);
+                        $tmodel_name = $model->tur->tur_name .' '. $model->brend->brend_name .' '. $model->model_name;
+
+                        echo "
+                    <tr>
+                        <td>{$i}</td>
+                        <td>{$row->tmodel_id}</td>
+                        <td>{$tmodel_name}</td>
+                        <td>" . number_format($row->dollar_soni, 0, ",", " ") . "</td>
+                        <td>" . number_format($row->dollar_summasi, 0, ",", " ") . "</td>
+                        <td>" . number_format($row->sum_soni, 0, ",", " ") . "</td>
+                        <td>" . number_format($row->sum_summasi, 0, ",", " ") . "</td>
+                    </tr>
+                ";
+
+                        $i++;
+                        $TovarJamiDollarSoni += $row->dollar_soni;
+                        $TovarJamiDollasrummasi += $row->dollar_summasi;
+                        $TovarJamiSumSoni += $row->sum_soni;
+                        $TovarJamiSumsummasi += $row->sum_summasi;
                     }
 
-                     echo'
-                            <tr class="text-bold">
-                                <td></td>
-                                <td><b>ЖАМИ</b></td>
-                                <td></td>
-                                <td><b>' . number_format($TovarJamiDollarSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($TovarJamiDollasrummasi, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($TovarJamiSumSoni, 0, ",", " ") . '</b></td>
-                                <td><b>' . number_format($TovarJamiSumsummasi, 0, ",", " ") . '</b></td>
-                            </tr>
-                </tbody>
-            </table>';
+                    echo "
+                <tr class='text-bold'>
+                    <td></td>
+                    <td><b>ЖАМИ</b></td>
+                    <td></td>
+                    <td><b>" . number_format($TovarJamiDollarSoni, 0, ",", " ") . "</b></td>
+                    <td><b>" . number_format($TovarJamiDollasrummasi, 0, ",", " ") . "</b></td>
+                    <td><b>" . number_format($TovarJamiSumSoni, 0, ",", " ") . "</b></td>
+                    <td><b>" . number_format($TovarJamiSumsummasi, 0, ",", " ") . "</b></td>
+                </tr>
+            </tbody>
+            </table>";
 
-            return ;
     }
 
     /**
