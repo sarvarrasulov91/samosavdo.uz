@@ -3,11 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\tur;
-use App\Models\xissobotoy;
-use App\Models\filial;
-use App\Models\lavozim;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 
 class BonusTurController extends Controller
 {
@@ -16,11 +13,9 @@ class BonusTurController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        $tur = tur::where('aksiya','0')->where('status', 'Актив')->get();
-        return view('qushmchalar.BonusTur', ['xis_oyi' => $xis_oyi, 'tur'=>$tur, 'filial_name' => $filial_name, 'lavozim_name' => $lavozim_name]);
+        $tur = tur::where('aksiya', '0')->where('status', 'Актив')->get();
+
+        return view('qushmchalar.BonusTur', ['tur' => $tur]);
     }
 
     /**

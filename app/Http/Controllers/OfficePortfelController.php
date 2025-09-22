@@ -25,20 +25,18 @@ class OfficePortfelController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-            $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
-            return view('shartnoma.OfficePortfel', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial ]);
-            
+
+            $filial = filial::where('status', 'Актив')->where('id', '!=', '10')->get();
+
+            return view('shartnoma.OfficePortfel', ['filial' => $filial ]);
+
         }else{
-            
+
             Auth::guard('web')->logout();
             session()->invalidate();
             session()->regenerateToken();
             return redirect('/');
-            
+
         }
     }
 
@@ -66,7 +64,7 @@ class OfficePortfelController extends Controller
 
         echo'
         <h5 class="bc-title text-primary"></h5>
-        
+
         <table class="table table-bordered text-center align-middle table-hover"
             style="font-size: 14px;">
             <thead>
@@ -104,7 +102,7 @@ class OfficePortfelController extends Controller
                     <th>Просрочка</th>
                     <th>Изох</th>
                     <th>Товар <br>куриш</th>
-                    
+
                 </tr>
             </thead>
             <tbody id="tab1">';
@@ -130,10 +128,10 @@ class OfficePortfelController extends Controller
                 foreach ($shartnoma as $shartnom){
 
                     $shJamiSumma = 0;
-                    
+
                     $joqarz = 0;
                     $joqarzm = 0;
-                    
+
                     $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
                     $savdo = new savdo1($id);
@@ -159,12 +157,12 @@ class OfficePortfelController extends Controller
 
                     //йиллик фойиз
                     $foiz = (($foiz / 12) * $shartnom->muddat);
-                    
+
                     //$xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
                     $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
                     $shJamiSumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
-                    
+
                     $shkun = $shartnom->kun;
                     $shtug_sana = $shartnom->tug_sana;
 
@@ -174,7 +172,7 @@ class OfficePortfelController extends Controller
                     $dukun = $interval->days;
                     $birkunlikfoiz = $xis_foiz / $dukun;
                     $birkunliktani = ($savdosumma - $oldindantulov - $chegirma)/$dukun;
-                    
+
                     if(($tulov - $xis_foiz) >= 0){
                         $jofoizqarz =  0;
                         $jotaniqarz = ($savdosumma - $oldindantulov - $chegirma) - ($tulov - $xis_foiz);
@@ -188,18 +186,18 @@ class OfficePortfelController extends Controller
                         $jodate2 = new DateTime($shkun);
                         $jointerval = $jodate1->diff($jodate2);
                         $jokun = $jointerval->days;
-                        
-                        $currentMonth = date('m'); 
+
+                        $currentMonth = date('m');
                         $yearDiff = date('Y') - date('Y', strtotime($shkun));
                         $contractMonth = date('m', strtotime($shkun));
                         $months = $currentMonth + ($yearDiff * 12) - $contractMonth;
-                        
+
                         //$months = ($jointerval->y * 12) + $jointerval->m;
 
                         $joqarz = ($birkunlikfoiz + $birkunliktani) * $jokun - $tulov;
-                        
+
                         $joqarzm = ($shJamiSumma / $shartnom->muddat) * $months - $tulov;
-                        
+
                         $tkun = date('Y-m', strtotime($xis_oyi)) . '-' . date('d', strtotime($shartnom->kun));
                         if ($tkun >= date("Y-m-d")) {
                             $joqarzm -= ($shJamiSumma / $shartnom->muddat);
@@ -216,7 +214,7 @@ class OfficePortfelController extends Controller
                     }else{
                         $joqarz = $joqarzm = $shJamiSumma - $tulov;
                     }
-                    
+
                     if ($joqarzm < 1000) {
                         $joqarzm = 0;
                     }
@@ -230,7 +228,7 @@ class OfficePortfelController extends Controller
                     foreach ($hodimlar as $hodimla) {
                         $hodimlar_fio = $hodimla->fio;
                     }
-                    
+
                     $trrang = "";
                     if (date("Y-m-d") > $shtug_sana) {
                         $trrang = "align-middle text-danger";

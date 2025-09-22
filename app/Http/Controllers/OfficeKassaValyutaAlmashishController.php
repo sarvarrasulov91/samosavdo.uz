@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 use App\Models\kirim_dollar;
 use App\Models\valyuta;
 
@@ -21,17 +19,13 @@ class OfficeKassaValyutaAlmashishController extends Controller
     public function index()
     {
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         $valyuta = valyuta::where('id', '1')->get();
-        $kirim_dollar = kirim_dollar::where('status', 'Актив')->where('xis_oyi',$xis_oyi)->orderBy('id', 'desc')->get();
+
+        $kirim_dollar = kirim_dollar::where('status', 'Актив')->where('xis_oyi', $xis_oyi)->orderBy('id', 'desc')->get();
 
         return view('kassa.ValyutaAlmashish', [
-            'filial_name' => $filial_name,
-            'lavozim_name' => $lavozim_name,
-            'xis_oyi' => $xis_oyi,
             'kirim_dollar' => $kirim_dollar,
-            'valyuta'=>$valyuta
+            'valyuta' => $valyuta
         ]);
     }
 
@@ -187,7 +181,7 @@ class OfficeKassaValyutaAlmashishController extends Controller
         if (Auth::user()->lavozim_id == 1) {
             $kirim = kirim_dollar::where('id', $id)->update([
                 'status' => "Удалит",
-                'user_id' => Auth::user()->filial_id,
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json(['message' => 'Маълумот ўчирилди.'], 200);

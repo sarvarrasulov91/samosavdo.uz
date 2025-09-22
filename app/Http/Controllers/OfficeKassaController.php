@@ -9,7 +9,6 @@ use App\Models\chiqim_taminot;
 use App\Models\kirim;
 use App\Models\kirim_dollar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 use Illuminate\Support\Facades\Validator;
@@ -23,53 +22,11 @@ class OfficeKassaController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-            $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
 
+            $filial = filial::where('status', 'Актив')->where('id', '!=', '10')->get();
 
-            $duombor = date("m", strtotime($xis_oyi));
-            switch ($duombor) {
-                case 1:
-                    $du2 =  date("Y") . " йил Январь";
-                    break;
-                case 2:
-                    $du2 =  date("Y") . " йил Февраль";
-                    break;
-                case 3:
-                    $du2 =  date("Y") . " йил Март";
-                    break;
-                case 4:
-                    $du2 =  date("Y") . " йил Апрель";
-                    break;
-                case 5:
-                    $du2 =  date("Y") . " йил Май";
-                    break;
-                case 6:
-                    $du2 =  date("Y") . " йил Июнь";
-                    break;
-                case 7:
-                    $du2 =  date("Y") . " йил Июль";
-                    break;
-                case 8:
-                    $du2 =  date("Y") . " йил Август";
-                    break;
-                case 9:
-                    $du2 =  date("Y") . " йил Сентябрь";
-                    break;
-                case 10:
-                    $du2 =  date("Y") . " йил Октябрь";
-                    break;
-                case 11:
-                    $du2 =  date("Y") . " йил Ноябрь";
-                    break;
-                case 12:
-                    $du2 =  date("Y") . " йил Декабрь";
-                    break;
-            }
+            return view('kassa.officekassa', ['filial' => $filial]);
 
-            return view('kassa.officekassa', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial, 'du2' => $du2 ]);
         }else{
                 Auth::guard('web')->logout();
                 session()->invalidate();
@@ -115,8 +72,8 @@ class OfficeKassaController extends Controller
             $avtot_xis_oy_d = 0;
             $umumiy_xis_oy_d = 0;
 
-            $kirim = kirim::where('status', 'Актив')->get();
-            foreach ($kirim as $kirim) {
+            $kirims = kirim::where('status', 'Актив')->get();
+            foreach ($kirims as $kirim) {
 
                 if ($kirim->xis_oyi < $xis_oyi)
                 {
@@ -188,8 +145,8 @@ class OfficeKassaController extends Controller
             $ch_avtot_xis_oy_d = 0;
             $ch_umumiy_xis_oy_d = 0;
 
-            $chiqim = chiqim_boshqa::where('status', 'Актив')->get();
-            foreach ($chiqim as $chiqim) {
+            $chiqims = chiqim_boshqa::where('status', 'Актив')->get();
+            foreach ($chiqims as $chiqim) {
 
                 if ($chiqim->xis_oyi < $xis_oyi)
                 {

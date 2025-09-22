@@ -4,9 +4,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\pastavshik;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 use Illuminate\Support\Facades\Validator;
 
 class PastavshikController extends Controller
@@ -17,11 +14,11 @@ class PastavshikController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $pastavshik = pastavshik::where('status', 'Актив')->orderBy('id', 'desc')->get();
-            return view('tovarlar.pastavshik.index', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'pastavshik'=>$pastavshik]);
+
+            return view('tovarlar.pastavshik.index', ['pastavshik' => $pastavshik]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -88,7 +85,8 @@ class PastavshikController extends Controller
             }
 
             $pastavshik = pastavshik::where('status', 'Актив')->orderBy('id', 'desc')->get();
-            return response()->json(['message' => 'Маълумот сақланди.', 'pastavshik'=>$pastavshik], 200);
+
+            return response()->json(['message' => 'Маълумот сақланди.', 'pastavshik' => $pastavshik], 200);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

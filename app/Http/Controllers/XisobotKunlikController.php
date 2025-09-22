@@ -14,7 +14,6 @@ use App\Models\shartnoma1;
 use App\Models\naqdsavdo1;
 use App\Models\savdobonus1;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 class XisobotKunlikController extends Controller
@@ -531,8 +530,8 @@ class XisobotKunlikController extends Controller
 
 
         $TulovlarDavrOras = new tulovlar1($request->filial);
-        $TulovlarDavrOrasi=$TulovlarDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
-        foreach ($TulovlarDavrOrasi as $TulovlarDavrOrasi) {
+        $TulovlarDavrOrasi1=$TulovlarDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+        foreach ($TulovlarDavrOrasi1 as $TulovlarDavrOrasi) {
             $TDavrOrasiNaqd += $TulovlarDavrOrasi->naqd;
             $TDavrOrasiPastik += $TulovlarDavrOrasi->pastik;
             $TDavrOrasiHr += $TulovlarDavrOrasi->hr;
@@ -555,8 +554,8 @@ class XisobotKunlikController extends Controller
         $CHOyBoshiJami = 0;
 
         $CHiqimOyBoshg = new boshqaharajat1($request->filial);
-        $CHiqimOyBoshga=$CHiqimOyBoshg->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
-        foreach ($CHiqimOyBoshga as $CHiqimOyBoshga) {
+        $CHiqimOyBoshga1=$CHiqimOyBoshg->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
+        foreach ($CHiqimOyBoshga1 as $CHiqimOyBoshga) {
             $CHOyBoshiNaqd += $CHiqimOyBoshga->naqd;
             $CHOyBoshiPastik += $CHiqimOyBoshga->pastik;
             $CHOyBoshiHr += $CHiqimOyBoshga->hr;
@@ -581,8 +580,8 @@ class XisobotKunlikController extends Controller
         $CHDavrOrasiJami = 0;
 
         $CHiqimDavrOras = new boshqaharajat1($request->filial);
-        $CHiqimDavrOrasi=$CHiqimDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
-        foreach ($CHiqimDavrOrasi as $CHiqimDavrOrasi) {
+        $CHiqimDavrOrasi1=$CHiqimDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+        foreach ($CHiqimDavrOrasi1 as $CHiqimDavrOrasi) {
             $CHDavrOrasiNaqd += $CHiqimDavrOrasi->naqd;
             $CHDavrOrasiPastik += $CHiqimDavrOrasi->pastik;
             $CHDavrOrasiHr += $CHiqimDavrOrasi->hr;
@@ -602,9 +601,9 @@ class XisobotKunlikController extends Controller
         $SPOyBoshiAvtot = 0;
         $SPOyBoshiJami = 0;
 
-        $SPOyBoshga = kirim::where('kun', '<', $boshkun)->where('kirimtur_id','1')->where('filial_id', $request->filial)->where('status', 'Актив')->get();
+        $SPOyBoshga1 = kirim::where('kun', '<', $boshkun)->where('kirimtur_id','1')->where('filial_id', $request->filial)->where('status', 'Актив')->get();
 
-        foreach ($SPOyBoshga as $SPOyBoshga) {
+        foreach ($SPOyBoshga1 as $SPOyBoshga) {
             $SPOyBoshiNaqd += $SPOyBoshga->naqd;
             $SPOyBoshiPastik += $SPOyBoshga->pastik;
             $SPOyBoshiHr += $SPOyBoshga->hr;
@@ -620,8 +619,8 @@ class XisobotKunlikController extends Controller
         $SPDavrOrasiAvtot = 0;
         $SPDavrOrasiJami = 0;
 
-        $SPDavrOrasi = kirim::where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('kirimtur_id', '1')->where('filial_id', $request->filial)->where('status', 'Актив')->get();
-        foreach ($SPDavrOrasi as $SPDavrOrasi) {
+        $SPDavrOrasi1 = kirim::where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('kirimtur_id', '1')->where('filial_id', $request->filial)->where('status', 'Актив')->get();
+        foreach ($SPDavrOrasi1 as $SPDavrOrasi) {
             $SPDavrOrasiNaqd += $SPDavrOrasi->naqd;
             $SPDavrOrasiPastik += $SPDavrOrasi->pastik;
             $SPDavrOrasiHr += $SPDavrOrasi->hr;
