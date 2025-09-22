@@ -171,7 +171,7 @@ class BoshqaXarajatlarController extends Controller
             if($boshqaharajatKun == $BugungiKun){
                 $kirim = boshqaharajat1::where('id', $id)->update([
                     'status' => "Удалит",
-                    'user_id' => Auth::user()->filial_id,
+                    'user_id' => Auth::id(),
                 ]);
                 $message = "Маълумот ўчирилди.";
             }else{

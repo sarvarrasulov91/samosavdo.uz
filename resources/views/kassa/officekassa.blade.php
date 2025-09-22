@@ -1,4 +1,7 @@
 @extends('layouts.almas_site')
+@php
+    use Carbon\Carbon
+@endphp
 @section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <div class="content-body">
@@ -16,7 +19,7 @@
                         <div class="page-titles">
                             <ol class="breadcrumb">
                                 <li>
-                                    <h5 class="bc-title text-primary">Кассадаги қолдиғи {{ $du2 }} холатига</h5>
+                                    <h5 class="bc-title text-primary">Кассадаги қолдиғи {{ Carbon::parse(today())->locale('ru')->translatedFormat('Y-F') }} холатига</h5>
                                 </li>
                             </ol>
                             <div class="d-flex align-items-center">

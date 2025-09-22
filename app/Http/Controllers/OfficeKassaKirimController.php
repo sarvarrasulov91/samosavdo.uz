@@ -8,9 +8,6 @@ use App\Models\kirim;
 use App\Models\kirimtur;
 use App\Models\valyuta;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
-
 
 
 use Illuminate\Support\Facades\Validator;
@@ -22,12 +19,9 @@ class OfficeKassaKirimController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         $kirimtur = kirimtur::get();
         $valyuta = valyuta::get();
-        return view('kassa.OfficeKassaKirim', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi,'kirimtur'=>$kirimtur,'valyuta'=>$valyuta]);
+        return view('kassa.OfficeKassaKirim', ['kirimtur' => $kirimtur,'valyuta' => $valyuta]);
     }
 
     /**
@@ -56,9 +50,8 @@ class OfficeKassaKirimController extends Controller
             <tbody id="tab1">
     ';
 
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $kirim = kirim::where('status','Актив')->orderBy('id', 'desc')->get();
-        foreach ($kirim as $kirim) {
+        $kirims = kirim::where('status','Актив')->orderBy('id', 'desc')->get();
+        foreach ($kirims as $kirim) {
             echo '
             <tr>
                 <td>' . $kirim->id . '</td>
@@ -186,7 +179,7 @@ class OfficeKassaKirimController extends Controller
         if (Auth::user()->lavozim_id == 1) {
             $kirim = kirim::where('id', $id)->update([
                 'status' => "Удалит",
-                'user_id' => Auth::user()->filial_id,
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json(['message' => 'Маълумот ўчирилди.'], 200);

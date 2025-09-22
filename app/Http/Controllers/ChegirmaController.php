@@ -3,11 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\xissobotoy;
 use App\Models\tmodel;
-use App\Models\lavozim;
-use App\Models\filial;
 
 class ChegirmaController extends Controller
 {
@@ -16,11 +12,9 @@ class ChegirmaController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         $model = tmodel::where('aksiya','0')->where('status', 'Актив')->orderBy('id', 'desc')->get();
-        return view('qushmchalar.chegirma', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'model'=>$model]);
+
+        return view('qushmchalar.chegirma', ['model' => $model]);
     }
 
     /**
