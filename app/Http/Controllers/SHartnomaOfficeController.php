@@ -228,9 +228,27 @@ class SHartnomaOfficeController extends Controller
                     </div>
                 </div>
                 <div class="col-xl-12">
-                    <div class="text-center p-1">
-                        <button id="shartnoma_delete" data-shid="'.$shartnom->id.'" type="button" class="btn btn-danger light text-center">Shartnomani udalit qilish </button>
-                        <button id="shartnoma_yopish" data-shid="'.$shartnom->id.'" type="button" class="btn btn-success light text-center m-3">Shartnomani yopish </button>
+                    <div class="text-center p-1">';
+                            if ($shartnom->status == 'Актив'){
+                                echo'
+                                    <button id="shartnoma_delete" data-shid="'.$shartnom->id.'" type="button" class="btn btn-danger light text-center">Shartnomani udalit qilish </button>
+                                    <button id="shartnoma_yopish" data-shid="'.$shartnom->id.'" type="button" class="btn btn-success light text-center m-3">Shartnomani yopish </button>
+                                ';
+
+                            } elseif ($shartnom->status == 'Ёпилган') {
+                                echo'
+                                <button type="button" class="btn btn-success light text-center m-3"> Shartnoma yopilgan </button>
+                                ';
+                            } elseif ($shartnom->status == 'Удалит'){
+                                echo'
+                                <button type="button" class="btn btn-danger light text-center m-3"> Shartnoma majburiy Udalit bulgan </button>
+                                ';
+                            } else {
+                                echo'
+                                <button type="button" class="btn btn-warning light text-center m-3"> Shartnoma holatini tekshirish kerak </button>
+                                ';
+                            } echo'
+
                     </div>
                 </div>
             </div>
