@@ -5,10 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ktovar1;
-use App\Models\xissobotoy;
-
-
-use Illuminate\Support\Facades\DB;
 
 
 class BarcodTaminotchiController extends Controller
@@ -19,9 +15,9 @@ class BarcodTaminotchiController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-           
+
             $model = ktovar1::where('status','Актив')->orderBy('id', 'desc')->get();
-            
+
             return view('tovarlar.barcod', ['model' => $model]);
         }else{
             Auth::guard('web')->logout();

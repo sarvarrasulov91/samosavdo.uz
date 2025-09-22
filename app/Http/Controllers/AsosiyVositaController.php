@@ -4,10 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\xissobotoy;
 use App\Models\ktovar1;
-use App\Models\lavozim;
-use App\Models\filial;
 use App\Models\asosiyvositalar;
 
 use Illuminate\Support\Facades\DB;
@@ -21,7 +18,7 @@ class AsosiyVositaController extends Controller
     {
 
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
-            
+
             return view('tovarlar.AsosiyVosita');
         }else{
             Auth::guard('web')->logout();
@@ -55,12 +52,12 @@ class AsosiyVositaController extends Controller
                     </thead>
                     <tbody id="tab1">';
 
-                    
+
                     if (Auth::user()->filial_id == 10){
                         $model = asosiyvositalar::where('status', 'Актив')->orderBy('id', 'desc')->get();
                     }else{
                         $model = asosiyvositalar::where('filial_id', Auth::user()->filial_id)->where('status', 'Актив')->orderBy('id', 'desc')->get();
-                        
+
                     }
                         foreach ($model as $mode){
                             echo'
@@ -128,7 +125,7 @@ class AsosiyVositaController extends Controller
 
                     DB::commit();
                     $message = $krimt . "<br> Товар асосий воситага олинди.";
-                
+
                 } catch (\Exception $e) {
                     DB::rollBack();
                     $message = $krimt . "<br> Товар асосий воситага олишда хатолик2";

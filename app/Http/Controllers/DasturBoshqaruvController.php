@@ -5,10 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\valyuta;
 use App\Models\xissobotoy;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Models\lavozim;
-use App\Models\filial;
 
 class DasturBoshqaruvController extends Controller
 {
@@ -17,19 +14,17 @@ class DasturBoshqaruvController extends Controller
      */
     public function index()
     {
-
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
 
             $xis_oy = DB::table('xissobotoy')
             ->join('users', 'xissobotoy.user_id', '=', 'users.id')
             ->select('xissobotoy.*', 'users.name')->orderByDesc('id')->get();
+
             $valyuta = DB::table('valyuta')
             ->join('users', 'valyuta.user_id', '=', 'users.id')
             ->select('valyuta.*', 'users.name')->where('valyuta.id', '2')->get();
-            return view('qushmchalar.qushmcha', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'valyuta' => $valyuta, 'xis_oy' => $xis_oy]);
+
+            return view('qushmchalar.qushmcha', ['valyuta' => $valyuta, 'xis_oy' => $xis_oy]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -107,7 +102,9 @@ class DasturBoshqaruvController extends Controller
             } else {
                 $izox = "Хатолик юз берди. Дастур ўзига мос маълумотларни текшириб кўринг."; // Error message
             }
+
             return $izox;
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
