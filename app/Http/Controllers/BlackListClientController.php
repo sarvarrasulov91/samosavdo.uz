@@ -5,9 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\mfy;
 use App\Models\mijozlar;
 use App\Models\tuman;
-use App\Models\xissobotoy;
-use App\Models\filial;
-use App\Models\lavozim;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 

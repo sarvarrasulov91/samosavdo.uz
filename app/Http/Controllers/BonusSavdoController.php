@@ -12,9 +12,6 @@ use App\Models\ktovar1;
 use App\Models\savdobonus1;
 use App\Models\tmodel;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
-
 
 
 class BonusSavdoController extends Controller
