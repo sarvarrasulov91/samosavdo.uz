@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar;
+use App\Models\Tulovlar;
 use App\Models\filial;
 use App\Models\lavozim;
 
@@ -72,7 +72,7 @@ class OfficeJamiTulovlarController extends Controller
 
             foreach ($filialbase as $filia) {
 
-                $tulovlar = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                $tulovlar = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('status', 'Актив')
                     ->where('filial_id', $filia->id)
                     ->get();

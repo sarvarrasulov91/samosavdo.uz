@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdo;
+use App\Models\Savdo;
 use App\Models\xissobotoy;
 use App\Models\filial;
 
@@ -112,7 +112,7 @@ class SavdolarTahliliController extends Controller
                         $bsoni = 0;
                         $bsumma = 0;
 
-                        $savdosvod = savdo::where('filial_id', $filialinfo->id)->where('status', '!=', 'Удалит')->where('xis_oyi', $xis_oyi)->get();
+                        $savdosvod = Savdo::where('filial_id', $filialinfo->id)->where('status', '!=', 'Удалит')->where('xis_oyi', $xis_oyi)->get();
                         foreach ($savdosvod as $savdosvodname) {
                             $ksoni += 1;
                             $ksumma += $savdosvodname->kirimnarhi;
@@ -229,7 +229,7 @@ class SavdolarTahliliController extends Controller
                     $filial = filial::where('status', 'Актив')->where('id', $id)->get();
                     foreach ($filial as $filialinfo){
 
-                        $savdosvod = savdo::where('filial_id', $filialinfo->id)->where('status','!=','Удалит')->where('xis_oyi',$xis_oyi)->get();
+                        $savdosvod = Savdo::where('filial_id', $filialinfo->id)->where('status','!=','Удалит')->where('xis_oyi',$xis_oyi)->get();
                         foreach ($savdosvod as $savdosvodname) {
                             echo'
                                 <tr>

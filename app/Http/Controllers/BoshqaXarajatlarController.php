@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\turharajat;
 use App\Models\valyuta;
-use App\Models\xarajat;
+use App\Models\Xarajat;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
 
@@ -24,7 +24,7 @@ class BoshqaXarajatlarController extends Controller
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
             $turharajat = turharajat::get();
             $valyuta = valyuta::where('id', '1')->get();
-            $chiqim =  xarajat::where('status', 'Актив')->where('xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
+            $chiqim =  Xarajat::where('status', 'Актив')->where('xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
 
             return view('kassa.boshqaxarajat', [
                 'xis_oyi' => $xis_oyi,
@@ -92,7 +92,7 @@ class BoshqaXarajatlarController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $chiqim = new xarajat;
+            $chiqim = new Xarajat;
             $chiqim->kun = $request->kun;
             $chiqim->filial_id = Auth::user()->filial_id;
             $chiqim->turharajat_id = $request->turharajat_id;
@@ -113,7 +113,7 @@ class BoshqaXarajatlarController extends Controller
                 $message = 'Маълумот сақлашда хатолик.!!!';
             }
 
-            $chiqim =  xarajat::
+            $chiqim =  Xarajat::
             with(['turharajat'=>function ($query) {
                 $query->select('id','har_name');
             }])->
@@ -169,7 +169,7 @@ class BoshqaXarajatlarController extends Controller
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
 
-            $boshqaharajat = xarajat::where('id', $id)
+            $boshqaharajat = Xarajat::where('id', $id)
                 ->where('status', 'Актив')
                 ->where('filial_id', Auth::user()->filial_id)
                 ->first();
@@ -193,7 +193,7 @@ class BoshqaXarajatlarController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $chiqim =  xarajat::
+            $chiqim =  Xarajat::
             with(['turharajat'=>function ($query) {
                 $query->select('id','har_name');
             }])->

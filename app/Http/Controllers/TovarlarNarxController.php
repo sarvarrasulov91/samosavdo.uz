@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\xissobotoy;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +15,7 @@ class TovarlarNarxController extends Controller
      */
     public function index()
     {
-        $model = kirimTovar::where('status', 'Сотилмаган')
+        $model = KirimTovar::where('status', 'Сотилмаган')
             ->where('filial_id', Auth::user()->filial_id)
             ->orderBy('id', 'desc')
             ->get();
@@ -48,7 +48,7 @@ class TovarlarNarxController extends Controller
 
             foreach ($ttovarlar as $ttovarla) {
 
-                $model = kirimTovar::where('id',$ttovarla)
+                $model = KirimTovar::where('id',$ttovarla)
                     ->where('filial_id', Auth::user()->filial_id)
                     ->get();
 

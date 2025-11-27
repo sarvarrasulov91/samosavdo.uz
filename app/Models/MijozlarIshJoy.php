@@ -17,7 +17,7 @@ class MijozlarIshJoy extends Model
 
     public function shartnoma1(): HasOne
     {
-        return $this->hasOne(shartnoma::class);
+        return $this->hasOne(Shartnoma::class);
     }
 
     public function filial(): BelongsTo

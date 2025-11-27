@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 
 
 class BarcodTaminotchiController extends Controller
@@ -16,7 +16,7 @@ class BarcodTaminotchiController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $model = kirimTovar::where('status','Актив')->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
+            $model = KirimTovar::where('status','Актив')->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
 
             return view('tovarlar.barcod', ['model' => $model]);
         }else{
@@ -54,7 +54,7 @@ class BarcodTaminotchiController extends Controller
 
                 foreach ($ttovarlar as $ttovarla) {
 
-                    $model = kirimTovar::where('status', 'Актив')
+                    $model = KirimTovar::where('status', 'Актив')
                         ->where('id', $ttovarla)
                         ->where('filial_id', Auth::user()->filial_id)
                         ->get();

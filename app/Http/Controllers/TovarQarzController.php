@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdo;
-use App\Models\kirimTovar;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
 use App\Models\fondSavdo;
-use App\Models\shartnoma;
-use App\Models\naqdSavdo;
+use App\Models\Shartnoma;
+use App\Models\NaqdSavdo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\xissobotoy;
@@ -52,7 +52,7 @@ class TovarQarzController extends Controller
                 <tbody id="tab1">';
 
 
-                    $savdounix_id = savdo::select('unix_id','unix_id')
+                    $savdounix_id = Savdo::select('unix_id','unix_id')
                         ->where('shtrix_kod', '0')
                         ->where('status','!=','Удалит')
                         ->where('filial_id', Auth::user()->filial_id)
@@ -61,10 +61,10 @@ class TovarQarzController extends Controller
                         ->get();
 
                     foreach ($savdounix_id as $savdounix){
-                        $savdoid = savdo::where('unix_id', $savdounix->unix_id)->where('status','!=','Удалит' )->limit(1)->get();
+                        $savdoid = Savdo::where('unix_id', $savdounix->unix_id)->where('status','!=','Удалит' )->limit(1)->get();
                         foreach ($savdoid as $savdoidall){
                             if($savdoidall->status == 'Шартнома'){
-                                $shartnoma1 = shartnoma::where('id', $savdoidall->shartnoma_id)->where('status','Актив')->get();
+                                $shartnoma1 = Shartnoma::where('id', $savdoidall->shartnoma_id)->where('status','Актив')->get();
                                 foreach ($shartnoma1 as $shartnoma){
                                     echo'
                                     <tr class="align-middle" data-bs-toggle="modal"
@@ -79,7 +79,7 @@ class TovarQarzController extends Controller
                                     </tr>';
                                 }
                             }elseif($savdoidall->status == 'Нақд'){
-                                $naqdsavdojami = naqdSavdo::where('id', $savdoidall->shartnoma_id)->get();
+                                $naqdsavdojami = NaqdSavdo::where('id', $savdoidall->shartnoma_id)->get();
                                 foreach ($naqdsavdojami as $naqdsavdojam){
                                     echo'
                                     <tr class="align-middle" data-bs-toggle="modal" data-bs-target="#shartnoma_add"
@@ -148,16 +148,16 @@ class TovarQarzController extends Controller
         }
 
         if ($status == 'Шартнома') {
-            $shartnoma = shartnoma::find($id);
+            $shartnoma = Shartnoma::find($id);
         }elseif ($status == 'Нақд'){
-            $shartnoma = naqdSavdo::find($id);
+            $shartnoma = NaqdSavdo::find($id);
         }else{
             $shartnoma = fondSavdo::find($id);
         }
 
         $shid = $shartnoma->shid;
 
-        $tovar = kirimTovar::where('status', 'Сотилмаган')
+        $tovar = KirimTovar::where('status', 'Сотилмаган')
             ->where('filial_id', Auth::user()->filial_id)
             ->where('shtrix_kod', $krimt)
             ->first();
@@ -169,7 +169,7 @@ class TovarQarzController extends Controller
         $count = $tovar->tmodel_id;
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $tekshirsavdo = savdo::where('status', $status)
+        $tekshirsavdo = Savdo::where('status', $status)
             ->where('tmodel_id', $count)
             ->where('shtrix_kod', '0')
             ->where('shartnoma_id', $id)
@@ -180,7 +180,7 @@ class TovarQarzController extends Controller
 
             try {
                 DB::beginTransaction();
-                $savdo1Updated = savdo::where('status', $status)
+                $savdo1Updated = Savdo::where('status', $status)
                     ->where('filial_id', Auth::user()->filial_id)
                     ->where('shartnoma_id', $id)
                     ->where('tmodel_id', $count)
@@ -191,7 +191,7 @@ class TovarQarzController extends Controller
                         'kirimnarhi' => round($tovar->tannarhi,-3)
                     ]);
 
-                $ktovar1Updated = kirimTovar::where('status', 'Сотилмаган')
+                $ktovar1Updated = KirimTovar::where('status', 'Сотилмаган')
                     ->where('filial_id', Auth::user()->filial_id)
                     ->where('tmodel_id', $count)
                     ->where('shtrix_kod', $krimt)
@@ -243,7 +243,7 @@ class TovarQarzController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $savdomodel = savdo::where('status', $request->status)
+            $savdomodel = Savdo::where('status', $request->status)
                 ->where('filial_id', Auth::user()->filial_id)
                 ->where('shartnoma_id', $id)
                 ->get();

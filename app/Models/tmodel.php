@@ -27,7 +27,7 @@ class tmodel extends Model
 
     public function savdo(): HasOne
     {
-        return $this->hasOne(savdo::class);
+        return $this->hasOne(Savdo::class);
     }
 
     public function talmashish(): HasOne

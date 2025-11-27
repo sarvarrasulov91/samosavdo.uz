@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\filial;
-use App\Models\mijozlar;
-use App\Models\savdo;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
+use App\Models\Mijozlar;
+use App\Models\Savdo;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
 use App\Models\xissobotoy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +62,7 @@ class ShartnomaIdController extends Controller
                 <tbody id="tab1">';
 
         if($request->radioButton == 'mijoz'){
-            $clients = mijozlar::where(function($query) use ($id) {
+            $clients = Mijozlar::where(function($query) use ($id) {
                 $query->whereRaw("CONCAT(last_name, ' ', first_name) LIKE ?", ["%{$id}%"])
                     ->orWhere('phone', 'LIKE', "%{$id}%")
                     ->orWhere('passport_sn', 'LIKE', "%{$id}%")
@@ -70,17 +70,17 @@ class ShartnomaIdController extends Controller
             })->get();
 
             $clientIds = $clients->pluck('id')->toArray();
-            $shartnomalar = shartnoma::where('filial_id', $filial)->whereIn('mijozlar_id', $clientIds)->get();
+            $shartnomalar = Shartnoma::where('filial_id', $filial)->whereIn('mijozlar_id', $clientIds)->get();
         }else{
-            $shartnomalar = shartnoma::where('filial_id', $filial)->where('id', $id)->get();
+            $shartnomalar = Shartnoma::where('filial_id', $filial)->where('id', $id)->get();
         }
 
         if ($shartnomalar->isNotEmpty()){
 
             foreach($shartnomalar as $shartnoma){
 
-                $savdosummasi = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
-                $tulovInfo = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')
+                $savdosummasi = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
+                $tulovInfo = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')
                     ->where('status', 'Актив')
                     ->where('shartnoma_id', $shartnoma->id)
                     ->first();

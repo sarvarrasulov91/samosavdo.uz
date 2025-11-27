@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
 use App\Models\filial;
 use App\Models\pastavshik;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\valyuta;
 use App\Models\tmodel;
 
@@ -100,7 +100,7 @@ class KirimTovarController extends Controller
         $tsumma = $request->tsumma;
 
         // ❗ Max soni olish - tez ishlaydi
-        $lastNumber = kirimTovar::where('tmodel_id', $tmodel->id)
+        $lastNumber = KirimTovar::where('tmodel_id', $tmodel->id)
             ->where('filial_id', $request->filial)
             ->max('soni') ?? 0;
 
@@ -143,17 +143,17 @@ class KirimTovarController extends Controller
         }
 
         // Bulk insert (super fast)
-        kirimTovar::insert($data);
+        KirimTovar::insert($data);
 
         //$model = new kirimTovar($request->filial);
-        kirimTovar::where('filial_id', $request->filial)
+        KirimTovar::where('filial_id', $request->filial)
             ->where('valyuta_id', $request->valyuta)
             ->where('tmodel_id', $tmodel->id)
             ->whereIn('status', ['Сотилмаган', 'Актив'])
             ->where('snarhi', '<', $tsumma)
             ->update(['snarhi' => $tsumma]);
 
-        $datamodel = kirimTovar::select('id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id')
+        $datamodel = KirimTovar::select('id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id')
             ->where('status', 'Актив')
             ->where('filial_id', $request->filial)
             ->latest()
@@ -199,7 +199,7 @@ class KirimTovarController extends Controller
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив'
             && $request->id > 0 && $request->filial > 0 ) {
 
-            kirimTovar::where('id', $request->id)
+            KirimTovar::where('id', $request->id)
                 ->where('filial_id', $request->filial)
                 ->update([
                     'status' => "Удалит",
@@ -207,7 +207,7 @@ class KirimTovarController extends Controller
                     'del_user_id' => Auth::id()
                 ]);
 
-            $datamodel = kirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id'])
+            $datamodel = KirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id'])
                 ->where('status', 'Актив')
                 ->where('filial_id', $request->filial)
                 ->orderBy('id', 'desc')
@@ -229,7 +229,7 @@ class KirimTovarController extends Controller
     {
         if ($request->filial > 0) {
 
-            $datamodel = kirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
+            $datamodel = KirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
                 ->where('status', 'Актив')
                 ->where('filial_id', $request->filial)
                 ->orderBy('id', 'desc')
@@ -251,7 +251,7 @@ class KirimTovarController extends Controller
 
         if ($request->filial > 0 && $tovarmodeli > 0) {
 
-            $datamodel = kirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
+            $datamodel = KirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
                 ->where('tmodel_id', $tovarmodeli)
                 ->where('filial_id', $request->filial)
                 ->orderBy('id', 'desc')

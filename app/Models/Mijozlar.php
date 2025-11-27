@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
-class mijozlar extends Model
+class Mijozlar extends Model
 {
     use HasFactory;
     protected $table = 'mijozlar';
@@ -16,12 +16,12 @@ class mijozlar extends Model
 
     public function naqdsavdo1(): HasOne
     {
-        return $this->hasOne(naqdSavdo::class);
+        return $this->hasOne(NaqdSavdo::class);
     }
 
     public function shartnoma1(): HasOne
     {
-        return $this->hasOne(shartnoma::class);
+        return $this->hasOne(Shartnoma::class);
     }
 
     public function fond1(): HasOne

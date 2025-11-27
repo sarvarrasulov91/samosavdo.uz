@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\mfy;
-use App\Models\mijozlar;
+use App\Models\Mijozlar;
 use App\Models\tuman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +18,7 @@ class BlackListClientController extends Controller
         $search = request()->query('search');
 
         if($search){
-            $clients = mijozlar::where(function ($query) use ($search){
+            $clients = Mijozlar::where(function ($query) use ($search){
                 $query->where('last_name', 'LIKE', "%$search%")
                     ->orWhere('first_name', 'LIKE', "%$search%")
                     ->orWhere('pinfl', 'LIKE', "%$search%")
@@ -28,9 +28,9 @@ class BlackListClientController extends Controller
 
         }else{
             if (Auth::user()->filial_id == 10){
-                $clients = mijozlar::query()->where('status', 1)->where('m_type', 2)->latest('id')->paginate(100);
+                $clients = Mijozlar::query()->where('status', 1)->where('m_type', 2)->latest('id')->paginate(100);
             }else{
-                $clients = mijozlar::where('status', 1)->where('m_type', 2)->where('filial_id', Auth::user()->filial_id)->latest('id')->paginate(100);
+                $clients = Mijozlar::where('status', 1)->where('m_type', 2)->where('filial_id', Auth::user()->filial_id)->latest('id')->paginate(100);
             }
         }
 

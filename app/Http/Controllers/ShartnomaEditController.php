@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\valyuta;
 use App\Models\filial;
-use App\Models\mijozlar;
-use App\Models\shartnoma;
+use App\Models\Mijozlar;
+use App\Models\Shartnoma;
 use App\Models\tashrif;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,9 +19,9 @@ class ShartnomaEditController extends Controller
     public function index()
     {
         $valyuta = valyuta::get();
-        $mijozlar = mijozlar::orderBy('id', 'desc')->get();
+        $mijozlar = Mijozlar::orderBy('id', 'desc')->get();
         $tashrif = tashrif::get();
-        $shartnoma = shartnoma::get();
+        $shartnoma = Shartnoma::get();
         $filial = filial::where('status', 'Актив')->whereNotIn('id', [10])->get();
 
         return view('shartnoma.ShartnomaEdit', [
@@ -49,7 +49,7 @@ class ShartnomaEditController extends Controller
         $id = $request->id;
         $filial = $request->filial;
 
-        $shartnom = shartnoma::where('filial_id', $filial)->where('id', $id)->first();
+        $shartnom = Shartnoma::where('filial_id', $filial)->where('id', $id)->first();
 
 
         echo '
@@ -164,7 +164,7 @@ class ShartnomaEditController extends Controller
         $branchId = $request->integer('filial2');
 
         $user = Auth::user();
-        $contract = shartnoma::where('filial_id', $branchId)->where('id', $id)->first();
+        $contract = Shartnoma::where('filial_id', $branchId)->where('id', $id)->first();
 
         if (!$contract) {
             return response()->json(['message' => "Shartnoma topilmadi!"]);

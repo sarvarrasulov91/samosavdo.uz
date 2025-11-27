@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
-use App\Models\savdo;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
 use App\Models\xodimlar;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -107,7 +107,7 @@ class PortfelExpiredController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $shartnoma = shartnoma::where('filial_id', $id)
+                $shartnoma = Shartnoma::where('filial_id', $id)
                     ->where('status', 'Актив')
                     ->where('tug_sana', '<', date('Y-m-d'))
                     ->orderBy('id', 'desc')
@@ -128,12 +128,12 @@ class PortfelExpiredController extends Controller
 
                     $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
-                    $savdosumma = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                    $savdosumma = Savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                    $oldindantulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                    $chegirma = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-                    $tulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
-                    $tulovinfo = tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
+                    $oldindantulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
+                    $chegirma = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
+                    $tulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
+                    $tulovinfo = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
                     $tsumma = 0;
                     $tsumma = $tulovinfo->umumiysumma ?? 0;
@@ -329,7 +329,7 @@ class PortfelExpiredController extends Controller
 
                 <tbody id="tab1">';
 
-                $savdomodel = savdo::where('filial_id', $request->filial)
+                $savdomodel = Savdo::where('filial_id', $request->filial)
                     ->where('status', 'Шартнома')
                     ->where('shartnoma_id', $id)
                     ->get();

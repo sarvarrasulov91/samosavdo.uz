@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\filial;
 
 
@@ -46,13 +46,13 @@ class TovarXatlovController extends Controller
             $krimt = $request->krimt;
             $filial = $request->filial;
 
-            $model = kirimTovar::where('shtrix_kod', $krimt)
+            $model = KirimTovar::where('shtrix_kod', $krimt)
                 ->where('filial_id', $filial)
                 ->where('status', 'Сотилмаган')
                 ->where('inv_shtrix_kod', '0')
                 ->count();
 
-            $tovar = kirimTovar::where('shtrix_kod', $krimt)
+            $tovar = KirimTovar::where('shtrix_kod', $krimt)
                 ->where('filial_id', $filial)
                 ->where('status', 'Сотилмаган')
                 ->where('inv_shtrix_kod', '0')
@@ -97,7 +97,7 @@ class TovarXatlovController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $model = kirimTovar::where('status', 'Сотилмаган')->where('filial_id', $id)->orderBy('id', 'desc')->get();
+                    $model = KirimTovar::where('status', 'Сотилмаган')->where('filial_id', $id)->orderBy('id', 'desc')->get();
 
                     foreach ($model as $mode){
 
@@ -147,7 +147,7 @@ class TovarXatlovController extends Controller
 
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив'){
 
-            kirimTovar::where('status', 'Сотилмаган')
+            KirimTovar::where('status', 'Сотилмаган')
                 ->where('filial_id', $id)
                 ->update([
                     'inv_shtrix_kod' => '0'

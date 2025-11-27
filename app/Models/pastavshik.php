@@ -15,7 +15,7 @@ class pastavshik extends Model
 
     public function ktovar1(): HasOne
     {
-        return $this->hasOne(kirimTovar::class);
+        return $this->hasOne(KirimTovar::class);
     }
 
     public function talmashish(): HasOne

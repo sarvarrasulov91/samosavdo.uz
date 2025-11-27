@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\mijozlar;
-use App\Models\savdo;
-use App\Models\tulovlar;
-use App\Models\naqdSavdo;
-use App\Models\kirimTovar;
+use App\Models\Mijozlar;
+use App\Models\Savdo;
+use App\Models\Tulovlar;
+use App\Models\NaqdSavdo;
+use App\Models\KirimTovar;
 use App\Models\xissobotoy;
 use App\Models\filial;
 
@@ -26,12 +26,12 @@ class NaqdSavdoController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $mijozlar = mijozlar::where('status', '1')
+            $mijozlar = Mijozlar::where('status', '1')
                 ->where('filial_id', Auth::user()->filial_id)
                 ->where('m_type', '1')
                 ->get();
 
-            $savdounix_id = savdo::select('unix_id')
+            $savdounix_id = Savdo::select('unix_id')
                 ->where('status', 'Актив')
                 ->orderBy('unix_id', 'desc')
                 ->where('filial_id', Auth::user()->filial_id)
@@ -76,7 +76,7 @@ class NaqdSavdoController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $naqdsavdojami = naqdSavdo::where('xis_oyi', $xis_oyi)
+                $naqdsavdojami = NaqdSavdo::where('xis_oyi', $xis_oyi)
                     ->where('status', 'Актив')
                     ->where('filial_id', Auth::user()->filial_id)
                     ->orderBy('id', 'desc')
@@ -88,7 +88,7 @@ class NaqdSavdoController extends Controller
 
                     $savdoid = $naqdsavdojam->savdoraqami_id;
 
-                    $savdosumma = savdo::where('status', 'Нақд')
+                    $savdosumma = Savdo::where('status', 'Нақд')
                         ->where('unix_id', $savdoid)
                         ->where('shartnoma_id', $id)
                         ->where('filial_id', Auth::user()->filial_id)
@@ -96,7 +96,7 @@ class NaqdSavdoController extends Controller
 
                     $jnaqd = $jplastik = $jhr = $jClick = $jchegirma = 0;
 
-                    $tulovlar = tulovlar::where('tulovturi', 'Нақд')
+                    $tulovlar = Tulovlar::where('tulovturi', 'Нақд')
                         ->where('shartnoma_id', $id)
                         ->where('status', 'Актив')
                         ->where('filial_id', Auth::user()->filial_id)
@@ -134,7 +134,7 @@ class NaqdSavdoController extends Controller
                         </td>
                     ';
 
-                    $tekshirtovar = savdo::where('status', 'Нақд')
+                    $tekshirtovar = Savdo::where('status', 'Нақд')
                         ->where('unix_id', $savdoid)
                         ->where('shartnoma_id', $id)
                         ->where('shtrix_kod', 0)
@@ -203,7 +203,7 @@ class NaqdSavdoController extends Controller
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $msumma = savdo::where('status', 'Актив')
+        $msumma = Savdo::where('status', 'Актив')
             ->where('filial_id', Auth::user()->filial_id)
             ->where('unix_id', $request->savdounix_id)
             ->sum('msumma');
@@ -224,10 +224,10 @@ class NaqdSavdoController extends Controller
         try {
             DB::beginTransaction();
 
-            $maxId = naqdSavdo::where('filial_id', Auth::user()->filial_id)->max('shid');
+            $maxId = NaqdSavdo::where('filial_id', Auth::user()->filial_id)->max('shid');
             $maxId++;
 
-            $naqdsavdo = new naqdSavdo;
+            $naqdsavdo = new NaqdSavdo;
             $naqdsavdo->filial_id = Auth::user()->filial_id;
             $naqdsavdo->shid = $maxId;
             $naqdsavdo->mijozlar_id = $request->mijoz;
@@ -238,7 +238,7 @@ class NaqdSavdoController extends Controller
             $naqdsavdo->save();
             $insid = $naqdsavdo->id;
 
-            $savdo1Updated = savdo::where('unix_id', $request->savdounix_id)
+            $savdo1Updated = Savdo::where('unix_id', $request->savdounix_id)
                 ->where('status', 'Актив')
                 ->where('filial_id', Auth::user()->filial_id)
                 ->update([
@@ -248,7 +248,7 @@ class NaqdSavdoController extends Controller
                     'shid' => $maxId,
                 ]);
 
-            $tulovlar = new tulovlar;
+            $tulovlar = new Tulovlar;
             $tulovlar->kun = $request->yangikun;
             $tulovlar->tulovturi = 'Нақд';
             $tulovlar->filial_id = Auth::user()->filial_id;
@@ -340,12 +340,12 @@ class NaqdSavdoController extends Controller
         $bankname=$filia->bankname;
         $mfo=$filia->mfo;
 
-        $naqdsavdojam = naqdSavdo::where('id', $id)
+        $naqdsavdojam = NaqdSavdo::where('id', $id)
             ->where('filial_id', Auth::user()->filial_id)
             ->where('status', 'Актив')
             ->first();
 
-        $tulovlar = tulovlar::where('status', 'Актив')->where('shartnoma_id', $id)
+        $tulovlar = Tulovlar::where('status', 'Актив')->where('shartnoma_id', $id)
             ->where('filial_id', Auth::user()->filial_id)
             ->where('tulovturi', 'Нақд')
             ->get();
@@ -431,7 +431,7 @@ class NaqdSavdoController extends Controller
 
                 <tbody id="tab1">';
 
-                    $savdomodel = savdo::where('status', 'Нақд')
+                    $savdomodel = Savdo::where('status', 'Нақд')
                         ->where('shartnoma_id', $id)
                         ->where('filial_id', Auth::user()->filial_id)
                         ->get();
@@ -474,7 +474,7 @@ class NaqdSavdoController extends Controller
      */
     public function edit(string $id)
     {
-        $savdomodel = savdo::where('status', 'Актив')->where('unix_id', $id)->where('filial_id', Auth::user()->filial_id)->get();
+        $savdomodel = Savdo::where('status', 'Актив')->where('unix_id', $id)->where('filial_id', Auth::user()->filial_id)->get();
 
         echo '<h3 class=" text-center text-primary ">Шартнома учун товарлар руйхати</h3>
         <table class="table table-bordered table-hover">
@@ -519,12 +519,12 @@ class NaqdSavdoController extends Controller
     public function update(Request $request, string $id)
     {
 
-        $tekshirktovar1 = kirimTovar::where('status', 'Нақд')
+        $tekshirktovar1 = KirimTovar::where('status', 'Нақд')
             ->where('shatnomaid', $id)
             ->where('filial_id', Auth::user()->filial_id)
             ->count();
 
-        $tekshirsavdo1 = savdo::where('status', 'Нақд')
+        $tekshirsavdo1 = Savdo::where('status', 'Нақд')
             ->where('unix_id', $request->savdoid)
             ->where('shartnoma_id', $id)
             ->where('shtrix_kod','>', 0)
@@ -533,7 +533,7 @@ class NaqdSavdoController extends Controller
 
         if ($tekshirktovar1 == 0 && $tekshirsavdo1 == 0){
 
-            $Readfond1 = naqdSavdo::where('id', $id)->where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->first();
+            $Readfond1 = NaqdSavdo::where('id', $id)->where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->first();
 
             $FondKun = $Readfond1->kun;
 
@@ -545,7 +545,7 @@ class NaqdSavdoController extends Controller
                     try {
                         DB::beginTransaction();
 
-                        $savdUpdated = savdo::where('unix_id', $request->savdoid)
+                        $savdUpdated = Savdo::where('unix_id', $request->savdoid)
                             ->where('status', 'Нақд')
                             ->where('filial_id', Auth::user()->filial_id)
                             ->update([
@@ -554,7 +554,7 @@ class NaqdSavdoController extends Controller
                                 'del_user_id' => Auth::user()->id,
                             ]);
 
-                        $tulovUpdated = tulovlar::where('tulovturi', 'Нақд')
+                        $tulovUpdated = Tulovlar::where('tulovturi', 'Нақд')
                             ->where('shartnoma_id', $id)
                             ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
@@ -563,7 +563,7 @@ class NaqdSavdoController extends Controller
                                 'del_kun' => date('Y-m-d'),
                                 'del_user_id' => Auth::user()->id,
                             ]);
-                        $naqdsavdoUpdated = naqdSavdo::where('id', $id)
+                        $naqdsavdoUpdated = NaqdSavdo::where('id', $id)
                             ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
                             ->update([

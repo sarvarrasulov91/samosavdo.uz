@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\xarajat;
+use App\Models\Xarajat;
 use App\Models\turharajat;
 use App\Models\filial;
 
@@ -58,7 +58,7 @@ class XisobotXarajatlarController extends Controller
         $turharajat = turharajat::get();
         foreach ($turharajat as $turharaja) {
 
-            $boshqaharajat = xarajat::where('filial_id', $filial)
+            $boshqaharajat = Xarajat::where('filial_id', $filial)
                 ->whereBetween('kun', [$boshkun, $yakunkun])
                 ->where('turharajat_id', $turharaja->id)
                 ->where('status', 'Актив')

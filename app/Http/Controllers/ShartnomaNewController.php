@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
-use App\Models\savdo;
-use App\Models\mijozlar;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
+use App\Models\Mijozlar;
 use App\Models\tashrif;
 use App\Models\xissobotoy;
 
@@ -24,14 +24,14 @@ class ShartnomaNewController extends Controller
     {
         $tashrif = tashrif::all();
 
-        $savdounix_id = savdo::where('filial_id', Auth::user()->filial_id)
+        $savdounix_id = Savdo::where('filial_id', Auth::user()->filial_id)
             ->select('unix_id')
             ->where('status', 'Актив')
             ->orderBy('unix_id', 'desc')
             ->groupBy('unix_id')
             ->get();
 
-        $mijozlar = mijozlar::where('filial_id', Auth::user()
+        $mijozlar = Mijozlar::where('filial_id', Auth::user()
             ->filial_id)->where('status', '1')
             ->where('m_type', '1')
             ->get();
@@ -66,7 +66,7 @@ class ShartnomaNewController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $shartnoma = shartnoma::whereIn('status', ['Актив', 'Ёпилган'])
+                    $shartnoma = Shartnoma::whereIn('status', ['Актив', 'Ёпилган'])
                         ->where('filial_id', Auth::user()->filial_id)
                         ->where('kun', date('Y-m-d'))
                         ->orderBy('id', 'desc')
@@ -141,7 +141,7 @@ class ShartnomaNewController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $msumma = savdo::where('status', 'Актив')
+        $msumma = Savdo::where('status', 'Актив')
             ->where('unix_id', $request->savdounix_id)
             ->where('filial_id', Auth::user()->filial_id)
             ->sum('msumma');
@@ -175,7 +175,7 @@ class ShartnomaNewController extends Controller
         // smartfonlar uchun oldindan tulov 20 foiz olish
 
         $tulov = 0;
-        $turIds = savdo::where('status', 'Актив')
+        $turIds = Savdo::where('status', 'Актив')
             ->where('unix_id', $request->savdounix_id)
             ->where('filial_id', Auth::user()->filial_id)
             ->get();
@@ -198,13 +198,13 @@ class ShartnomaNewController extends Controller
         $foiz = (($foiz_stavka / 12) * $request->muddat);
         $foizSumma = round($msumma * $foiz / 100, 0);
 
-        $maxId = shartnoma::where('filial_id', Auth::user()->filial_id)->latest('id')->value('shid');
+        $maxId = Shartnoma::where('filial_id', Auth::user()->filial_id)->latest('id')->value('shid');
         $maxId++;
 
         try {
             DB::beginTransaction();
 
-            $shartnoma = new shartnoma;
+            $shartnoma = new Shartnoma;
             $shartnoma->filial_id = Auth::user()->filial_id;
             $shartnoma->shid = $maxId;
             $shartnoma->mijozlar_id = $request->mijoz;
@@ -224,7 +224,7 @@ class ShartnomaNewController extends Controller
             $shartnoma->save();
             $insid = $shartnoma->id;
 
-            savdo::where('unix_id', $request->savdounix_id)
+            Savdo::where('unix_id', $request->savdounix_id)
                 ->where('status', 'Актив')
                 ->where('filial_id', Auth::user()->filial_id)
                 ->update([
@@ -234,7 +234,7 @@ class ShartnomaNewController extends Controller
                     'shid' => $maxId,
                 ]);
 
-            $tulovlar = new tulovlar;
+            $tulovlar = new Tulovlar;
             $tulovlar->kun = $kkuni;
             $tulovlar->tulovturi = 'Олдиндан тўлов';
             $tulovlar->filial_id = Auth::user()->filial_id;

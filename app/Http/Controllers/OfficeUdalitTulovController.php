@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\tulovlar;
+use App\Models\Tulovlar;
 use App\Models\filial;
 use App\Models\User;
 
@@ -69,7 +69,7 @@ class OfficeUdalitTulovController extends Controller
 
                 $unaqd = $uplastik = $uhr = $uclick = $uavtot = $uchegirma = $ujami = 0;
 
-                $model = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                $model = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('status', 'Удалит')
                     ->where('filial_id', $request->filial)
                     ->orderBy('id', 'desc')

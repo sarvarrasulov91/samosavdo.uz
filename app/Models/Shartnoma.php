@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class shartnoma extends Model
+class Shartnoma extends Model
 {
     use HasFactory;
 
@@ -24,7 +24,7 @@ class shartnoma extends Model
 
     public function mijozlar(): BelongsTo
     {
-        return $this->belongsTo(mijozlar::class, 'mijozlar_id');
+        return $this->belongsTo(Mijozlar::class, 'mijozlar_id');
     }
 
     public function User(): BelongsTo
@@ -39,7 +39,7 @@ class shartnoma extends Model
 
     public function tulovlar1(): HasOne
     {
-        return $this->hasOne(tulovlar::class, 'shartnomaid', 'id');
+        return $this->hasOne(Tulovlar::class, 'shartnomaid', 'id');
     }
 
     public function filial(): BelongsTo

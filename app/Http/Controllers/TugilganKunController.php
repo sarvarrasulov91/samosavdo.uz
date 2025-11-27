@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\mijozlar;
+use App\Models\Mijozlar;
 use Illuminate\Support\Facades\Auth;
 
 class TugilganKunController extends Controller
@@ -13,8 +13,8 @@ class TugilganKunController extends Controller
      */
     public function index()
     {
-        $mijozlaroy = mijozlar::whereMonth('t_sana',date('m'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
-        $mijozlarkun = mijozlar::whereMonth('t_sana',date('m'))->whereDay('t_sana',date('d'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
+        $mijozlaroy = Mijozlar::whereMonth('t_sana',date('m'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
+        $mijozlarkun = Mijozlar::whereMonth('t_sana',date('m'))->whereDay('t_sana',date('d'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
 
         return view('mijoz.TugilganKun', ['mijozlaroy' => $mijozlaroy,'mijozlarkun'=>$mijozlarkun ]);
     }

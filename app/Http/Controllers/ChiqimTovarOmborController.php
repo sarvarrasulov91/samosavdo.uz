@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\filial;
 
 
@@ -60,7 +60,7 @@ class ChiqimTovarOmborController extends Controller
 
                 $i = 1;
 
-                $model = kirimTovar::whereDate('ch_kun', '>=', $boshkun)
+                $model = KirimTovar::whereDate('ch_kun', '>=', $boshkun)
                     ->whereDate('ch_kun', '<=', $yakunkun)
                     ->whereNotIn('status', ['Актив', 'Удалит'])
                     ->where('filial_id', $request->filial)

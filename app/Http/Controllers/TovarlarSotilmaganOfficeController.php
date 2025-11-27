@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\filial;
 
 class TovarlarSotilmaganOfficeController extends Controller
@@ -62,7 +62,7 @@ class TovarlarSotilmaganOfficeController extends Controller
             </thead>
             <tbody id="tab1">';
 
-                $model = kirimTovar::where('filial_id', $filial)
+                $model = KirimTovar::where('filial_id', $filial)
                     ->where('status', 'Сотилмаган')
                     ->orderBy('id', 'desc')
                     ->get();
@@ -131,7 +131,7 @@ class TovarlarSotilmaganOfficeController extends Controller
             $id = $request->id;
             $filial = $request->filial;
 
-            $tovar = kirimTovar::where('id', $id)
+            $tovar = KirimTovar::where('id', $id)
                 ->where('filial_id', $filial)
                 ->where('status', 'Сотилмаган')
                 ->first();

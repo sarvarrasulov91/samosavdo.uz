@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\shartnoma;
-use App\Models\savdo;
-use App\Models\tulovlar;
+use App\Models\Shartnoma;
+use App\Models\Savdo;
+use App\Models\Tulovlar;
 use App\Models\xissobotoy;
 use App\Models\lavozim;
 use App\Models\filial;
@@ -138,12 +138,12 @@ class SHartTahlilOfficeController extends Controller
                     $u_shsumma = 0;
 
 
-                    $shartnoma1 = shartnoma::where('filial_id', $filial->id)->get();
+                    $shartnoma1 = Shartnoma::where('filial_id', $filial->id)->get();
                     foreach ($shartnoma1 as $shart) {
 
                         if(($shart->xis_oyi < $xis_oyi && $shart->status=='Актив')){
 
-                            $obumumsavdo = savdo::where('filial_id', $filial->id)->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+                            $obumumsavdo = Savdo::where('filial_id', $filial->id)->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
                             if($obumumsavdo > 0){
                                 $shsoni ++;
                                 $shtsumma += $obumumsavdo;
@@ -153,7 +153,7 @@ class SHartTahlilOfficeController extends Controller
                         if($shart->xis_oyi<$xis_oyi && $shart->yo_xis_oyi>0 && $shart->yo_xis_oyi>=$xis_oyi){
                             $yo_shsoni ++;
 
-                            $yo_shsumma += savdo::where('filial_id', $filial->id)
+                            $yo_shsumma += Savdo::where('filial_id', $filial->id)
                                 ->where('status', 'Шартнома')
                                 ->where('shartnoma_id', $shart->id)
                                 ->sum('msumma');
@@ -161,8 +161,8 @@ class SHartTahlilOfficeController extends Controller
 
                         if($shart->xis_oyi == $xis_oyi){
                             $nach_shsoni ++;
-                            $savdo = new savdo($filial->id);
-                            $nach_shsumma += savdo::where('filial_id', $filial->id)
+                            $savdo = new Savdo($filial->id);
+                            $nach_shsumma += Savdo::where('filial_id', $filial->id)
                                 ->where('status2', 'Шартнома')
                                 ->where('shartnoma_id', $shart->id)
                                 ->sum('msumma');
@@ -170,7 +170,7 @@ class SHartTahlilOfficeController extends Controller
 
                         if($shart->xis_oyi<=$xis_oyi){
 
-                            $qushsavdo = savdo::where('filial_id', $filial->id)
+                            $qushsavdo = Savdo::where('filial_id', $filial->id)
                                 ->where('status', 'Шартнома')
                                 ->where('shartnoma_id', $shart->id)
                                 ->where('q_xis_oyi', $xis_oyi)
@@ -181,7 +181,7 @@ class SHartTahlilOfficeController extends Controller
                                 $q_shsumma += $qushsavdo;
                             }
 
-                            $uushsavdo = savdo::where('filial_id', $filial->id)
+                            $uushsavdo = Savdo::where('filial_id', $filial->id)
                                 ->where('status2', 'Шартнома')
                                 ->where('shartnoma_id', $shart->id)
                                 ->where('del_xis_oyi', $xis_oyi)
@@ -265,7 +265,7 @@ class SHartTahlilOfficeController extends Controller
      */
     public function show(string $id)
     {
-        $shartnoma1 = shartnoma::select('xis_oyi')->where('filial_id', $id)->groupBy('xis_oyi')->get();
+        $shartnoma1 = Shartnoma::select('xis_oyi')->where('filial_id', $id)->groupBy('xis_oyi')->get();
         foreach ($shartnoma1 as $shart) {
             $xis_oyi = $shart->xis_oyi;
             $xiso = date("m", strtotime($xis_oyi));
@@ -313,12 +313,12 @@ class SHartTahlilOfficeController extends Controller
                 $u_shsoni = 0;
                 $u_shsumma = 0;
 
-                $shartnoma1 = shartnoma::where('filial_id', $id)->get();
+                $shartnoma1 = Shartnoma::where('filial_id', $id)->get();
                 foreach ($shartnoma1 as $shart) {
 
                     if(($shart->xis_oyi < $xis_oyi && $shart->status == 'Актив')){
 
-                        $obumumsavdo = savdo::where('filial_id', $id)
+                        $obumumsavdo = Savdo::where('filial_id', $id)
                             ->where('status2', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->sum('msumma');
@@ -332,7 +332,7 @@ class SHartTahlilOfficeController extends Controller
                     if($shart->xis_oyi < $xis_oyi && $shart->yo_xis_oyi > 0 && $shart->yo_xis_oyi >= $xis_oyi){
                         $Oy_bosh_yo_soni ++;
 
-                        $Oy_bosh_yo_shsumma += savdo::where('filial_id', $id)
+                        $Oy_bosh_yo_shsumma += Savdo::where('filial_id', $id)
                             ->where('status', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->sum('msumma');
@@ -342,7 +342,7 @@ class SHartTahlilOfficeController extends Controller
                     if($shart->yo_xis_oyi == $xis_oyi){
                         $yo_shsoni ++;
 
-                        $yo_shsumma += savdo::where('filial_id', $id)
+                        $yo_shsumma += Savdo::where('filial_id', $id)
                             ->where('status', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->sum('msumma');
@@ -351,7 +351,7 @@ class SHartTahlilOfficeController extends Controller
                     if($shart->xis_oyi == $xis_oyi){
                         $nach_shsoni ++;
 
-                        $nach_shsumma += savdo::where('filial_id', $id)
+                        $nach_shsumma += Savdo::where('filial_id', $id)
                             ->where('status2', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->sum('msumma');
@@ -359,7 +359,7 @@ class SHartTahlilOfficeController extends Controller
 
                     if($shart->xis_oyi <= $xis_oyi){
 
-                        $qushsavdo = savdo::where('filial_id', $id)
+                        $qushsavdo = Savdo::where('filial_id', $id)
                             ->where('status', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->where('q_xis_oyi', $xis_oyi)
@@ -370,7 +370,7 @@ class SHartTahlilOfficeController extends Controller
                             $q_shsumma += $qushsavdo;
                         }
 
-                        $uushsavdo = savdo::where('filial_id', $id)
+                        $uushsavdo = Savdo::where('filial_id', $id)
                             ->where('status2', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->where('del_xis_oyi', $xis_oyi)
@@ -384,7 +384,7 @@ class SHartTahlilOfficeController extends Controller
 
                     if($shart->xis_oyi == $xis_oyi){
 
-                        $Oy_bosh_udalit += savdo::where('filial_id', $id)
+                        $Oy_bosh_udalit += Savdo::where('filial_id', $id)
                             ->where('status2', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->where('del_xis_oyi', $xis_oyi)

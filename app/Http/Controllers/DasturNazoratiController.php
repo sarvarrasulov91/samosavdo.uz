@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\bonusSavdo;
-use App\Models\savdo;
-use App\Models\kirimTovar;
+use App\Models\BonusSavdo;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\filial;
 
@@ -70,13 +70,13 @@ class DasturNazoratiController extends Controller
 
             $i = 0;
 
-            $ktovars = kirimTovar::where('status', '!=', 'Удалит')->where('filial_id', $id)->get();
+            $ktovars = KirimTovar::where('status', '!=', 'Удалит')->where('filial_id', $id)->get();
 
             foreach ($ktovars as $tovar){
 
                 $xona = strlen($tovar->shtrix_kod);
 
-                $KtovarCount = kirimTovar::where('shtrix_kod', $tovar->shtrix_kod)->where('filial_id', $id)->count();
+                $KtovarCount = KirimTovar::where('shtrix_kod', $tovar->shtrix_kod)->where('filial_id', $id)->count();
 
                 if($xona != 17 || $KtovarCount > 1 || $xona != 19){
                     echo'
@@ -121,11 +121,11 @@ class DasturNazoratiController extends Controller
             ';
             $i = 0;
 
-            $ktovars = kirimTovar::where('status', 'Шартнома')->where('filial_id', $id)->get();
+            $ktovars = KirimTovar::where('status', 'Шартнома')->where('filial_id', $id)->get();
 
             foreach ($ktovars as $tovar){
 
-                $SavdoCount = savdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Шартнома')->first();
+                $SavdoCount = Savdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Шартнома')->first();
 
                 if(($SavdoCount->shtrix_kod ?? 0) != $tovar->shtrix_kod){
 
@@ -166,10 +166,10 @@ class DasturNazoratiController extends Controller
 
             $i = 0;
 
-            $ktovars = kirimTovar::where('status', 'Нақд')->where('filial_id', $id)->get();
+            $ktovars = KirimTovar::where('status', 'Нақд')->where('filial_id', $id)->get();
             foreach ($ktovars as $tovar){
 
-                $SavdoCount = savdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Нақд')->first();
+                $SavdoCount = Savdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Нақд')->first();
 
                 if(($SavdoCount->shtrix_kod ?? 0) != $tovar->shtrix_kod){
 
@@ -210,10 +210,10 @@ class DasturNazoratiController extends Controller
 
             $i = 0;
 
-            $ktovars = kirimTovar::where('status', 'Фонд')->where('filial_id', $id)->get();
+            $ktovars = KirimTovar::where('status', 'Фонд')->where('filial_id', $id)->get();
             foreach ($ktovars as $ktovar){
 
-                $SavdoCount = savdo::where('filial_id', $id)->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Фонд')->first();
+                $SavdoCount = Savdo::where('filial_id', $id)->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Фонд')->first();
 
                 if(($SavdoCount->shtrix_kod ?? 0) != $ktovar->shtrix_kod){
 
@@ -255,11 +255,11 @@ class DasturNazoratiController extends Controller
 
             $i = 0;
 
-            $ktovars = kirimTovar::where('filial_id', $id)->where('status', 'Бонус')->get();
+            $ktovars = KirimTovar::where('filial_id', $id)->where('status', 'Бонус')->get();
 
             foreach ($ktovars as $tovar){
 
-                $savdobonusCount = bonusSavdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Актив')->first();
+                $savdobonusCount = BonusSavdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Актив')->first();
 
                 if(($savdobonusCount->shtrix_kod ?? 0) != $tovar->shtrix_kod){
 
@@ -312,7 +312,7 @@ class DasturNazoratiController extends Controller
 
             foreach ($tmqaytarish as $tmqaytaris){
 
-                $ktovar = kirimTovar::where('filial_id', $id)->where('shtrix_kod', $tmqaytaris->shtrix_kod_yangi)->where('status', '!=', 'Удалит')->first();
+                $ktovar = KirimTovar::where('filial_id', $id)->where('shtrix_kod', $tmqaytaris->shtrix_kod_yangi)->where('status', '!=', 'Удалит')->first();
 
                 if(!$ktovar){
                     echo'

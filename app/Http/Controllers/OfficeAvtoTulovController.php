@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar;
-use App\Models\mijozlar;
+use App\Models\Tulovlar;
+use App\Models\Mijozlar;
 use App\Models\filial;
-use App\Models\shartnoma;
+use App\Models\Shartnoma;
 use App\Models\User;
 use App\Models\lavozim;
-use App\Models\savdo;
+use App\Models\Savdo;
 
 class OfficeAvtoTulovController extends Controller
 {
@@ -85,7 +85,7 @@ class OfficeAvtoTulovController extends Controller
                     $ujami=0;
 
 
-                    $model = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                    $model = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('status', 'Актив')
                         ->where('tulovturi','Шартнома')
                         ->where('filial_id', $request->filial)
@@ -93,20 +93,20 @@ class OfficeAvtoTulovController extends Controller
                         ->get();
 
                     foreach ($model as $mode){
-                        $shartnoma = shartnoma::where('id', $mode->shartnoma_id)->where('filial_id', $request->filial)->first();
+                        $shartnoma = Shartnoma::where('id', $mode->shartnoma_id)->where('filial_id', $request->filial)->first();
 
-                        $savdosumma = savdo::where('status', 'Шартнома')
+                        $savdosumma = Savdo::where('status', 'Шартнома')
                             ->where('shartnoma_id', $shartnoma->id)
                             ->where('filial_id', $request->filial)
                             ->sum('msumma');
 
-                        $oldindantulov = tulovlar::where('tulovturi', 'Олдиндан тўлов')
+                        $oldindantulov = Tulovlar::where('tulovturi', 'Олдиндан тўлов')
                             ->where('status', 'Актив')
                             ->where('shartnoma_id', $shartnoma->id)
                             ->where('filial_id', $request->filial)
                             ->sum('umumiysumma');
 
-                        $chegirma = tulovlar::where('tulovturi', 'Олдиндан тўлов')
+                        $chegirma = Tulovlar::where('tulovturi', 'Олдиндан тўлов')
                             ->where('status', 'Актив')
                             ->where('shartnoma_id', $shartnoma->id)
                             ->where('filial_id', $request->filial)
@@ -238,7 +238,7 @@ class OfficeAvtoTulovController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-        $tulovlarshj = tulovlar::where('filial_id', $request->filial)
+        $tulovlarshj = Tulovlar::where('filial_id', $request->filial)
             ->where('shartnoma_id', $id)
             ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
             ->orderBy('id', 'desc')

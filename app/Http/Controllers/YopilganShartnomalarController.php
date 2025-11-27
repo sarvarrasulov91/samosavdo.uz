@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\shartnoma;
-use App\Models\savdo;
-use App\Models\tulovlar;
+use App\Models\Shartnoma;
+use App\Models\Savdo;
+use App\Models\Tulovlar;
 use App\Models\xissobotoy;
 use App\Models\filial;
 use Illuminate\Support\Facades\Auth;
@@ -81,7 +81,7 @@ class YopilganShartnomalarController extends Controller
                     $jamifarq = 0;
                     $chjami = 0;
 
-                    $shartnoma = shartnoma::where('filial_id', $id)
+                    $shartnoma = Shartnoma::where('filial_id', $id)
                         ->whereIn('status', ['Ёпилган', 'Удалит'])
                         ->orderBy('id', 'desc')->get();
 
@@ -93,9 +93,9 @@ class YopilganShartnomalarController extends Controller
                             $foiz = 0;
                         }
 
-                        $savdosumma = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $savdosumma = Savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                        $tulovInfo = tulovlar::where('filial_id', $id)
+                        $tulovInfo = Tulovlar::where('filial_id', $id)
                             ->where('tulovturi', 'Олдиндан тўлов')
                             ->where('status', 'Актив')
                             ->where('shartnomaid', $shartnom->id)
@@ -104,7 +104,7 @@ class YopilganShartnomalarController extends Controller
                         $oldindantulov = $tulovInfo->umumiysumma ?? 0;
                         $chegirma = $tulovInfo->chegirma ?? 0;
 
-                        $tulov = tulovlar::where('filial_id', $id)
+                        $tulov = Tulovlar::where('filial_id', $id)
                             ->where('tulovturi', 'Шартнома')
                             ->where('status', 'Актив')
                             ->where('shartnomaid', $shartnom->id)

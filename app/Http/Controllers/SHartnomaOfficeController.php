@@ -6,10 +6,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
-use App\Models\savdo;
-use App\Models\kirimTovar;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -56,12 +56,12 @@ class SHartnomaOfficeController extends Controller
         $id = $request->id;
         $filial = $request->filial;
 
-        $shartnoma = shartnoma::where('filial_id', $filial)->where('id', $id)->get();
+        $shartnoma = Shartnoma::where('filial_id', $filial)->where('id', $id)->get();
         foreach ($shartnoma as $shartnom) {
 
-            $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+            $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-            $tulovInfo = tulovlar::where('filial_id', $filial)
+            $tulovInfo = Tulovlar::where('filial_id', $filial)
                 ->where('tulovturi', 'Олдиндан тўлов')
                 ->where('status', 'Актив')
                 ->where('shartnoma_id', $shartnom->id)
@@ -70,7 +70,7 @@ class SHartnomaOfficeController extends Controller
             $oldindantulov = $tulovInfo->umumiysumma ?? 0;
             $chegirma = $tulovInfo->chegirma ?? 0;
 
-            $tulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
+            $tulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
 
 
             $tsana = date('d.m.Y', strtotime($shartnom->mijozlar->t_sana));
@@ -290,7 +290,7 @@ class SHartnomaOfficeController extends Controller
                 //Тулов жамланяпти
                 $boshibaza = date("Y-m-", strtotime($du22)) . "01";
 
-                $opl01 = tulovlar::where('tulovturi', 'Шартнома')
+                $opl01 = Tulovlar::where('tulovturi', 'Шартнома')
                     ->where('shartnoma_id', $shartnom->id)
                     ->where('filial_id', $filial)
                     ->where('xis_oyi', $boshibaza)
@@ -328,7 +328,7 @@ class SHartnomaOfficeController extends Controller
             // kechikkan tulovlarni ko'rsatish
 
             $kechTulov = 0;
-            $lateTulovlar = tulovlar::where('tulovturi', 'Шартнома')
+            $lateTulovlar = Tulovlar::where('tulovturi', 'Шартнома')
                 ->where('shartnoma_id', $shartnom->id)
                 ->where('filial_id', $filial)
                 ->where('xis_oyi', '>', $boshibaza)
@@ -397,7 +397,7 @@ class SHartnomaOfficeController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $tulovlar = tulovlar::where('shartnoma_id', $shartnom->id)
+                    $tulovlar = Tulovlar::where('shartnoma_id', $shartnom->id)
                         ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
                         ->where('filial_id', $filial)
                         ->orderByDesc('id')
@@ -471,7 +471,7 @@ class SHartnomaOfficeController extends Controller
             <br>
             <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>';
 
-            $savdomodel = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
+            $savdomodel = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
             echo '
            <table class="table table-bordered table-hover">
                <thead>
@@ -559,7 +559,7 @@ class SHartnomaOfficeController extends Controller
 
                     $jami = 0;
 
-                    $shartnoma = shartnoma::where('filial_id', $id)->whereIn('status', ['Актив', 'Ёпилган'])
+                    $shartnoma = Shartnoma::where('filial_id', $id)->whereIn('status', ['Актив', 'Ёпилган'])
                         ->whereBetween('kun', [$startDate, $endDate])
                         ->orderBy('id', 'desc')
                         ->get();
@@ -568,9 +568,9 @@ class SHartnomaOfficeController extends Controller
 
                         $trClass = ($shartnom->status == 'Ёпилган') ? 'align-middle text-success' : 'align-middle';
 
-                        $savdosummasi = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $savdosummasi = Savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                        $oldindantulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->get();
+                        $oldindantulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->get();
                         $oldindantulovsummasi = $oldindantulov->sum('umumiysumma');
                         $otulovchegirmasummasi = $oldindantulov->sum('chegirma');
 
@@ -614,7 +614,7 @@ class SHartnomaOfficeController extends Controller
     public function edit(string $id)
     {
 
-        $shartnom = shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
+        $shartnom = Shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
 
         echo'<div class="modal-body m-0">
             <div class="flex items-center justify-center bg-white ">
@@ -669,7 +669,7 @@ class SHartnomaOfficeController extends Controller
                         <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 10%;">Сони</th>
                     </tr> <br />';
 
-                    $savdomodel = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
+                    $savdomodel = Savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
                     $i = 0;
                     foreach ($savdomodel as $savdomode) {
                         $i++;
@@ -732,10 +732,10 @@ class SHartnomaOfficeController extends Controller
 
         if($request->status == 'tqushish'){
 
-            $savdounix_id = savdo::where('filial_id', $request->filial)->where('status', 'Актив')->where('unix_id', $request->savdo_id)->count();
+            $savdounix_id = Savdo::where('filial_id', $request->filial)->where('status', 'Актив')->where('unix_id', $request->savdo_id)->count();
             if ($savdounix_id >= 1) {
 
-                $tur = savdo::where('filial_id', $request->filial)->where('unix_id', $request->savdo_id)->where('status', 'Актив')->
+                $tur = Savdo::where('filial_id', $request->filial)->where('unix_id', $request->savdo_id)->where('status', 'Актив')->
                 update([
                     'status' => "Шартнома",
                     'status2' => "Шартнома",
@@ -756,7 +756,7 @@ class SHartnomaOfficeController extends Controller
 
                 $shtrix_kod = 0;
 
-                $savdosumma = savdo::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('id', $request->stid)->first();
+                $savdosumma = Savdo::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('id', $request->stid)->first();
 
                 if ($savdosumma) {
                     $shtrix_kod = $savdosumma->shtrix_kod;
@@ -767,20 +767,20 @@ class SHartnomaOfficeController extends Controller
 
                 if($shtrix_kod > 0){
 
-                    $Counttovar1 = kirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->count();
+                    $Counttovar1 = KirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->count();
 
                     if ($Counttovar1 > 0) {
 
                         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                        $ReadKt = kirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->get();
+                        $ReadKt = KirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->get();
 
                         foreach ($ReadKt as $ReadKtovar) {
                             if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
                                 try {
                                     DB::beginTransaction();
 
-                                    $ktovarUpdated = kirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')
+                                    $ktovarUpdated = KirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')
                                         ->where('shtrix_kod', $shtrix_kod)
                                         ->where('ch_xis_oyi', $xis_oyi)
                                         ->limit(1)
@@ -792,7 +792,7 @@ class SHartnomaOfficeController extends Controller
                                             'shartnoma_id' => 0,
                                         ]);
 
-                                        $savdUpdated = savdo::where('filial_id', $request->filial)->where('id', $request->stid)
+                                        $savdUpdated = Savdo::where('filial_id', $request->filial)->where('id', $request->stid)
                                         ->where('status', 'Шартнома')
                                         ->limit(1)
                                         ->update([
@@ -818,7 +818,7 @@ class SHartnomaOfficeController extends Controller
 
                                 $soninar = 0;
 
-                                $soninar = kirimTovar::where('filial_id', $request->filial)
+                                $soninar = KirimTovar::where('filial_id', $request->filial)
                                     ->where('tmodel_id', $ReadKtovar->tmodel_id)
                                     ->where('tur_id', $ReadKtovar->tur_id)
                                     ->where('brend_id', $ReadKtovar->brend_id)
@@ -835,7 +835,7 @@ class SHartnomaOfficeController extends Controller
 
                                 try {
                                     DB::beginTransaction();
-                                    $ktovarzapis = new kirimTovar;
+                                    $ktovarzapis = new KirimTovar;
                                     $ktovarzapis->kun = date('Y-m-d');
                                     $ktovarzapis->filial_id = $request->filial;
                                     $ktovarzapis->tur_id = $ReadKtovar->tur_id;
@@ -877,7 +877,7 @@ class SHartnomaOfficeController extends Controller
                                     $CreateTqaytarish->save();
 
 
-                                    $savdUpdated = savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
+                                    $savdUpdated = Savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
                                     ->update([
                                         'status' => "Удалит",
                                         'del_user_id' => Auth::user()->id,
@@ -902,7 +902,7 @@ class SHartnomaOfficeController extends Controller
 
                 }else{
 
-                    $savdUpdated = savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
+                    $savdUpdated = Savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
                         ->update([
                             'status' => "Удалит",
                             'del_user_id' => Auth::id(),
@@ -920,7 +920,7 @@ class SHartnomaOfficeController extends Controller
 
         } elseif ($request->status == 'tulovuchrish'){
 
-            $tulov = tulovlar::where('filial_id', $request->filial)
+            $tulov = Tulovlar::where('filial_id', $request->filial)
                 ->where('id', $request->tulovid)
                 ->where('shartnoma_id', $request->id)
                 ->where('status', 'Актив')
@@ -968,14 +968,14 @@ class SHartnomaOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $oldindantulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
-                $tulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
+                $oldindantulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
+                $tulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
 
-                $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
+                $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
 
                 if($oldindantulov == 0 && $tulov == 0 && $savdosumma == 0){
 
-                    $shartnoma1 = shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')
+                    $shartnoma1 = Shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')
                         ->update([
                             'izox' => "Shartnoma majburiy tarzda uchirildi",
                             'status' => 'Удалит',
@@ -1002,13 +1002,13 @@ class SHartnomaOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $shartnom = shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')->first();
+                $shartnom = Shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')->first();
 
-                $oldindantulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
-                $chegirma = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('chegirma');
-                $tulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
+                $oldindantulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
+                $chegirma = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('chegirma');
+                $tulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
 
-                $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
+                $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
 
                 $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
