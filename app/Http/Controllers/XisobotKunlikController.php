@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdo;
-use App\Models\tulovlar;
-use App\Models\xarajat;
+use App\Models\Savdo;
+use App\Models\Tulovlar;
+use App\Models\Xarajat;
 use App\Models\kirim;
 use App\Models\fondSavdo;
 use App\Models\fond;
-use App\Models\shartnoma;
-use App\Models\naqdSavdo;
-use App\Models\bonusSavdo;
+use App\Models\Shartnoma;
+use App\Models\NaqdSavdo;
+use App\Models\BonusSavdo;
 use App\Models\xissobotoy;
 use App\Models\filial;
 
@@ -107,7 +107,7 @@ class XisobotKunlikController extends Controller
         $bonuschegirma = 0;
         $bonusumumiy = 0;
 
-            $tulovlar2 = tulovlar::where('filial_id', $filial)
+            $tulovlar2 = Tulovlar::where('filial_id', $filial)
                 ->whereBetween('kun', [$boshkun, $yakunkun])
                 ->where('status', 'Актив')
                 ->get();
@@ -374,7 +374,7 @@ class XisobotKunlikController extends Controller
         $bronxclick = 0;
         $bronxavtot = 0;
 
-        $shsqltulovlar2 = xarajat::where('filial_id', $filial)
+        $shsqltulovlar2 = Xarajat::where('filial_id', $filial)
             ->whereBetween('kun', [$boshkun, $yakunkun])
             ->where('valyuta_id', '=', 1)
             ->where('status', 'Актив')
@@ -517,7 +517,7 @@ class XisobotKunlikController extends Controller
         $TOyBoshiJasmi = 0;
 
 
-        $TulovlarOyBoshga1 = tulovlar::where('filial_id', $filial)->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
+        $TulovlarOyBoshga1 = Tulovlar::where('filial_id', $filial)->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
         foreach ($TulovlarOyBoshga1 as $TulovlarOyBoshga) {
             $TOyBoshiNaqd += $TulovlarOyBoshga->naqd;
             $TOyBoshiPastik += $TulovlarOyBoshga->pastik;
@@ -541,7 +541,7 @@ class XisobotKunlikController extends Controller
         $TDavrOrasiJami = 0;
 
 
-        $TulovlarDavrOrasi1 = tulovlar::where('filial_id', $filial)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
+        $TulovlarDavrOrasi1 = Tulovlar::where('filial_id', $filial)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
         foreach ($TulovlarDavrOrasi1 as $TulovlarDavrOrasi) {
             $TDavrOrasiNaqd += $TulovlarDavrOrasi->naqd;
             $TDavrOrasiPastik += $TulovlarDavrOrasi->pastik;
@@ -564,7 +564,7 @@ class XisobotKunlikController extends Controller
         $CHOyBoshiBron = 0;
         $CHOyBoshiJami = 0;
 
-        $CHiqimOyBoshga1 = xarajat::where('filial_id', $filial)->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
+        $CHiqimOyBoshga1 = Xarajat::where('filial_id', $filial)->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
         foreach ($CHiqimOyBoshga1 as $CHiqimOyBoshga) {
             $CHOyBoshiNaqd += $CHiqimOyBoshga->naqd;
             $CHOyBoshiPastik += $CHiqimOyBoshga->pastik;
@@ -589,7 +589,7 @@ class XisobotKunlikController extends Controller
         $CHDavrOrasiBron = 0;
         $CHDavrOrasiJami = 0;
 
-        $CHiqimDavrOrasi1 = xarajat::where('filial_id', $filial)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
+        $CHiqimDavrOrasi1 = Xarajat::where('filial_id', $filial)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
         foreach ($CHiqimDavrOrasi1 as $CHiqimDavrOrasi) {
             $CHDavrOrasiNaqd += $CHiqimDavrOrasi->naqd;
             $CHDavrOrasiPastik += $CHiqimDavrOrasi->pastik;
@@ -746,7 +746,7 @@ class XisobotKunlikController extends Controller
                 $fchegirma = 0;
 
 
-                $fsumma = savdo::where('filial_id', $filial)
+                $fsumma = Savdo::where('filial_id', $filial)
                     ->where('fond_id', $fid)
                     ->where('status', 'Фонд')
                     ->whereDate('created_at', '>=', $boshkun)
@@ -758,7 +758,7 @@ class XisobotKunlikController extends Controller
                 foreach ($fond01 as $fond0){
                     $fsoni++;
 
-                    $TulovfondlarDavrOra = tulovlar::where('filial_id', $filial)
+                    $TulovfondlarDavrOra = Tulovlar::where('filial_id', $filial)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('status', 'Актив')
                         ->where('tulovturi', 'Фонд')
@@ -826,7 +826,7 @@ class XisobotKunlikController extends Controller
 
             $shsoni = $shtsumma = $shqsumma = 0;
 
-            $shartnoma1 = shartnoma::whereBetween('kun', [$boshkun, $yakunkun])
+            $shartnoma1 = Shartnoma::whereBetween('kun', [$boshkun, $yakunkun])
                 ->where('filial_id', $filial)
                 ->whereIn('status', ['Актив', 'Ёпилган'])
                 ->get();
@@ -834,9 +834,9 @@ class XisobotKunlikController extends Controller
             foreach ($shartnoma1 as $shart) {
 
                 $shsoni++;
-                $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+                $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
 
-                $oldindantulovinfo = tulovlar::where('filial_id', $filial)
+                $oldindantulovinfo = Tulovlar::where('filial_id', $filial)
                     ->where('tulovturi', 'Олдиндан тўлов')
                     ->where('status', 'Актив')
                     ->where('shartnoma_id', $shart->id)
@@ -893,14 +893,14 @@ class XisobotKunlikController extends Controller
 
             $nssoni = $nssumma = $chegirmasumma = 0;
 
-            $naqdsavdo1 = naqdSavdo::where('filial_id', $filial)
+            $naqdsavdo1 = NaqdSavdo::where('filial_id', $filial)
                 ->whereBetween('kun', [$boshkun, $yakunkun])
                 ->where('status','Актив')
                 ->get();
 
             foreach ($naqdsavdo1 as $naqd) {
 
-                $savdosumma = savdo::where('filial_id', $filial)
+                $savdosumma = Savdo::where('filial_id', $filial)
                     ->where('status', 'Нақд')
                     ->where('shartnoma_id', $naqd->id)
                     ->sum('msumma');
@@ -908,7 +908,7 @@ class XisobotKunlikController extends Controller
                 $nssoni ++;
                 $nssumma += $savdosumma;
 
-                $chegirmasum = tulovlar::where('filial_id', $filial)
+                $chegirmasum = Tulovlar::where('filial_id', $filial)
                     ->where('tulovturi', 'Нақд')
                     ->where('status', 'Актив')
                     ->where('shartnoma_id', $naqd->id)
@@ -947,7 +947,7 @@ class XisobotKunlikController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                $bonussavdo = bonusSavdo::where('filial_id', $filial)
+                $bonussavdo = BonusSavdo::where('filial_id', $filial)
                     ->whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('status','Актив')
                     ->get();
@@ -957,7 +957,7 @@ class XisobotKunlikController extends Controller
 
                 //Bonuslar  tulov summasi sonini aniqlash
 
-                $bonusTulovSumma = tulovlar::where('filial_id', $filial)
+                $bonusTulovSumma = Tulovlar::where('filial_id', $filial)
                     ->whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('tulovturi','Бонус')
                     ->where('status','Актив')

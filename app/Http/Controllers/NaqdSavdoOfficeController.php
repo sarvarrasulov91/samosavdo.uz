@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\naqdSavdo;
-use App\Models\tulovlar;
-use App\Models\savdo;
-use App\Models\kirimTovar;
+use App\Models\NaqdSavdo;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\xissobotoy;
 use App\Models\lavozim;
@@ -46,7 +46,7 @@ class NaqdSavdoOfficeController extends Controller
      */
     public function store(Request $request)
     {
-        $savdomodel = savdo::where('status', 'Нақд')
+        $savdomodel = Savdo::where('status', 'Нақд')
             ->where('unix_id', $request->savdoid)
             ->where('filial_id', Auth::user()->filial_id)
             ->get();
@@ -117,7 +117,7 @@ class NaqdSavdoOfficeController extends Controller
                 <tbody id="tab1">
             ';
 
-                $naqdsavdojami = naqdSavdo::where('status', 'Актив')
+                $naqdsavdojami = NaqdSavdo::where('status', 'Актив')
                     ->where('filial_id', $filial)
                     ->orderBy('id', 'desc')
                     ->get();
@@ -127,7 +127,7 @@ class NaqdSavdoOfficeController extends Controller
                     $id = $naqdsavdojam->id;
                     $savdoid = $naqdsavdojam->savdoraqami_id;
 
-                    $savdosumma = savdo::where('status', 'Нақд')
+                    $savdosumma = Savdo::where('status', 'Нақд')
                         ->where('unix_id', $savdoid)
                         ->where('shartnoma_id', $id)
                         ->where('filial_id', $filial)
@@ -139,7 +139,7 @@ class NaqdSavdoOfficeController extends Controller
                     $jClick = 0;
                     $jchegirma = 0;
 
-                    $tulovlar = tulovlar::where('tulovturi', 'Нақд')
+                    $tulovlar = Tulovlar::where('tulovturi', 'Нақд')
                         ->where('filial_id', $filial)
                         ->where('shartnomaid', $id)
                         ->where('status', 'Актив')
@@ -218,14 +218,14 @@ class NaqdSavdoOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $Counttovar1 = kirimTovar::where('status', 'Нақд')
+                $Counttovar1 = KirimTovar::where('status', 'Нақд')
                     ->where('shatnomaid', $request->id)
                     ->wwhere('filial_id', $request->filial)
                     ->count();
 
                 if ($Counttovar1 > 0) {
 
-                    $ReadKt = kirimTovar::where('status', 'Нақд')
+                    $ReadKt = KirimTovar::where('status', 'Нақд')
                         ->where('shatnomaid', $request->id)
                         ->where('filial_id', $request->filial)
                         ->get();
@@ -234,7 +234,7 @@ class NaqdSavdoOfficeController extends Controller
 
                         if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
 
-                            kirimTovar::where('status', 'Нақд')
+                            KirimTovar::where('status', 'Нақд')
                                 ->where('shatnomaid', $request->id)
                                 ->where('filial_id', $request->filial)
                                 ->where('ch_xis_oyi', $xis_oyi)
@@ -250,7 +250,7 @@ class NaqdSavdoOfficeController extends Controller
                         } else {
 
                             // ❗ Max soni olish - tez ishlaydi
-                            $soninar = kirimTovar::where('tmodel_id', $ReadKt->tmodel_id)
+                            $soninar = KirimTovar::where('tmodel_id', $ReadKt->tmodel_id)
                                 ->where('filial_id', $request->filial)
                                 ->max('soni') ?? 0;
 
@@ -268,7 +268,7 @@ class NaqdSavdoOfficeController extends Controller
                             try {
                                 DB::beginTransaction();
 
-                                $ktovarzapis = new kirimTovar;
+                                $ktovarzapis = new KirimTovar;
                                 $ktovarzapis->kun = date('Y-m-d');
                                 $ktovarzapis->filial_id = $request->filial;
                                 $ktovarzapis->tur_id = $ReadKtovar->tur_id;
@@ -322,7 +322,7 @@ class NaqdSavdoOfficeController extends Controller
                         try {
                             DB::beginTransaction();
 
-                            $savdoUpdated = savdo::where('unix_id', $request->savdoid)
+                            $savdoUpdated = Savdo::where('unix_id', $request->savdoid)
                                 ->where('status','Нақд')
                                 ->where('filial_id', $request->filial)
                                 ->update([
@@ -333,7 +333,7 @@ class NaqdSavdoOfficeController extends Controller
                                 ]);
 
 
-                            $tulovlarUpdated = tulovlar::where('tulovturi','Нақд')
+                            $tulovlarUpdated = Tulovlar::where('tulovturi','Нақд')
                                 ->where('filial_id', $request->filial)
                                 ->where('shartnomaid',$id)->limit(1)
                                 ->update([
@@ -344,7 +344,7 @@ class NaqdSavdoOfficeController extends Controller
                                 ]);
 
 
-                            $naqdsavdoUpdated = naqdSavdo::where('id', $id)
+                            $naqdsavdoUpdated = NaqdSavdo::where('id', $id)
                                 ->where('filial_id', $request->filial)
                                 ->limit(1)
                                 ->update([
@@ -371,7 +371,7 @@ class NaqdSavdoOfficeController extends Controller
                     try {
                         DB::beginTransaction();
 
-                        $savdoUpdated = savdo::where('unix_id', $request->savdoid)
+                        $savdoUpdated = Savdo::where('unix_id', $request->savdoid)
                             ->where('status','Нақд')
                             ->where('filial_id', $request->filial)
                             ->update([
@@ -381,7 +381,7 @@ class NaqdSavdoOfficeController extends Controller
                                 'del_xis_oyi' => $xis_oyi,
                             ]);
 
-                        $tulovlarUpdated = tulovlar::where('tulovturi','Нақд')
+                        $tulovlarUpdated = Tulovlar::where('tulovturi','Нақд')
                             ->where('shartnomaid',$id)
                             ->where('filial_id', $request->filial)
                             ->limit(1)
@@ -392,7 +392,7 @@ class NaqdSavdoOfficeController extends Controller
                                 'bron_xis_oyi' => $xis_oyi,
                             ]);
 
-                        $naqdsavdoUpdated = naqdsavdo::where('id', $id)
+                        $naqdsavdoUpdated = NaqdSavdo::where('id', $id)
                             ->where('filial_id', $request->filial)
                             ->limit(1)
                             ->update([

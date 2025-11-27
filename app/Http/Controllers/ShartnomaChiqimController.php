@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\savdo;
-use App\Models\kirimTovar;
-use App\Models\shartnoma;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
+use App\Models\Shartnoma;
 use Illuminate\Support\Facades\DB;
 
 class ShartnomaChiqimController extends Controller
@@ -23,7 +23,7 @@ class ShartnomaChiqimController extends Controller
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $shartnomainfo = shartnoma::where('filial_id', Auth::user()->filial_id)
+        $shartnomainfo = Shartnoma::where('filial_id', Auth::user()->filial_id)
             ->join('mijozlar', $shartnoma . '.mijoz_id', '=', 'mijozlar.id')
             ->join('region', 'mijozlar.tuman_id', '=', 'region.id')
             ->select($shartnoma . '.*', 'mijozlar.last_name', 'mijozlar.first_name', 'mijozlar.middle_name', 'mijozlar.manzil', 'region.name_uz')->where($shartnoma . '.status', 'Актив')->where($shartnoma . '.tstatus', '0')->orderBy($shartnoma . '.id', 'desc')->get();
@@ -49,7 +49,7 @@ class ShartnomaChiqimController extends Controller
 
         if (Auth::user()->filial_id == 1) {
 
-            $tovar = kirimTovar::where('filial_id', Auth::user()->filial_id)
+            $tovar = KirimTovar::where('filial_id', Auth::user()->filial_id)
                 ->where('status', 'Сотилмаган')
                 ->where('shtrix_kod', $krimt)
                 ->first();
@@ -60,7 +60,7 @@ class ShartnomaChiqimController extends Controller
                 $aaa = "Хатолик бундай товар мавжуд эмас.";
             }
 
-            savdo::where('filial_id', Auth::user()->filial_id)
+            Savdo::where('filial_id', Auth::user()->filial_id)
                 ->where('status', 'Шартнома')
                 ->where('tmodel_id', $tmodel_id)
                 ->where('shtrix_kod', '0')

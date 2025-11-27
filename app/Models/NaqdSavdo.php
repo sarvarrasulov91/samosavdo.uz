@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
-class naqdSavdo extends Model
+class NaqdSavdo extends Model
 {
     use HasFactory;
 
@@ -22,7 +22,7 @@ class naqdSavdo extends Model
 
     public function mijozlar(): BelongsTo
     {
-        return $this->belongsTo(mijozlar::class);
+        return $this->belongsTo(Mijozlar::class);
     }
 
     public function filial(): BelongsTo

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\bonusSavdo;
+use App\Models\BonusSavdo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
-use App\Models\savdo;
-use App\Models\mijozlar;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
+use App\Models\Mijozlar;
 use App\Models\tashrif;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -24,14 +24,14 @@ class ShartnomalarController extends Controller
     {
         $tashrif = tashrif::all();
 
-        $savdounix_id = savdo::select('unix_id')
+        $savdounix_id = Savdo::select('unix_id')
             ->where('status', 'Актив')
             ->where('filial_id', Auth::user()->filial_id)
             ->orderBy('unix_id', 'desc')
             ->groupBy('unix_id')
             ->get();
 
-        $mijozlar = mijozlar::where('status', '1')->where('m_type', '1')
+        $mijozlar = Mijozlar::where('status', '1')->where('m_type', '1')
             ->where('filial_id', Auth::user()->filial_id)->get();
 
         return view('shartnoma.shartnomalar', [
@@ -64,7 +64,7 @@ class ShartnomalarController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $shartnoma = shartnoma::where('filial_id', Auth::user()->filial_id)->whereIn('status', ['Актив', 'Ёпилган'])->orderBy('id', 'desc')->get();
+                    $shartnoma = Shartnoma::where('filial_id', Auth::user()->filial_id)->whereIn('status', ['Актив', 'Ёпилган'])->orderBy('id', 'desc')->get();
 
                     foreach ($shartnoma as $shartnom){
 
@@ -114,11 +114,11 @@ class ShartnomalarController extends Controller
         $filial = $request->filialId;
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $shartnom = shartnoma::where('filial_id', $filial)->where('id', $id)->where('shid', $shid)->first();
+        $shartnom = Shartnoma::where('filial_id', $filial)->where('id', $id)->where('shid', $shid)->first();
 
-        $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
+        $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
 
-        $oldTulovInfo = tulovlar::where('filial_id', $filial)
+        $oldTulovInfo = Tulovlar::where('filial_id', $filial)
             ->where('tulovturi', 'Олдиндан тўлов')
             ->where('status', 'Актив')
             ->where('shartnoma_id', $id)
@@ -128,7 +128,7 @@ class ShartnomalarController extends Controller
         $oldindantulov = $oldTulovInfo->umumiysumma ?? 0;
         $chegirma = $oldTulovInfo->chegirma ?? 0;
 
-        $tulov = tulovlar::where('filial_id', $filial)
+        $tulov = Tulovlar::where('filial_id', $filial)
             ->where('tulovturi', 'Шартнома')
             ->where('shartnoma_id', $id)
             ->where('status', 'Актив')
@@ -337,7 +337,7 @@ class ShartnomalarController extends Controller
             //Тулов жамланяпти
             $boshibaza = date("Y-m-", strtotime($du22)) . "01";
 
-            $opl01 = tulovlar::where('tulovturi', 'Шартнома')
+            $opl01 = Tulovlar::where('tulovturi', 'Шартнома')
                 ->where('shartnoma_id', $id)
                 ->where('filial_id', $filial)
                 ->where('shid', $shid)
@@ -375,7 +375,7 @@ class ShartnomalarController extends Controller
 
         // kechikkan tulovlarni ko'rsatish
         $kechTulov = 0;
-        $lateTulovlar = tulovlar::where('tulovturi', 'Шартнома')
+        $lateTulovlar = Tulovlar::where('tulovturi', 'Шартнома')
             ->where('shartnoma_id', $id)
             ->where('shid', $shid)
             ->where('xis_oyi', '>', $boshibaza)
@@ -444,7 +444,7 @@ class ShartnomalarController extends Controller
             </thead>
             <tbody id="tab1">';
 
-                $tulovlar = tulovlar::where('shartnoma_id', $id)
+                $tulovlar = Tulovlar::where('shartnoma_id', $id)
                     ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
                     ->where('filial_id', $filial)
                     ->where('shid', $shid)
@@ -509,7 +509,7 @@ class ShartnomalarController extends Controller
         <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>
        ';
 
-        $savdomodel = savdo::where('filial_id', $filial)
+        $savdomodel = Savdo::where('filial_id', $filial)
             ->where('status', 'Шартнома')
             ->where('shartnoma_id', $id)
             ->where('shid', $shid)
@@ -577,7 +577,7 @@ class ShartnomalarController extends Controller
                 $jamisumma = 0;
                 $j = 1;
 
-                $bonusTovarlar = bonusSavdo::where('status', 'Актив')
+                $bonusTovarlar = BonusSavdo::where('status', 'Актив')
                     ->where('filial_id', $filial)
                     ->where('shid', $shid)
                     ->where('shartnoma_id', $id)
@@ -675,9 +675,9 @@ class ShartnomalarController extends Controller
         }
 
 
-        $shartnom = shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
+        $shartnom = Shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
 
-        $tulovInfo = tulovlar::where('filial_id', Auth::user()->filial_id)
+        $tulovInfo = Tulovlar::where('filial_id', Auth::user()->filial_id)
             ->where('tulovturi', 'Олдиндан тўлов')
             ->where('status', 'Актив')
             ->where('shartnoma_id', $id)
@@ -686,7 +686,7 @@ class ShartnomalarController extends Controller
         $oldindantulov = $tulovInfo->umumiysumma ?? 0;
         $chegirma = $tulovInfo->chegirma ?? 0;
 
-        $savdoModel = savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
+        $savdoModel = Savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
 
         $savdosumma = $savdoModel->sum('msumma');
 
@@ -977,7 +977,7 @@ class ShartnomalarController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $shartnom = shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
+        $shartnom = Shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
 
         $filial = filial::where('id', Auth::user()->filial_id)->first();
 
@@ -1031,13 +1031,13 @@ class ShartnomalarController extends Controller
             $telefon = $filia->telefon;
         };
 
-        $shartnom = shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
+        $shartnom = Shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
 
         $kun = date('d.m.Y', strtotime($shartnom->kun));
         $muddat = number_format($shartnom->muddat, 0, ',', ' ');
 
 
-        $tulovInfo = tulovlar::where('filial_id', Auth::user()->filial_id)
+        $tulovInfo = Tulovlar::where('filial_id', Auth::user()->filial_id)
             ->where('tulovturi', 'Олдиндан тўлов')
             ->where('status', 'Актив')
             ->where('shartnoma_id', $id)
@@ -1046,7 +1046,7 @@ class ShartnomalarController extends Controller
         $oldindantulov = $tulovInfo->umumiysumma ?? 0;
         $chegirma = $tulovInfo->chegirma ?? 0;
 
-        $savdoModel = savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
+        $savdoModel = Savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
         $savdosumma = $savdoModel->sum('msumma');
 
         $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');

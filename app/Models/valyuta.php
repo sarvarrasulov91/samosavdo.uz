@@ -13,12 +13,12 @@ class valyuta extends Model
 
     public function boshqaharajat1(): HasOne
     {
-        return $this->hasOne(xarajat::class);
+        return $this->hasOne(Xarajat::class);
     }
 
     public function ktovar1(): HasOne
     {
-        return $this->hasOne(kirimTovar::class);
+        return $this->hasOne(KirimTovar::class);
     }
 
     public function chiqim(): HasOne

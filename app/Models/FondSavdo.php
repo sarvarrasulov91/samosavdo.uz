@@ -25,7 +25,7 @@ class fondSavdo extends Model
 
     public function mijozlar(): BelongsTo
     {
-        return $this->belongsTo(mijozlar::class);
+        return $this->belongsTo(Mijozlar::class);
     }
 
     public function filial(): BelongsTo

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 
-class savdo extends Model
+class Savdo extends Model
 {
     use HasFactory;
 

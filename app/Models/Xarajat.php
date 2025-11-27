@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
 
-class xarajat extends Model
+class Xarajat extends Model
 {
     use HasFactory;
 

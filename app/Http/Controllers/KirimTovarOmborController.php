@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\xissobotoy;
 
 
@@ -21,7 +21,7 @@ class KirimTovarOmborController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $model = kirimTovar::whereNotIn('status', ['Актив', 'Удалит'])
+            $model = KirimTovar::whereNotIn('status', ['Актив', 'Удалит'])
                 ->where('xis_oyi', $xis_oyi)
                 ->where('filial_id', Auth::user()->filial_id)
                 ->orderBy('id', 'desc')->get();
@@ -58,13 +58,13 @@ class KirimTovarOmborController extends Controller
 
             $krimt = $request->krimt;
 
-            $model = kirimTovar::where('filial_id', Auth::user()->filial_id)
+            $model = KirimTovar::where('filial_id', Auth::user()->filial_id)
                 ->where('shtrix_kod', $krimt)
                 ->where('status', 'Актив')
                 ->count();
 
             if ($model == 1) {
-                $result = kirimTovar::where('filial_id', Auth::user()->filial_id)
+                $result = KirimTovar::where('filial_id', Auth::user()->filial_id)
                     ->where('shtrix_kod', $krimt)
                     ->limit(1)
                     ->update([
@@ -85,7 +85,7 @@ class KirimTovarOmborController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $model = kirimTovar::
+            $model = KirimTovar::
             with(['tur'=>function ($query) {
                 $query->select('id','tur_name');
             }])->

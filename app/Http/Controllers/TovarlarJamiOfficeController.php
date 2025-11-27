@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\filial;
 
 
@@ -76,7 +76,7 @@ class TovarlarJamiOfficeController extends Controller
                     <tbody id="tab1">
                     ';
 
-                        $model = kirimTovar::whereNotIn('status', ['Актив', 'Удалит'])
+                        $model = KirimTovar::whereNotIn('status', ['Актив', 'Удалит'])
                             ->where('filial_id', $id)
                             ->orderBy('id', 'desc')
                             ->get();
@@ -142,7 +142,7 @@ class TovarlarJamiOfficeController extends Controller
 
         }
 
-        $tovar = kirimTovar::where('filial_id', $filial)
+        $tovar = KirimTovar::where('filial_id', $filial)
             ->where('id', $id)
             ->where('status', 'Сотилмаган')
             ->first();

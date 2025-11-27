@@ -10,8 +10,8 @@ use App\Models\valyuta;
 use App\Models\tmodel;
 use App\Models\brend;
 use App\Models\user;
-use App\Models\mijozlar;
-use App\Models\shartnoma;
+use App\Models\Mijozlar;
+use App\Models\Shartnoma;
 
 class dashboardController extends Controller
 {
@@ -25,9 +25,9 @@ class dashboardController extends Controller
         $brend = brend::count('id');
         $userlar = user::count('id');
         $mijozsoni = Mijozlar::where('filial_id', Auth::user()->filial_id)->count('id');
-        $shartnomasoni = shartnoma::where('filial_id', Auth::user()->filial_id)->whereIn('status', ['Актив', 'Ёпилган'])->count('id');
-        $mijozlaroy = mijozlar::whereMonth('t_sana',date('m'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
-        $mijozlarkun = mijozlar::whereMonth('t_sana',date('m'))->whereDay('t_sana',date('d'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
+        $shartnomasoni = Shartnoma::where('filial_id', Auth::user()->filial_id)->whereIn('status', ['Актив', 'Ёпилган'])->count('id');
+        $mijozlaroy = Mijozlar::whereMonth('t_sana',date('m'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
+        $mijozlarkun = Mijozlar::whereMonth('t_sana',date('m'))->whereDay('t_sana',date('d'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
 
         $mfy = Mijozlar::
         with(['mfy'=>function ($query) {
@@ -39,7 +39,7 @@ class dashboardController extends Controller
         ->groupBy('mfy_id')
         ->get();
 
-        $mtashrif = shartnoma::
+        $mtashrif = Shartnoma::
         with(['tashrif'=>function ($query) {
             $query->select('id','tashrif_name');
         }])->

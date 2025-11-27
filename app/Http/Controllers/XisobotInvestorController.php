@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\xarajat;
+use App\Models\Xarajat;
 use App\Models\filial;
 use App\Models\kirim;
 use App\Models\kirim_old;
-use App\Models\kirimTovar;
-use App\Models\naqdSavdo;
-use App\Models\savdo;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
+use App\Models\KirimTovar;
+use App\Models\NaqdSavdo;
+use App\Models\Savdo;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
 use App\Models\xissobotoy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -101,7 +101,7 @@ class XisobotInvestorController extends Controller
 
                     // tulovlardan tushgan tushumlarni hisoblash
                     $tulovBank = 0;
-                    $tulovlar = tulovlar::where('filial_id', $filial->id)
+                    $tulovlar = Tulovlar::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('tulovturi', '!=', 'Брон')
                         ->where('status', 'Актив')
@@ -117,7 +117,7 @@ class XisobotInvestorController extends Controller
 
 
                     // xarajatlarni hisoblash
-                    $xarajatSummasi = xarajat::where('filial_id', $filial->id)
+                    $xarajatSummasi = Xarajat::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('status', 'Актив')
                         ->where('turharajat_id', '!=', '33')
@@ -132,7 +132,7 @@ class XisobotInvestorController extends Controller
                     // shartnoma summasini hisoblash
                     $shqsumma = 0;
 
-                    $shartnoma1 = shartnoma::where('filial_id', $filial->id)
+                    $shartnoma1 = Shartnoma::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where(function($query){
                             $query->where('status', 'Актив')
@@ -141,12 +141,12 @@ class XisobotInvestorController extends Controller
 
                     foreach ($shartnoma1 as $shart) {
 
-                        $savdosumma = savdo::where('filial_id', $filial->id)
+                        $savdosumma = Savdo::where('filial_id', $filial->id)
                             ->where('status', 'Шартнома')
                             ->where('shartnoma_id', $shart->id)
                             ->sum('msumma');
 
-                        $oldindantulovinfo = tulovlar::where('filial_id', $filial->id)
+                        $oldindantulovinfo = Tulovlar::where('filial_id', $filial->id)
                             ->where('tulovturi', 'Олдиндан тўлов')
                             ->where('status', 'Актив')
                             ->where('shartnomaid', $shart->id)
@@ -176,21 +176,21 @@ class XisobotInvestorController extends Controller
                     $nssumma = 0;
                     $chegirmasumma = 0;
 
-                    $naqdsavdo1 = naqdSavdo::where('filial_id', $filial->id)
+                    $naqdsavdo1 = NaqdSavdo::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('status','Актив')
                         ->get();
 
                     foreach ($naqdsavdo1 as $naqd) {
 
-                        $savdosumma = savdo::where('status', 'Нақд')
+                        $savdosumma = Savdo::where('status', 'Нақд')
                             ->where('filial_id', $filial->id)
                             ->where('shartnoma_id', $naqd->id)
                             ->sum('msumma');
                         $nssumma += $savdosumma;
 
 
-                        $chegirmasum = tulovlar::where('filial_id', $filial->id)
+                        $chegirmasum = Tulovlar::where('filial_id', $filial->id)
                             ->where('tulovturi', 'Нақд')
                             ->where('status', 'Актив')
                             ->where('shartnomaid', $naqd->id)
@@ -210,7 +210,7 @@ class XisobotInvestorController extends Controller
                     //             ->orWhere('status', 'Асосий восита');
                     //     })->sum('narhi');
 
-                    $ktovarOyBoshiDollar = kirimTovar::where('filial_id', $filial->id)
+                    $ktovarOyBoshiDollar = KirimTovar::where('filial_id', $filial->id)
                         ->where(function ($query) use ($boshkun){
                             $query->where('valyuta_id', '2')->where('kun', '<', $boshkun)->where('status', 'Сотилмаган');
                         })
@@ -219,7 +219,7 @@ class XisobotInvestorController extends Controller
                         })
                         ->sum('narhi');
 
-                    $ktovarOyBoshiSum = kirimTovar::where('filial_id', $filial->id)
+                    $ktovarOyBoshiSum = KirimTovar::where('filial_id', $filial->id)
                     ->where(function ($query) use ($boshkun){
                         $query->where('valyuta_id', '1')->where('kun', '<', $boshkun)->where('status', 'Сотилмаган');
                     })
@@ -231,13 +231,13 @@ class XisobotInvestorController extends Controller
                         $jamiTovarOyBoshiSumma += $ktovarOyBoshiSum;
 
                     // Oy olingan tovarlarni hisoblash
-                    $ktovarKirimDollar = kirimTovar::where('filial_id', $filial->id)
+                    $ktovarKirimDollar = KirimTovar::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('valyuta_id', '2')
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
-                    $ktovarKirimSum = kirimTovar::where('filial_id', $filial->id)
+                    $ktovarKirimSum = KirimTovar::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('valyuta_id', '1')
                         ->where('status', '!=', 'Удалит')
@@ -248,13 +248,13 @@ class XisobotInvestorController extends Controller
                     $jamiTovarKirimSumma += $ktovarKirimSum;
 
                     // chiqim bo'lagn tovarlar
-                    $ktovarChiqimDollar = kirimTovar::where('filial_id', $filial->id)
+                    $ktovarChiqimDollar = KirimTovar::where('filial_id', $filial->id)
                         ->whereBetween('ch_kun', [$boshkun, $yakunkun])
                         ->where('valyuta_id', '2')
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
-                    $ktovarChiqimSum = kirimTovar::where('filial_id', $filial->id)
+                    $ktovarChiqimSum = KirimTovar::where('filial_id', $filial->id)
                         ->whereBetween('ch_kun', [$boshkun, $yakunkun])
                         ->where('valyuta_id', '1')
                         ->where('status', '!=', 'Удалит')
@@ -341,7 +341,7 @@ class XisobotInvestorController extends Controller
 
                     // tulovlardan tushgan tushumlarni hisoblash
                     $tulovBank = 0;
-                    $tulovlar = tulovlar::where('filial_id', $filial)
+                    $tulovlar = Tulovlar::where('filial_id', $filial)
                         ->where('kun', $boshkun)
                         ->where('status', 'Актив')
                         ->where('tulovturi', '!=', 'Брон')
@@ -356,7 +356,7 @@ class XisobotInvestorController extends Controller
                     $tulovBank += ($tulovPlastik + $tulovHr + $tulovClick + $tulovAvtot);
 
                     // xarajatlarni hisoblash
-                    $xarajatSummasi = xarajat::where('filial_id', $filial)
+                    $xarajatSummasi = Xarajat::where('filial_id', $filial)
                         ->where('kun', $boshkun)
                         ->where('status', 'Актив')
                         ->where('turharajat_id', '!=', '33')
@@ -371,7 +371,7 @@ class XisobotInvestorController extends Controller
                      // shartnoma summasini hisoblash
                      $shqsumma = 0;
 
-                     $shartnoma1 = shartnoma::where('filial_id', $filial)
+                     $shartnoma1 = Shartnoma::where('filial_id', $filial)
                          ->where('kun', $boshkun)
                         ->where(function($query){
                             $query->where('status', 'Актив')->orWhere('status', 'Ёпилган');
@@ -379,12 +379,12 @@ class XisobotInvestorController extends Controller
 
                      foreach ($shartnoma1 as $shart) {
 
-                         $savdosumma = savdo::where('filial_id', $filial)
+                         $savdosumma = Savdo::where('filial_id', $filial)
                              ->where('status', 'Шартнома')
                              ->where('shartnoma_id', $shart->id)
                              ->sum('msumma');
 
-                         $oldindantulovinfo = tulovlar::where('filial_id', $filial)
+                         $oldindantulovinfo = Tulovlar::where('filial_id', $filial)
                              ->where('tulovturi', 'Олдиндан тўлов')
                              ->where('status', 'Актив')
                              ->where('shartnomaid', $shart->id)
@@ -414,17 +414,17 @@ class XisobotInvestorController extends Controller
                     $nssumma = 0;
                     $chegirmasumma = 0;
 
-                    $naqdsavdo1 = naqdSavdo::where('filial_id', $filial)->where('kun', $boshkun)->where('status','Актив')->get();
+                    $naqdsavdo1 = NaqdSavdo::where('filial_id', $filial)->where('kun', $boshkun)->where('status','Актив')->get();
                     foreach ($naqdsavdo1 as $naqd) {
 
-                        $savdosumma = savdo::where('filial_id', $filial)
+                        $savdosumma = Savdo::where('filial_id', $filial)
                             ->where('status', 'Нақд')
                             ->where('shartnoma_id', $naqd->id)
                             ->sum('msumma');
 
                         $nssumma += $savdosumma;
 
-                        $chegirmasum = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Нақд')->where('status', 'Актив')->where('shartnomaid', $naqd->id)->sum('chegirma');
+                        $chegirmasum = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Нақд')->where('status', 'Актив')->where('shartnomaid', $naqd->id)->sum('chegirma');
                         $chegirmasumma += $chegirmasum;
 
                     }
@@ -432,8 +432,8 @@ class XisobotInvestorController extends Controller
                     $uchegirmasumma += $chegirmasumma;
 
                     // Oy boshiga qoldiq tovarlarni hisoblash
-                    $tovarlar = new kirimTovar($filial);
-                    $ktovarOyBoshiDollar = kirimTovar::where('filial_id', $filial)
+                    $tovarlar = new KirimTovar($filial);
+                    $ktovarOyBoshiDollar = KirimTovar::where('filial_id', $filial)
                         ->where(function ($query) use ($boshkun){
                             $query->where('valyuta_id', '2')->where('kun', '<', $boshkun)->where('status', 'Сотилмаган');
                         })
@@ -442,7 +442,7 @@ class XisobotInvestorController extends Controller
                         })
                         ->sum('narhi');
 
-                    $ktovarOyBoshiSum = kirimTovar::where('filial_id', $filial)
+                    $ktovarOyBoshiSum = KirimTovar::where('filial_id', $filial)
                     ->where(function ($query) use ($boshkun){
                         $query->where('valyuta_id', '1')->where('kun', '<', $boshkun)->where('status', 'Сотилмаган');
                     })
@@ -451,13 +451,13 @@ class XisobotInvestorController extends Controller
                     })->sum('narhi');
 
                     // Oy olingan tovarlarni hisoblash
-                    $ktovarKirimDollar = kirimTovar::where('filial_id', $filial)
+                    $ktovarKirimDollar = KirimTovar::where('filial_id', $filial)
                         ->where('kun', $boshkun)
                         ->where('valyuta_id', '2')
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
-                    $ktovarKirimSum = kirimTovar::where('filial_id', $filial)
+                    $ktovarKirimSum = KirimTovar::where('filial_id', $filial)
                         ->where('kun', $boshkun)
                         ->where('valyuta_id', '1')
                         ->where('status', '!=', 'Удалит')
@@ -465,13 +465,13 @@ class XisobotInvestorController extends Controller
                         ->sum('narhi');
 
                     // chiqim bo'lagn tovarlar
-                    $ktovarChiqimDollar = kirimTovar::where('filial_id', $filial)
+                    $ktovarChiqimDollar = KirimTovar::where('filial_id', $filial)
                         ->where('ch_kun', $boshkun)
                         ->where('valyuta_id', '2')
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
-                    $ktovarChiqimSum = kirimTovar::where('filial_id', $filial)
+                    $ktovarChiqimSum = KirimTovar::where('filial_id', $filial)
                         ->where('ch_kun', $boshkun)
                         ->where('valyuta_id', '1')
                         ->where('status', '!=', 'Удалит')

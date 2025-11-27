@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\xissobotoy;
 use App\Models\lavozim;
-use App\Models\mijozlar;
+use App\Models\Mijozlar;
 use App\Models\mfy;
 use App\Models\tuman;
 use App\Models\filial;
 use App\Models\fondSavdo;
-use App\Models\naqdSavdo;
-use App\Models\shartnoma;
-use App\Models\savdo;
+use App\Models\NaqdSavdo;
+use App\Models\Shartnoma;
+use App\Models\Savdo;
 
 
 
@@ -62,9 +62,9 @@ class NewMijozController extends Controller
                 <tbody id="tab1">
                 ';
                     if (Auth::user()->filial_id == 10){
-                        $mijozlar = mijozlar::where('status', 1)->orderBy('id', 'desc')->get();
+                        $mijozlar = Mijozlar::where('status', 1)->orderBy('id', 'desc')->get();
                     }else{
-                        $mijozlar = mijozlar::where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
+                        $mijozlar = Mijozlar::where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
                     }
                     foreach ($mijozlar as $mijozla){
                         echo'
@@ -125,7 +125,7 @@ class NewMijozController extends Controller
             $viloyat = $regio->viloyat_id;
         }
 
-        $mijozlar = new mijozlar;
+        $mijozlar = new Mijozlar;
         $mijozlar->last_name = ucfirst(strtolower($request->famil));
         $mijozlar->first_name = ucfirst(strtolower($request->ism));
         $mijozlar->middle_name = ucfirst(strtolower($request->sharif));
@@ -173,7 +173,7 @@ class NewMijozController extends Controller
 
     {
         $i = 1;
-        $mijozlar = mijozlar::where('id', $id)->get();
+        $mijozlar = Mijozlar::where('id', $id)->get();
 
         foreach ($mijozlar as $mijozla) {
             echo '<h3 class=" text-center text-primary ">' . $mijozla->last_name . ' ' . $mijozla->first_name . ' ' . $mijozla->middle_name . '</h3>
@@ -192,9 +192,9 @@ class NewMijozController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $shartnoma = shartnoma::where('mijozlar_id', $mijozla->id)->get();
+                    $shartnoma = Shartnoma::where('mijozlar_id', $mijozla->id)->get();
                     foreach ($shartnoma as $shartnom){
-                        $savdosumma = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $savdosumma = Savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
                         echo'
                         <tr class="text-center align-middle">
                             <td>' . $i . '</td>
@@ -228,7 +228,7 @@ class NewMijozController extends Controller
         foreach ($region as $regio) {
             $viloyat = $regio->viloyat_id;
         }
-        $mijozlar = mijozlar::where('id', $id)->update([
+        $mijozlar = Mijozlar::where('id', $id)->update([
             'last_name'=>ucfirst(strtolower($request->famil)),
             'first_name'=>ucfirst(strtolower($request->ism)),
             'middle_name'=>ucfirst(strtolower($request->sharif)),

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\xissobotoy;
 use App\Models\mfy;
 use App\Models\tuman;
-use App\Models\mijozlar;
+use App\Models\Mijozlar;
 use App\Models\lavozim;
 use App\Models\filial;
 use App\Models\viloyat;
@@ -24,7 +24,7 @@ class ClientController extends Controller
         $search = request()->query('search');
 
         if($search){
-            $clients = mijozlar::query()
+            $clients = Mijozlar::query()
                 ->where('last_name', 'LIKE', "%$search%")
                 ->orWhere('first_name', 'LIKE', "%$search%")
                 ->orWhere('pinfl', 'LIKE', "%$search%")
@@ -34,9 +34,9 @@ class ClientController extends Controller
 
         }else{
             if (Auth::user()->filial_id == 10){
-                $clients = mijozlar::query()->where('status', 1)->latest('id')->paginate(1000);
+                $clients = Mijozlar::query()->where('status', 1)->latest('id')->paginate(1000);
             }else{
-                $clients = mijozlar::query()->where('status', 1)->where('filial_id', Auth::user()->filial_id)->latest('id')->paginate(100);
+                $clients = Mijozlar::query()->where('status', 1)->where('filial_id', Auth::user()->filial_id)->latest('id')->paginate(100);
             }
         }
 
@@ -96,7 +96,7 @@ class ClientController extends Controller
         //     return back()->with('message', 'Xatolik: Tug‘ilgan sana va PINFL mos emas!');
         // }
 
-        $tekshiruv = mijozlar::where(function ($query) use ($request) {
+        $tekshiruv = Mijozlar::where(function ($query) use ($request) {
             $query->where('pinfl', $request->jshshir)
                 ->orWhere('passport_sn', $request->p_seriya . $request->p_nomer);
         })->orderBy('id', 'desc')->first();
@@ -110,7 +110,7 @@ class ClientController extends Controller
                 Bazadan qidirib ko'ring.";
         }else{
 
-            $mijozlar = new mijozlar;
+            $mijozlar = new Mijozlar;
             $mijozlar->last_name = ucfirst(strtolower($request->last_name));
             $mijozlar->first_name = ucfirst(strtolower($request->first_name));
             $mijozlar->middle_name = ucfirst(strtolower($request->middle_name));
@@ -162,7 +162,7 @@ class ClientController extends Controller
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $viloyat = viloyat::get();
         $tuman = tuman::get();
-        $client = mijozlar::findOrFail($id);
+        $client = Mijozlar::findOrFail($id);
         $ishJoy = MijozlarIshJoy::get();
         $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
         $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
@@ -184,7 +184,7 @@ class ClientController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $oldMijoz = mijozlar::findOrFail($id); // Get the original record
+        $oldMijoz = Mijozlar::findOrFail($id); // Get the original record
 
         // Save the old record in the mijozlar_old table
         DB::table('mijozlar_old')->insert([
@@ -214,7 +214,7 @@ class ClientController extends Controller
         ]);
 
         // change original record
-        $client = mijozlar::where('id', $id)->update([
+        $client = Mijozlar::where('id', $id)->update([
             'last_name' => ucfirst(strtolower($request->last_name)),
             'first_name' => ucfirst(strtolower($request->first_name)),
             'middle_name' => ucfirst(strtolower($request->middle_name)),
@@ -256,7 +256,7 @@ class ClientController extends Controller
     public function showClient(string $id)
     {
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $client = mijozlar::findOrFail($id);
+        $client = Mijozlar::findOrFail($id);
         $ishTuman = tuman::where('id', $client->ish_tumanid)->value('name_uz');
         $ishViloyatId = tuman::where('id', $client->ish_tumanid)->value('viloyat_id');
         $ishViloyatName = viloyat::where('id', $ishViloyatId)->value('name_uz');
@@ -275,7 +275,7 @@ class ClientController extends Controller
 
     public function blackListClient(string $id)
     {
-        $client = mijozlar::find($id);
+        $client = Mijozlar::find($id);
         if ($client->m_type == 1){
             $client->update([
                 'm_type' => '2',

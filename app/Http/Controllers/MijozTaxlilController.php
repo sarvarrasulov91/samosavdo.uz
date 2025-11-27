@@ -6,10 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\xissobotoy;
 use Illuminate\Support\Facades\Auth;
 use App\Models\filial;
-use App\Models\mijozlar;
+use App\Models\Mijozlar;
 use App\Models\lavozim;
 use App\Models\tashrif;
-use App\Models\shartnoma;
+use App\Models\Shartnoma;
 
 class MijozTaxlilController extends Controller
 {
@@ -88,7 +88,7 @@ class MijozTaxlilController extends Controller
                         }
                         foreach ($filialbase as $filia) {
 
-                            $jamiMijozlar = mijozlar::whereDate('created_at', '>=', $boshkun)
+                            $jamiMijozlar = Mijozlar::whereDate('created_at', '>=', $boshkun)
                                 ->whereDate('created_at', '<=', $yakunkun)
                                 ->where('filial_id', $filia->id)
                                 ->where('status', 1)
@@ -96,15 +96,15 @@ class MijozTaxlilController extends Controller
 
                             $mijozlar = $jamiMijozlar->count();
                             $maktab = $jamiMijozlar->where('ish_joy', 'Мактаб')->count();
-                            $MTM = mijozlar::where('ish_joy', 'МТМ')->count();
-                            $tibbiyot = mijozlar::where('ish_joy', 'Тиббиёт')->count();
-                            $davTashkilot = mijozlar::where('ish_joy', 'Давлат ташкилоти')->count();
-                            $pensioner = mijozlar::where('ish_joy', 'Пенсионер')->count();
-                            $ijtimoiy = mijozlar::where('ish_joy', 'Ижтимоий нафақа')->count();
-                            $bolaPuli = mijozlar::where('ish_joy', 'Бола пули')->count();
-                            $yatt = mijozlar::where('ish_joy', 'ЯТТ')->count();
-                            $mchj = mijozlar::where('ish_joy', 'МЧЖ')->count();
-                            $boshqalar = mijozlar::where('ish_joy', 'Бошкалар')->count();
+                            $MTM = Mijozlar::where('ish_joy', 'МТМ')->count();
+                            $tibbiyot = Mijozlar::where('ish_joy', 'Тиббиёт')->count();
+                            $davTashkilot = Mijozlar::where('ish_joy', 'Давлат ташкилоти')->count();
+                            $pensioner = Mijozlar::where('ish_joy', 'Пенсионер')->count();
+                            $ijtimoiy = Mijozlar::where('ish_joy', 'Ижтимоий нафақа')->count();
+                            $bolaPuli = Mijozlar::where('ish_joy', 'Бола пули')->count();
+                            $yatt = Mijozlar::where('ish_joy', 'ЯТТ')->count();
+                            $mchj = Mijozlar::where('ish_joy', 'МЧЖ')->count();
+                            $boshqalar = Mijozlar::where('ish_joy', 'Бошкалар')->count();
 
                             $jamiMijozSoni += $mijozlar;
                             $jamiMaktab += $maktab;
@@ -227,14 +227,14 @@ class MijozTaxlilController extends Controller
 
                             foreach($tashriflar as $tashrif){
 
-                                $ShartnomaSoni = shartnoma::whereDate('created_at', '>=', $boshkun)
+                                $ShartnomaSoni = Shartnoma::whereDate('created_at', '>=', $boshkun)
                                     ->whereDate('created_at', '<=', $yakunkun)
                                     ->where('status','Актив')
                                     ->where('filial_id', $filia->id)
                                     ->count();
 
                                 $tashrifName[] +=
-                                    shartnoma::whereDate('created_at', '>=', $boshkun)
+                                    Shartnoma::whereDate('created_at', '>=', $boshkun)
                                         ->whereDate('created_at', '<=', $yakunkun)
                                         ->where('tashrif_id', $tashrif->id)
                                         ->where('filial_id', $filia->id)

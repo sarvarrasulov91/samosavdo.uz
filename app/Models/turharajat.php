@@ -15,7 +15,7 @@ class turharajat extends Model
 
     public function boshqaharajat1(): HasOne
     {
-        return $this->hasOne(xarajat::class);
+        return $this->hasOne(Xarajat::class);
     }
 
     public function chiqim_boshqa(): HasOne

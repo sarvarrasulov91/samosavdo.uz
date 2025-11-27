@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
-class kirimTovar extends Model
+class KirimTovar extends Model
 {
     use HasFactory;
     protected $table = 'kirim_tovar';

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\xissobotoy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\asosiyvositalar;
 
 use Illuminate\Support\Facades\DB;
@@ -112,14 +112,14 @@ class AsosiyVositaController extends Controller
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $model = kirimTovar::where('filial_id', Auth::user()->filial_id)
+        $model = KirimTovar::where('filial_id', Auth::user()->filial_id)
             ->where('shtrix_kod', $krimt)
             ->where('status', 'Сотилмаган')
             ->count();
 
         if ($model == 1) {
 
-            $modelread = kirimTovar::where('shtrix_kod', $krimt)
+            $modelread = KirimTovar::where('shtrix_kod', $krimt)
                 ->where('status', 'Сотилмаган')
                 ->where('filial_id', Auth::user()->filial_id)
                 ->first();
@@ -201,7 +201,7 @@ class AsosiyVositaController extends Controller
     {
         $AsosiyVosita = asosiyvositalar::find($id);
 
-        $tovar = kirimTovar::where('shtrix_kod', $AsosiyVosita->shtrix_kod)
+        $tovar = KirimTovar::where('shtrix_kod', $AsosiyVosita->shtrix_kod)
             ->where('filial_id', $AsosiyVosita->filial_id)
             ->where('id', $AsosiyVosita->kirim_id)
             ->first();

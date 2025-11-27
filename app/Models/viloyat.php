@@ -20,7 +20,7 @@ class viloyat extends Model
 
     public function mijozlar(): HasOne
     {
-        return $this->hasOne(mijozlar::class);
+        return $this->hasOne(Mijozlar::class);
     }
 
 

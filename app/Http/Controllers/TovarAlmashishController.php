@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\talmashish;
 use App\Models\valyuta;
 use App\Models\xissobotoy;
@@ -54,7 +54,7 @@ class TovarAlmashishController extends Controller
     {
         $filial2 = $request->filial;
 
-        $model = kirimTovar::where('filial_id', Auth::user()->filial_id)
+        $model = KirimTovar::where('filial_id', Auth::user()->filial_id)
             ->where('shtrix_kod', $request->krimt)
             ->where('status', 'Сотилмаган')
             ->count();
@@ -65,14 +65,14 @@ class TovarAlmashishController extends Controller
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $ktovar = kirimTovar::where('filial_id', Auth::user()->filial_id)
+        $ktovar = KirimTovar::where('filial_id', Auth::user()->filial_id)
             ->where('shtrix_kod', $request->krimt)
             ->where('status', 'Сотилмаган')
             ->first();
 
         $valyuta_narhi = valyuta::where('id', $ktovar->valyuta_id)->value('valyuta_narhi');
 
-        $soninar = kirimTovar::where('filial_id', $filial2)
+        $soninar = KirimTovar::where('filial_id', $filial2)
             ->where('tmodel_id', $ktovar->tmodel_id)
             ->max('soni');
 
@@ -97,7 +97,7 @@ class TovarAlmashishController extends Controller
                 'ch_user_id' => Auth::id(),
             ]);
 
-            $ktovarzapis = new kirimTovar;
+            $ktovarzapis = new KirimTovar;
             $ktovarzapis->kun = today();
             $ktovarzapis->filial_id = $filial2;
             $ktovarzapis->tur_id = $ktovar->tur_id;
@@ -138,7 +138,7 @@ class TovarAlmashishController extends Controller
             $talmashishZapis->shtrix_kod_yangi = $new_shtr_kod;
             $talmashishZapis->save();
 
-            kirimTovar::where('filial_id', $filial2)
+            KirimTovar::where('filial_id', $filial2)
                 ->where('valyuta_id', $ktovar->valyuta_id)
                 ->where('tmodel_id', $ktovar->tmodel_id)
                 ->where('status','Сотилмаган')

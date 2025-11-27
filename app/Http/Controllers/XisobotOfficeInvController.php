@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\xarajat;
+use App\Models\Xarajat;
 use App\Models\chiqim_taminot;
 use App\Models\filial;
 use App\Models\kirim;
@@ -101,7 +101,7 @@ class XisobotOfficeInvController extends Controller
 
         // tasischiga chiqim  hisoblash
 
-        $xarajatData = xarajat::where('filial_id', '10')->whereBetween('kun', [$boshkun, $yakunkun])
+        $xarajatData = Xarajat::where('filial_id', '10')->whereBetween('kun', [$boshkun, $yakunkun])
             ->where('status', 'Актив')
             ->get(['naqd', 'pastik', 'hr', 'click', 'avtot', 'valyuta_id', 'turharajat_id']);
 

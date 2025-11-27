@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\filial;
-use App\Models\savdo;
-use App\Models\naqdSavdo;
+use App\Models\Savdo;
+use App\Models\NaqdSavdo;
 use App\Models\fondSavdo;
-use App\Models\bonusSavdo;
-use App\Models\tulovlar;
-use App\Models\shartnoma;
+use App\Models\BonusSavdo;
+use App\Models\Tulovlar;
+use App\Models\Shartnoma;
 
 
 class KunlikTaxlilController extends Controller
@@ -87,19 +87,19 @@ class KunlikTaxlilController extends Controller
 
                 $shsoni = $shtsumma = 0;
 
-                $shartnoma1 = shartnoma::whereBetween('kun', [$boshkun, $yakunkun])
+                $shartnoma1 = Shartnoma::whereBetween('kun', [$boshkun, $yakunkun])
                     ->whereIn('status', ['Актив', 'Ёпилган'])
                     ->where('filial_id', $filial->id)
                     ->get();
 
                 foreach ($shartnoma1 as $shart) {
 
-                    $mSumma = savdo::where('status', 'Шартнома')
+                    $mSumma = Savdo::where('status', 'Шартнома')
                         ->where('shartnoma_id', $shart->id)
                         ->where('filial_id', Auth::user()->filial_id)
                         ->sum('msumma');
 
-                    $chegirma = tulovlar::where('tulovturi', 'Олдиндан тўлов')
+                    $chegirma = Tulovlar::where('tulovturi', 'Олдиндан тўлов')
                         ->where('status', 'Актив')
                         ->where('shartnoma_id', $shart->id)
                         ->where('filial_id', $filial->id)
@@ -117,21 +117,21 @@ class KunlikTaxlilController extends Controller
 
                 $nssoni = $nssumma = $nchegirmasumma = 0;
 
-                $naqdsavdo = naqdSavdo::whereBetween('kun', [$boshkun, $yakunkun])
+                $naqdsavdo = NaqdSavdo::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('status','Актив')
                     ->where('filial_id', $filial->id)
                     ->get();
 
                 foreach ($naqdsavdo as $naqd) {
 
-                    $savdosumma = savdo::where('status', 'Нақд')
+                    $savdosumma = Savdo::where('status', 'Нақд')
                         ->where('shartnoma_id', $naqd->id)
                         ->where('filial_id', $filial->id)
                         ->sum('msumma');
 
                     $nssumma += $savdosumma;
 
-                    $nchegirmasum = tulovlar::where('filial_id', $filial->id)
+                    $nchegirmasum = Tulovlar::where('filial_id', $filial->id)
                         ->where('tulovturi', 'Нақд')
                         ->where('status', 'Актив')
                         ->where('shartnoma_id', $naqd->id)
@@ -155,7 +155,7 @@ class KunlikTaxlilController extends Controller
 
                 foreach ($fondsavdo1 as $fond) {
 
-                    $fsavdosumma = savdo::where('status', 'Фонд')
+                    $fsavdosumma = Savdo::where('status', 'Фонд')
                         ->where('shartnoma_id', $fond->id)
                         ->where('filial_id', $filial->id)
                         ->sum('msumma');
@@ -163,7 +163,7 @@ class KunlikTaxlilController extends Controller
                     $fssoni++;
                     $fssumma += $fsavdosumma;
 
-                    $fchegirmasum = tulovlar::where('tulovturi', 'Фонд')
+                    $fchegirmasum = Tulovlar::where('tulovturi', 'Фонд')
                         ->where('status', 'Актив')
                         ->where('shartnoma_id', $fond->id)
                         ->where('filial_id', $filial->id)
@@ -180,7 +180,7 @@ class KunlikTaxlilController extends Controller
 
                 $bssoni = $bssumma = $btsumma = 0;
 
-                $savdobonus1 = bonusSavdo::whereBetween('kun', [$boshkun, $yakunkun])
+                $savdobonus1 = BonusSavdo::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('status','Актив')
                     ->where('filial_id', $filial->id)
                     ->get();
@@ -194,14 +194,14 @@ class KunlikTaxlilController extends Controller
 
                 //Bonuslar  tulov summasi sonini aniqlash
 
-                $tulovlar1 = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                $tulovlar1 = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('filial_id', $filial->id)
                     ->where('status','Актив')
                     ->get();
 
                 foreach ($tulovlar1 as $tulov) {
 
-                    $savdosumma = tulovlar::where('tulovturi','Бонус')
+                    $savdosumma = Tulovlar::where('tulovturi','Бонус')
                         ->where('id', $tulov->id)
                         ->where('filial_id', $filial->id)
                         ->sum('umumiysumma');

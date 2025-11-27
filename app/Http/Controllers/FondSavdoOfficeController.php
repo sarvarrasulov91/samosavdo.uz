@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\fondSavdo;
-use App\Models\tulovlar;
-use App\Models\savdo;
-use App\Models\kirimTovar;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -50,7 +50,7 @@ class FondSavdoOfficeController extends Controller
     {
         $filial = $request->filial;
 
-        $savdomodel = savdo::where('filial_id', $filial)
+        $savdomodel = Savdo::where('filial_id', $filial)
             ->where('status', 'Фонд')
             ->where('unix_id', $request->savdoid)
             ->get();
@@ -128,11 +128,11 @@ class FondSavdoOfficeController extends Controller
                     $id = $naqdsavdojam->id;
                     $savdoid = $naqdsavdojam->savdoraqami_id;
 
-                    $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->sum('msumma');
+                    $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->sum('msumma');
 
                     $jnaqd = $jplastik = $jhr = $jClick = $jchegirma = 0;
 
-                    $tulovlar = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Фонд')->where('shartnomaid', $id)->where('status', 'Актив')->get();
+                    $tulovlar = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Фонд')->where('shartnomaid', $id)->where('status', 'Актив')->get();
                     foreach ($tulovlar as $tulovla) {
                         $jnaqd += $tulovla->naqd;
                         $jplastik += $tulovla->pastik;
@@ -199,14 +199,14 @@ class FondSavdoOfficeController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $Counttovar1 = kirimTovar::where('filial_id', $filial)
+            $Counttovar1 = KirimTovar::where('filial_id', $filial)
                 ->where('status', 'Фонд')
                 ->where('shartnoma_id', $request->id)
                 ->count();
 
             if ($Counttovar1 > 0) {
 
-                $ReadKt = kirimTovar::where('filial_id', $filial)->where('status', 'Фонд')->where('shartnoma_id', $request->id)->get();
+                $ReadKt = KirimTovar::where('filial_id', $filial)->where('status', 'Фонд')->where('shartnoma_id', $request->id)->get();
 
                 foreach ($ReadKt as $ReadKtovar) {
 
@@ -227,7 +227,7 @@ class FondSavdoOfficeController extends Controller
 
                     } else {
 
-                        $ktovarbarkods = kirimTovar::where('filial_id', $filial)
+                        $ktovarbarkods = KirimTovar::where('filial_id', $filial)
                             ->where('tmodel_id', $ReadKtovar->tmodel_id)
                             ->orderBy('soni', 'desc')
                             ->limit(1)->first();
@@ -248,7 +248,7 @@ class FondSavdoOfficeController extends Controller
                         try {
                             DB::beginTransaction();
 
-                            $ktovarzapis = new kirimTovar;
+                            $ktovarzapis = new KirimTovar;
                             $ktovarzapis->kun = date('Y-m-d');
                             $ktovarzapis->filial_id = $filial;
                             $ktovarzapis->tur_id = $ReadKtovar->tur_id;
@@ -290,7 +290,7 @@ class FondSavdoOfficeController extends Controller
                             $CreateTqaytarish->save();
 
 
-                            $savdoUpdated = savdo::where('filial_id', $filial)->where('unix_id', $request->savdoid)
+                            $savdoUpdated = Savdo::where('filial_id', $filial)->where('unix_id', $request->savdoid)
                                 ->where('status', 'Фонд')
                                 ->update([
                                     'status' => "Удалит",
@@ -299,7 +299,7 @@ class FondSavdoOfficeController extends Controller
                                     'del_xis_oyi' => $xis_oyi,
                                 ]);
 
-                            $tulovlarUpdated = tulovlar::where('filial_id', $filial)
+                            $tulovlarUpdated = Tulovlar::where('filial_id', $filial)
                                 ->where('tulovturi', 'Фонд')
                                 ->where('shartnoma_id', $id)->limit(1)
                                 ->update([
@@ -335,7 +335,7 @@ class FondSavdoOfficeController extends Controller
                 try {
                     DB::beginTransaction();
 
-                    $savdoUpdated = savdo::where('filial_id', $filial)->where('unix_id', $request->savdoid)
+                    $savdoUpdated = Savdo::where('filial_id', $filial)->where('unix_id', $request->savdoid)
                         ->where('status', 'Фонд')
                         ->update([
                             'status' => "Удалит",
@@ -345,7 +345,7 @@ class FondSavdoOfficeController extends Controller
                         ]);
 
 
-                    $tulovlarUpdated = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Фонд')
+                    $tulovlarUpdated = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Фонд')
                         ->where('shartnomaid', $id)->limit(1)
                         ->update([
                             'tulovturi' => "Брон",

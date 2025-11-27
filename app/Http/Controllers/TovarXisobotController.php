@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\filial;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\valyuta;
 use App\Models\xissobotoy;
 use App\Models\lavozim;
@@ -94,7 +94,7 @@ class TovarXisobotController extends Controller
         foreach ($filials as $filial){
 
             // Calculate initial balances
-            $ktovarOyBoshiDollar = kirimTovar::where('filial_id', $filial->id)
+            $ktovarOyBoshiDollar = KirimTovar::where('filial_id', $filial->id)
                 ->where(function ($query) use ($boshkun) {
                 $query->where('valyuta_id', '2')
                     ->whereDate('kun', '<', $boshkun)
@@ -104,7 +104,7 @@ class TovarXisobotController extends Controller
                     });
             })->sum('narhi');
 
-            $ktovarOyBoshiSum = kirimTovar::where('filial_id', $filial->id)
+            $ktovarOyBoshiSum = KirimTovar::where('filial_id', $filial->id)
                     ->where(function ($query) use ($boshkun) {
                 $query->where('valyuta_id', '1')
                     ->whereDate('kun', '<', $boshkun)
@@ -116,7 +116,7 @@ class TovarXisobotController extends Controller
 
             // Reusable function for kirim and chiqim
             $calculateSum = function ($valyutaId, $status = null, $dateField = 'ch_kun') use ($filial, $boshkun, $yakunkun) {
-                $query = kirimTovar::where('filial_id', $filial->id)->where('valyuta_id', $valyutaId)
+                $query = KirimTovar::where('filial_id', $filial->id)->where('valyuta_id', $valyutaId)
                     ->whereBetween($dateField, [$boshkun, $yakunkun]);
 
                 if ($status) {
@@ -261,7 +261,7 @@ class TovarXisobotController extends Controller
             while ($boshkun <= $yakunkun) {
 
                 // Calculate initial balances
-                $ktovarOyBoshiDollar = kirimTovar::where('filial_id', $filial)
+                $ktovarOyBoshiDollar = KirimTovar::where('filial_id', $filial)
                     ->where(function ($query) use ($boshkun) {
                     $query->where('valyuta_id', '2')
                         ->whereDate('kun', '<', $boshkun)
@@ -271,7 +271,7 @@ class TovarXisobotController extends Controller
                         });
                 })->sum('narhi');
 
-                $ktovarOyBoshiSum = kirimTovar::where('filial_id', $filial)
+                $ktovarOyBoshiSum = KirimTovar::where('filial_id', $filial)
                         ->where(function ($query) use ($boshkun) {
                         $query->where('valyuta_id', '1')
                             ->whereDate('kun', '<', $boshkun)
@@ -283,7 +283,7 @@ class TovarXisobotController extends Controller
 
                 // Reusable function for kirim and chiqim
                 $calculateSum = function ($valyutaId, $status = null, $dateField = 'ch_kun') use ($filial, $boshkun) {
-                    $query = kirimTovar::where('filial_id', $filial)->where('valyuta_id', $valyutaId)
+                    $query = KirimTovar::where('filial_id', $filial)->where('valyuta_id', $valyutaId)
                         ->whereDate($dateField, $boshkun);
 
                     if ($status) {

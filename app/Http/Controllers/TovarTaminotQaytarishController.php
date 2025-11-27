@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\kirimTovar;
+use App\Models\KirimTovar;
 use App\Models\tqaytarish;
 use Illuminate\Support\Facades\DB;
 use App\Models\xissobotoy;
@@ -50,7 +50,7 @@ class TovarTaminotQaytarishController extends Controller
 
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
 
-            $CountKtovar = kirimTovar::where('shtrix_kod', $krimt)
+            $CountKtovar = KirimTovar::where('shtrix_kod', $krimt)
                 ->where('filial_id', $filial)
                 ->where('status', 'Сотилмаган')
                 ->count();
@@ -58,7 +58,7 @@ class TovarTaminotQaytarishController extends Controller
         if ($CountKtovar == 1) {
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $ReadKtovar = kirimTovar::where('shtrix_kod', $krimt)
+            $ReadKtovar = KirimTovar::where('shtrix_kod', $krimt)
                 ->where('filial_id', $filial)
                 ->where('status', 'Сотилмаган')
                 ->first();
@@ -84,7 +84,7 @@ class TovarTaminotQaytarishController extends Controller
                 $CreateTqaytarish->user_id = Auth::user()->id;
                 $CreateTqaytarish->save();
 
-                $ktovar1Updated = kirimTovar::where('shtrix_kod', $krimt)
+                $ktovar1Updated = KirimTovar::where('shtrix_kod', $krimt)
                     ->where('filial_id', $filial)
                     ->where('status', 'Сотилмаган')
                     ->limit(1)

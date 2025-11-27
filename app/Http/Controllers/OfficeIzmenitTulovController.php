@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar;
-use App\Models\shartnoma;
-use App\Models\naqdSavdo;
-use App\Models\mijozlar;
+use App\Models\Tulovlar;
+use App\Models\Shartnoma;
+use App\Models\NaqdSavdo;
+use App\Models\Mijozlar;
 use App\Models\valyuta;
 use App\Models\lavozim;
 use App\Models\filial;
@@ -42,7 +42,7 @@ class OfficeIzmenitTulovController extends Controller
         $boshkun = $request->boshkun;
         $yakunkun = $request->yakunkun;
 
-        $tulovlar1 = tulovlar::where('status', 'Актив')
+        $tulovlar1 = Tulovlar::where('status', 'Актив')
             ->whereBetween('kun', [$boshkun, $yakunkun])
             ->where('filial_id', $request->filial)
             ->orderBy('id', 'desc')
@@ -170,7 +170,7 @@ class OfficeIzmenitTulovController extends Controller
     {
         if ($request->status == 'tulovdelete' && Auth::user()->lavozim_id == 1){
 
-            $tulov = tulovlar::where('id', $request->id)
+            $tulov = Tulovlar::where('id', $request->id)
                 ->where('status', 'Актив')
                 ->where('filial_id', $request->filial2)
                 ->first();
@@ -229,7 +229,7 @@ class OfficeIzmenitTulovController extends Controller
 
             if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
 
-                $tulov = tulovlar::where('id', $id)->where('status', 'Актив')->where('filial_id', $request->filial2)->first();
+                $tulov = Tulovlar::where('id', $id)->where('status', 'Актив')->where('filial_id', $request->filial2)->first();
 
                 if ($tulov){
 

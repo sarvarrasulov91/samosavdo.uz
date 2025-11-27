@@ -48,15 +48,15 @@ class User extends Authenticatable
 
     public function savdo1(): HasMany
     {
-        return $this->hasMany(savdo::class);
+        return $this->hasMany(Savdo::class);
     }
     public function shartnoma1(): HasMany
     {
-        return $this->hasMany(shartnoma::class);
+        return $this->hasMany(Shartnoma::class);
     }
     public function tulovlar1(): HasMany
     {
-        return $this->hasMany(tulovlar::class);
+        return $this->hasMany(Tulovlar::class);
     }
     public function sms(): HasMany
     {

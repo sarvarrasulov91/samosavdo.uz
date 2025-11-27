@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
-use App\Models\savdo;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
 use App\Models\xodimlar;
 use App\Models\xissobotoy;
 
@@ -75,7 +75,7 @@ class PortfelController extends Controller
 
                     $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                    $shartnoma = shartnoma::where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
+                    $shartnoma = Shartnoma::where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
                     $shsumma = 0;
                     $shotulov = 0;
                     $shchegirma = 0;
@@ -93,11 +93,11 @@ class PortfelController extends Controller
 
                         $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
-                        $savdosumma = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
-                        $oldindantulov = tulovlar::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
-                        $chegirma = tulovlar::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('chegirma');
-                        $tulov = tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
-                        $tulovinfo = tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
+                        $savdosumma = Savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $oldindantulov = Tulovlar::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
+                        $chegirma = Tulovlar::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('chegirma');
+                        $tulov = Tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
+                        $tulovinfo = Tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
                         $tsumma = 0;
                         $tsumma = $tulovinfo->umumiysumma ?? 0;
@@ -316,7 +316,7 @@ class PortfelController extends Controller
 
                 <tbody id="tab1">';
 
-                    $savdomodel = savdo::where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
+                    $savdomodel = Savdo::where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
                     $i = 1;
                     $jami = 0;
                     foreach ($savdomodel as $savdomode) {

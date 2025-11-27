@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class tulovlar extends Model
+class Tulovlar extends Model
 {
     use HasFactory;
     protected $table = 'tulovlar';
@@ -22,7 +22,7 @@ class tulovlar extends Model
 
     public function shartnoma(): BelongsTo
     {
-        return $this->belongsTo(shartnoma::class,'shartnoma_id');
+        return $this->belongsTo(Shartnoma::class,'shartnoma_id');
     }
 
     public function User(): BelongsTo

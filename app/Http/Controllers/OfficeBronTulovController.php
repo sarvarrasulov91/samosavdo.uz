@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar;
+use App\Models\Tulovlar;
 use App\Models\filial;
 use App\Models\User;
 use App\Models\lavozim;
@@ -88,7 +88,7 @@ class OfficeBronTulovController extends Controller
                 $uchegirma=0;
                 $ujami=0;
 
-                $model = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                $model = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('tulovturi', 'Брон')
                     ->where('filial_id', $request->filial)
                     ->orderBy('id', 'desc')

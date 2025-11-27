@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
-use App\Models\tulovlar;
-use App\Models\shartnoma;
-use App\Models\savdo;
+use App\Models\Tulovlar;
+use App\Models\Shartnoma;
+use App\Models\Savdo;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -23,7 +23,7 @@ class ShartnomaTulovController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $shartnoma = shartnoma::where('filial_id', Auth::user()->filial_id)
+            $shartnoma = Shartnoma::where('filial_id', Auth::user()->filial_id)
                 ->where('status', 'Актив')
                 ->orderBy('id', 'desc')
                 ->get();
@@ -65,7 +65,7 @@ class ShartnomaTulovController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $tulovlar = tulovlar::where('filial_id', Auth::user()->filial_id)
+            $tulovlar = Tulovlar::where('filial_id', Auth::user()->filial_id)
                 ->where('status', 'Актив')
                 ->where('tulovturi', 'Шартнома')
                 ->where('xis_oyi', $xis_oyi)
@@ -148,9 +148,9 @@ class ShartnomaTulovController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $shartnoma = shartnoma::find($request->mijoz);
+                $shartnoma = Shartnoma::find($request->mijoz);
 
-                $tulovlar1 = new tulovlar;
+                $tulovlar1 = new Tulovlar;
                 $tulovlar1->kun = $request->yangikun;
                 $tulovlar1->tulovturi = 'Шартнома';
                 $tulovlar1->filial_id = Auth::user()->filial_id;
@@ -174,7 +174,7 @@ class ShartnomaTulovController extends Controller
                     $foiz = 0;
                 }
 
-                $tulovlar = tulovlar::where('filial_id', Auth::user()->filial_id)
+                $tulovlar = Tulovlar::where('filial_id', Auth::user()->filial_id)
                     ->where('status', 'Актив')
                     ->where('shartnoma_id', $shartnoma->id)
                     ->selectRaw("
@@ -188,7 +188,7 @@ class ShartnomaTulovController extends Controller
                 $chegirma      = $tulovlar->oldindan_chegirma;
                 $tulov         = $tulovlar->shartnoma_summa;
 
-                $savdosumma = savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
+                $savdosumma = Savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
 
                 //йиллик фойиз
                 $foiz = (($foiz / 12) * $shartnoma->muddat);
@@ -297,7 +297,7 @@ class ShartnomaTulovController extends Controller
         $filial = filial::where('id', Auth::user()->filial_id)->first();
         $manzil = $filial->manzil;
 
-        $tulovlar = tulovlar::where('filial_id', Auth::user()->filial_id)->where('status', 'Актив')->where('id', $id)->get();
+        $tulovlar = Tulovlar::where('filial_id', Auth::user()->filial_id)->where('status', 'Актив')->where('id', $id)->get();
         foreach($tulovlar as $tulovla){
             echo'
             <div class="d-flex gap-1">
@@ -444,7 +444,7 @@ class ShartnomaTulovController extends Controller
      */
     public function destroy(string $id)
     {
-        $tulovlar = tulovlar::where('id', $id)
+        $tulovlar = Tulovlar::where('id', $id)
             ->where('filial_id', Auth::user()->filial_id)
             ->where('tulovturi', 'Шартнома')
             ->first();
@@ -455,7 +455,7 @@ class ShartnomaTulovController extends Controller
 
             if($tulovlar->kun == date('Y-m-d')){
 
-                $shart = shartnoma::where('id', $shid)
+                $shart = Shartnoma::where('id', $shid)
                     ->where('filial_id', Auth::user()->filial_id)
                     ->where('status', 'Ёпилган')
                     ->update([

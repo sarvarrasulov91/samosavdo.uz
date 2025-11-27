@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\shartnoma;
-use App\Models\tulovlar;
-use App\Models\savdo;
-use App\Models\kirimTovar;
-use App\Models\bonusSavdo;
+use App\Models\Shartnoma;
+use App\Models\Tulovlar;
+use App\Models\Savdo;
+use App\Models\KirimTovar;
+use App\Models\BonusSavdo;
 use App\Models\tmodel;
 use App\Models\xissobotoy;
 
@@ -47,7 +47,7 @@ class BonusSavdoController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $shartnoma = shartnoma::where('filial_id', Auth::user()->filial_id)
+                    $shartnoma = Shartnoma::where('filial_id', Auth::user()->filial_id)
                         ->where('status', 'Актив')
                         ->where('xis_oyi', date('Y-m-01'))
                         ->orderBy('id', 'desc')
@@ -61,7 +61,7 @@ class BonusSavdoController extends Controller
 
                     foreach ($shartnoma as $shartnom){
 
-                        $savdoSumma = savdo::where('filial_id', Auth::user()->filial_id)
+                        $savdoSumma = Savdo::where('filial_id', Auth::user()->filial_id)
                             ->where('status', 'Шартнома')
                             ->where('shartnoma_id', $shartnom->id)
                             ->get();
@@ -69,7 +69,7 @@ class BonusSavdoController extends Controller
                         $savdosumma = $savdoSumma->sum('msumma');
                         $bonussumma = $savdoSumma->sum('bonus');
 
-                        $bonusTulov = tulovlar::where('tulovturi', 'Бонус')
+                        $bonusTulov = Tulovlar::where('tulovturi', 'Бонус')
                             ->where('status', 'Актив')
                             ->where('filial_id', Auth::user()->filial_id)
                             ->where('shartnoma_id', $shartnom->id)
@@ -78,7 +78,7 @@ class BonusSavdoController extends Controller
                         $bonustulov = $bonusTulov->sum('umumiysumma');
                         $bonuschegirma = $bonusTulov->sum('chegirma');
 
-                        $tovarsumma = bonusSavdo::where('status', 'Актив')
+                        $tovarsumma = BonusSavdo::where('status', 'Актив')
                             ->where('shartnoma_id', $shartnom->id)
                             ->where('filial_id', Auth::user()->filial_id)
                             ->sum('msumma');
@@ -142,7 +142,7 @@ class BonusSavdoController extends Controller
 
             if(!empty($barkod) && !empty($id) && !empty($status) ){
 
-                $ktovar = kirimTovar::where('shtrix_kod', $barkod)
+                $ktovar = KirimTovar::where('shtrix_kod', $barkod)
                     ->where('filial_id', Auth::user()->filial_id)
                     ->where('status', 'Сотилмаган')
                     ->first();
@@ -165,7 +165,7 @@ class BonusSavdoController extends Controller
                     try {
                         DB::beginTransaction();
 
-                        $zaqis = new bonusSavdo;
+                        $zaqis = new BonusSavdo;
                         $zaqis->kun = date('Y-m-d');
                         $zaqis->filial_id = Auth::user()->filial_id;
                         $zaqis->shid = $shid;
@@ -181,7 +181,7 @@ class BonusSavdoController extends Controller
                         $zaqis->shtrix_kod = $barkod;
                         $zaqis->save();
 
-                        $ktovarUpdated = kirimTovar::where('status', 'Сотилмаган')
+                        $ktovarUpdated = KirimTovar::where('status', 'Сотилмаган')
                             ->where('shtrix_kod', $barkod)
                             ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)->
@@ -220,7 +220,7 @@ class BonusSavdoController extends Controller
                 $click = floatval(preg_replace('/[^\d.]/', '', $request->click));
                 $chegirma = floatval(preg_replace('/[^\d.]/', '', $request->chegirma));
 
-                $tulovlar = new tulovlar;
+                $tulovlar = new Tulovlar;
                 $tulovlar->kun = date('Y-m-d');
                 $tulovlar->tulovturi = 'Бонус';
                 $tulovlar->filial_id = Auth::user()->filial_id;
@@ -237,7 +237,7 @@ class BonusSavdoController extends Controller
                 $tulovlar->save();
                 $savedFondId = $tulovlar->id;
 
-                $checktulovlar1 = tulovlar::find($savedFondId);
+                $checktulovlar1 = Tulovlar::find($savedFondId);
                 if ($checktulovlar1) {
                     return response()->json(['message' => 'Тўлов қўшилди. Фонд ID: ' . $savedFondId], 200);
                 } else {
@@ -273,9 +273,9 @@ class BonusSavdoController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $shartnom = shartnoma::where('id', $id)->where('shid', $shid)->where('filial_id', Auth::user()->filial_id)->first();
+                    $shartnom = Shartnoma::where('id', $id)->where('shid', $shid)->where('filial_id', Auth::user()->filial_id)->first();
 
-                    $savdoSumma = savdo::where('status', 'Шартнома')
+                    $savdoSumma = Savdo::where('status', 'Шартнома')
                         ->where('shartnoma_id', $shartnom->id)
                         ->where('shid', $shid)
                         ->where('filial_id', Auth::user()->filial_id)
@@ -284,7 +284,7 @@ class BonusSavdoController extends Controller
                     $savdosumma = $savdoSumma->sum('msumma');
                     $bonussumma = $savdoSumma->sum('bonus');
 
-                    $bonusTulov = tulovlar::where('tulovturi', 'Бонус')
+                    $bonusTulov = Tulovlar::where('tulovturi', 'Бонус')
                         ->where('status', 'Актив')
                         ->where('shartnoma_id', $shartnom->id)
                         ->where('shid', $shid)
@@ -294,7 +294,7 @@ class BonusSavdoController extends Controller
                     $bonustulov = $bonusTulov->sum('umumiysumma');
                     $bonuschegirma = $bonusTulov->sum('chegirma');
 
-                    $tovarsumma = bonusSavdo::where('status', 'Актив')->where('shartnoma_id', $id)->where('shid', $shid)->sum('msumma');
+                    $tovarsumma = BonusSavdo::where('status', 'Актив')->where('shartnoma_id', $id)->where('shid', $shid)->sum('msumma');
 
                     $trrang="";
 
@@ -347,7 +347,7 @@ class BonusSavdoController extends Controller
                <tbody id="tab1">';
             $jami = 0;
             $i = 1;
-            $savdomodel = bonusSavdo::where('status', 'Актив')->where('shartnoma_id', $id)->where('shid', $shid)->where('filial_id', Auth::user()->filial_id)->get();
+            $savdomodel = BonusSavdo::where('status', 'Актив')->where('shartnoma_id', $id)->where('shid', $shid)->where('filial_id', Auth::user()->filial_id)->get();
             foreach ($savdomodel as $savdomode) {
                 echo "
                    <tr class='text-center align-middle'>
@@ -399,7 +399,7 @@ class BonusSavdoController extends Controller
                 	</thead>
                   	<tbody id="tab1">';
 
-                        $tulovlarshj = tulovlar::where('tulovturi', 'Бонус')
+                        $tulovlarshj = Tulovlar::where('tulovturi', 'Бонус')
                             ->where('shartnoma_id', $shartnom->id)
                             ->where('filial_id', Auth::user()->filial_id)
                             ->orderBy('id', 'desc')
@@ -508,7 +508,7 @@ class BonusSavdoController extends Controller
 
         if(!empty($request->id) && !empty($request->status && $request->status=="tuchirish") ){
 
-            $bor_tovar_exists = kirimTovar::where('shtrix_kod', $request->krimt)
+            $bor_tovar_exists = KirimTovar::where('shtrix_kod', $request->krimt)
                 ->where('status', 'Бонус')
                 ->where('filial_id', Auth::user()->filial_id)
                 ->where('shartnoma_id', $request->id)
@@ -519,7 +519,7 @@ class BonusSavdoController extends Controller
                 try {
                     DB::beginTransaction();
 
-                    $KtovarUpdated = kirimTovar::where('shtrix_kod', $request->krimt)
+                    $KtovarUpdated = KirimTovar::where('shtrix_kod', $request->krimt)
                         ->where('status', 'Бонус')
                         ->where('shartnoma_id', $request->id)
                         ->where('filial_id', Auth::user()->filial_id)
@@ -531,7 +531,7 @@ class BonusSavdoController extends Controller
                             'shartnoma_id' => 0,
                         ]);
 
-                    $SavdobonusUpdated = bonusSavdo::where('shartnoma_id', $request->id)
+                    $SavdobonusUpdated = BonusSavdo::where('shartnoma_id', $request->id)
                         ->where('shtrix_kod', $request->krimt)
                         ->where('status', 'Актив')
                         ->where('filial_id', Auth::user()->filial_id)
@@ -561,7 +561,7 @@ class BonusSavdoController extends Controller
 
         if(!empty($request->id) && !empty($request->tulovid) ){
 
-            $tulovlarFind = tulovlar::where('id', $request->tulovid)
+            $tulovlarFind = Tulovlar::where('id', $request->tulovid)
                 ->where('filial_id', Auth::user()->filial_id)
                 ->where('tulovturi', 'Бонус')
                 ->first();
