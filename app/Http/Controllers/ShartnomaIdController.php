@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\filial;
 use App\Models\mijozlar;
-use App\Models\savdo1;
-use App\Models\shartnoma1;
-use App\Models\tulovlar1;
+use App\Models\savdo;
+use App\Models\shartnoma;
+use App\Models\tulovlar;
 use App\Models\xissobotoy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,8 +61,6 @@ class ShartnomaIdController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-        $debitors = new shartnoma1($filial);
-
         if($request->radioButton == 'mijoz'){
             $clients = mijozlar::where(function($query) use ($id) {
                 $query->whereRaw("CONCAT(last_name, ' ', first_name) LIKE ?", ["%{$id}%"])
@@ -72,21 +70,23 @@ class ShartnomaIdController extends Controller
             })->get();
 
             $clientIds = $clients->pluck('id')->toArray();
-            $shartnomalar = $debitors->whereIn('mijozlar_id', $clientIds)->get();
+            $shartnomalar = shartnoma::where('filial_id', $filial)->whereIn('mijozlar_id', $clientIds)->get();
         }else{
-            $shartnomalar = $debitors->where('id', $id)->get();
+            $shartnomalar = shartnoma::where('filial_id', $filial)->where('id', $id)->get();
         }
 
         if ($shartnomalar->isNotEmpty()){
 
             foreach($shartnomalar as $shartnoma){
 
-                $savdo = new savdo1($filial);
-                $savdosummasi = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
+                $savdosummasi = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
+                $tulovInfo = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')
+                    ->where('status', 'Актив')
+                    ->where('shartnoma_id', $shartnoma->id)
+                    ->first();
 
-                $oldindantulov = new tulovlar1($filial);
-                $oldindantulovsummasi = $oldindantulov->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnoma->id)->sum('umumiysumma');
-                $otulovchegirmasummasi = $oldindantulov->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnoma->id)->sum('chegirma');
+                $oldindantulovsummasi = $tulovInfo->umumiysumma ?? 0;
+                $otulovchegirmasummasi = $tulovInfo->chegirma ?? 0;
 
                 $foiz = xissobotoy::where('xis_oy', $shartnoma->xis_oyi)->value('foiz');
 

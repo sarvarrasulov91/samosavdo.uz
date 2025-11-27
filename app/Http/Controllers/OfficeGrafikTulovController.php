@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar1;
+use App\Models\tulovlar;
 use App\Models\mijozlar;
 use App\Models\lavozim;
 use App\Models\filial;
-use App\Models\shartnoma1;
+use App\Models\shartnoma;
 use App\Models\User;
-use App\Models\savdo1;
+use App\Models\savdo;
 
 class OfficeGrafikTulovController extends Controller
 {
@@ -20,15 +20,17 @@ class OfficeGrafikTulovController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        if((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 12 || Auth::user()->lavozim_id == 14) && Auth::user()->status == 'Актив'){
+        if(Auth::user()->filial_id == 10 && Auth::user()->status == 'Актив'){
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
+
         }else{
+
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
+
         }
-        return view('kassa.officegrafiktulov', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'filial' => $filial, 'xis_oyi' => $xis_oyi]);
+
+        return view('kassa.officebrontulov', ['filial' => $filial]);
     }
 
     /**
@@ -69,7 +71,7 @@ class OfficeGrafikTulovController extends Controller
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-                    
+
                     $i=1;
                     $naqd=0;
                     $plastik=0;
@@ -86,23 +88,29 @@ class OfficeGrafikTulovController extends Controller
                     $uavtot=0;
                     $uchegirma=0;
                     $ujami=0;
-                    
-                    $tulovlar = new tulovlar1($request->filial);
-                    $model = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->where('tulovturi','!=','Брон')->where('tulovturi','!=','Нақд')->where('tulovturi','!=','Бонус')->orderBy('id', 'desc')->get();
+
+                    $model = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                        ->where('status', 'Актив')
+                        ->where('tulovturi', 'Шартнома')
+                        ->where('filial_id', $request->filial)
+                        ->orderBy('id', 'desc')
+                        ->get();
+
                     foreach ($model as $mode){
-                        $shartnoma1 = new shartnoma1($request->filial);
-                        $shartnoma = $shartnoma1->where('id', $mode->shartnomaid)->first();
 
-                        $savdo = new savdo1($request->filial);
-                        $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
+                        $shartnoma = shartnoma::where('id', $mode->shartnoma_id)->where('filial_id', $request->filial)->first();
+                        $savdosumma = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->where('filial_id', $request->filial)->sum('msumma');
+                        $oldindantulov = tulovlar::where('tulovturi', 'Олдиндан тўлов')
+                            ->where('status', 'Актив')
+                            ->where('shartnoma_id', $shartnoma->id)
+                            ->where('filial_id', $request->filial)
+                            ->sum('umumiysumma');
 
-                        $oldindantulov = new tulovlar1($request->filial);
-                        $oldindantulov = $oldindantulov->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnoma->id)->sum('umumiysumma');
-
-                        $otulovchegirma = new tulovlar1($request->filial);
-                        $chegirma = $otulovchegirma->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnoma->id)->sum('chegirma');
-                        
-
+                        $chegirma = tulovlar::where('tulovturi', 'Олдиндан тўлов')
+                            ->where('status', 'Актив')
+                            ->where('shartnoma_id', $shartnoma->id)
+                            ->where('filial_id', $request->filial)
+                            ->sum('chegirma');
 
                         $foiz = xissobotoy::where('xis_oy', $shartnoma->xis_oyi)->value('foiz');
                         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
@@ -113,20 +121,20 @@ class OfficeGrafikTulovController extends Controller
 
                         //йиллик фойиз
                         $foiz = (($foiz / 12) * $shartnoma->muddat);
-                        
+
                         if ($shartnoma->kun < "2023-12-05"){
                             $xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
                         }else{
-                            $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);  
+                            $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
                         }
-                        
+
                         echo'
                         <tr>
                             <td>' . $i++ . '</td>
                             <td style="white-space: pre-wrap">' . date('d.m.Y H:i:s', strtotime($mode->created_at)) . '</td>
                             <td style="white-space: pre-wrap">' .$shartnoma->mijozlar->last_name. ' ' .$shartnoma->mijozlar->first_name. ' ' .$shartnoma->mijozlar->middle_name . '</td>
                             <td>' . $mode->tulovturi . '</td>
-                            <td>' . $mode->shartnomaid . '</td>
+                            <td>' . $mode->shartnoma_id . '</td>
                             <td class="text-primary">' . number_format(($savdosumma-$oldindantulov-$chegirma+$xis_foiz)/$shartnoma->muddat, 0, ',', ' ') . '</td>
                             <td>' . number_format($mode->naqd, 0, ',', ' ') . '</td>
                             <td>' . number_format($mode->pastik, 0, ',', ' ') . '</td>
@@ -143,7 +151,7 @@ class OfficeGrafikTulovController extends Controller
                             </td>
                         </tr>
                         ';
-                        
+
                         $naqd += $mode->naqd;
                         $plastik += $mode->pastik;
                         $hr += $mode->hr;
@@ -179,7 +187,7 @@ class OfficeGrafikTulovController extends Controller
                             <td></td>
                         </tr>
                         ';
-                
+
                     echo'
                 </tbody>
             </table>
@@ -208,7 +216,7 @@ class OfficeGrafikTulovController extends Controller
     public function update(Request $request, string $id)
     {
         // Shartnoma uchun tulangan tulovlarni korish
-        echo' 
+        echo'
         <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартнома учун тўланган тўловлар</h5>
             <table class="table table-hover table-bordered text-center text-muted">
                 <thead>
@@ -227,9 +235,13 @@ class OfficeGrafikTulovController extends Controller
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-                
-            $tulovlar1=new tulovlar1($request->filial);
-            $tulovlarshj = $tulovlar1->where('tulovturi', 'Шартнома')->where('shartnomaid', $id)->orwhere('tulovturi', 'Олдиндан тўлов')->where('shartnomaid', $id)->orwhere('tulovturi', 'Брон')->where('shartnomaid', $id)->orderBy('id', 'desc')->get();
+
+            $tulovlarshj = tulovlar::where('filial_id', $request->filial)
+                ->where('shartnoma_id', $id)
+                ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
+                ->orderBy('id', 'desc')
+                ->get();
+
             $i = 1;
             $jnaqd = 0;
             $jpastik = 0;

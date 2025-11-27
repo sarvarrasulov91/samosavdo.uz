@@ -6,10 +6,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\shartnoma1;
-use App\Models\tulovlar1;
-use App\Models\savdo1;
-use App\Models\ktovar1;
+use App\Models\shartnoma;
+use App\Models\tulovlar;
+use App\Models\savdo;
+use App\Models\kirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -55,19 +55,22 @@ class SHartnomaOfficeController extends Controller
     {
         $id = $request->id;
         $filial = $request->filial;
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $model = new shartnoma1($filial);
-        $shartnoma = $model->where('id', $id)->get();
+        $shartnoma = shartnoma::where('filial_id', $filial)->where('id', $id)->get();
         foreach ($shartnoma as $shartnom) {
 
-            $savdo = new savdo1($filial);
-            $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+            $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-            $oldindantulovinfo = new tulovlar1($filial);
-            $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-            $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-            $tulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
+            $tulovInfo = tulovlar::where('filial_id', $filial)
+                ->where('tulovturi', 'Олдиндан тўлов')
+                ->where('status', 'Актив')
+                ->where('shartnoma_id', $shartnom->id)
+                ->first();
+
+            $oldindantulov = $tulovInfo->umumiysumma ?? 0;
+            $chegirma = $tulovInfo->chegirma ?? 0;
+
+            $tulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
 
 
             $tsana = date('d.m.Y', strtotime($shartnom->mijozlar->t_sana));
@@ -287,10 +290,9 @@ class SHartnomaOfficeController extends Controller
                 //Тулов жамланяпти
                 $boshibaza = date("Y-m-", strtotime($du22)) . "01";
 
-                $tulovlari = new tulovlar1($filial);
-
-                $opl01 = $tulovlari->where('tulovturi', 'Шартнома')
-                    ->where('shartnomaid', $shartnom->id)
+                $opl01 = tulovlar::where('tulovturi', 'Шартнома')
+                    ->where('shartnoma_id', $shartnom->id)
+                    ->where('filial_id', $filial)
                     ->where('xis_oyi', $boshibaza)
                     ->where('status', 'Актив')
                     ->sum('umumiysumma');
@@ -326,8 +328,9 @@ class SHartnomaOfficeController extends Controller
             // kechikkan tulovlarni ko'rsatish
 
             $kechTulov = 0;
-            $lateTulovlar = $tulovlari->where('tulovturi', 'Шартнома')
-                ->where('shartnomaid', $shartnom->id)
+            $lateTulovlar = tulovlar::where('tulovturi', 'Шартнома')
+                ->where('shartnoma_id', $shartnom->id)
+                ->where('filial_id', $filial)
                 ->where('xis_oyi', '>', $boshibaza)
                 ->where('status', 'Актив')
                 ->groupBy('xis_oyi')
@@ -394,10 +397,9 @@ class SHartnomaOfficeController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-
-                    $tulovlar = new tulovlar1($filial);
-                    $tulovlar = $tulovlar->where('shartnomaid', $shartnom->id)
+                    $tulovlar = tulovlar::where('shartnoma_id', $shartnom->id)
                         ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
+                        ->where('filial_id', $filial)
                         ->orderByDesc('id')
                         ->get();
 
@@ -469,8 +471,7 @@ class SHartnomaOfficeController extends Controller
             <br>
             <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартномада кўрсатилган товарлар рўйхати</h5>';
 
-            $savdo = new savdo1($filial);
-            $savdomodel = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
+            $savdomodel = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
             echo '
            <table class="table table-bordered table-hover">
                <thead>
@@ -485,7 +486,9 @@ class SHartnomaOfficeController extends Controller
                         <th>
                             <button
                                 id="tovar_qushish"
-                                data-shid="'. $shartnom->id .'"
+                                data-id="'. $shartnom->id .'"
+                                data-shid="'. $shartnom->shid .'"
+                                data-filial="'. $shartnom->filial_id .'"
                                 type="button" class="btn btn-outline-primary btn-sm ms-2">
                                 <i class="flaticon-381-plus"></i>
                             </button>
@@ -555,8 +558,8 @@ class SHartnomaOfficeController extends Controller
 
 
                     $jami = 0;
-                    $model = new shartnoma1($id);
-                    $shartnoma = $model->whereIn('status', ['Актив', 'Ёпилган'])
+
+                    $shartnoma = shartnoma::where('filial_id', $id)->whereIn('status', ['Актив', 'Ёпилган'])
                         ->whereBetween('kun', [$startDate, $endDate])
                         ->orderBy('id', 'desc')
                         ->get();
@@ -565,16 +568,15 @@ class SHartnomaOfficeController extends Controller
 
                         $trClass = ($shartnom->status == 'Ёпилган') ? 'align-middle text-success' : 'align-middle';
 
-                        $savdo = new savdo1($id);
-                        $savdosummasi = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $savdosummasi = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                        $oldindantulov = new tulovlar1($id);
-                        $oldindantulovsummasi = $oldindantulov->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                        $otulovchegirmasummasi = $oldindantulov->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
+                        $oldindantulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->get();
+                        $oldindantulovsummasi = $oldindantulov->sum('umumiysumma');
+                        $otulovchegirmasummasi = $oldindantulov->sum('chegirma');
 
                         echo'
                         <tr id="modalshartshow" data-id="'.$shartnom->id.'" data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"  class="'.$trClass.'">
-                            <td>' . $shartnom->id . '</td>
+                            <td>' . $shartnom->shid . '</td>
                             <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
                             </td>
                             <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->tuman->name_uz .' '. $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '
@@ -612,129 +614,109 @@ class SHartnomaOfficeController extends Controller
     public function edit(string $id)
     {
 
-        $shartnoma = shartnoma1::where('id', $id)->get();
-        foreach ($shartnoma as $shartnom) {
-            $kun = date('d.m.Y', strtotime($shartnom->kun));
-            $muddat = number_format($shartnom->muddat, 0, ',', ' ');
+        $shartnom = shartnoma::where('filial_id', Auth::user()->filial_id)->where('id', $id)->first();
 
-            $oldindantulov = tulovlar1::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-            $chegirma = tulovlar1::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('chegirma');
-            $savdosumma = savdo1::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
-
-
-            $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            if($shartnom->fstatus == 0){
-                $foiz = 0;
-            }
-
-
-            //йиллик фойиз
-            $foiz = (($foiz / 12) * $shartnom->muddat);
-            $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-
-                echo'<div class="modal-body m-0">
-                    <div class="flex items-center justify-center bg-white ">
-                        <div id="certificate" class="text-center p-2">
-                            <h5 style="text-align:center; margin-bottom: -5px;">Муддатли тўлов шарти билан маҳсулот(лар) сотиб олиш учун</h5>
-                            <div>
-                                <h3 style="text-align:center; margin-bottom: -2px;">АРИЗА</h3>
-                                <h4 style="text-align:left; ">'.date("d.m.Y").' йил.</h4>
-                            </div>
-                        </div>
-                        <div>
-                            <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px; " id="tovarjad">
-                                <tr id="#jadst">
-                                    <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Ф.И.Ш.</th>
-                                    <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" colspan="4">' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name. '</th>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Туғилган йил</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4">' . date("d.m.Y", strtotime($shartnom->mijozlar->t_sana)) . '</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" rowspan="2">Ҳужжат</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Паспорт рақами</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Берилган вақти</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Ким томонидан берилган</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">' . $shartnom->mijozlar->passport_sn . '</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">' . date("d.m.Y", strtotime($shartnom->mijozlar->passport_date)) . '</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">' . $shartnom->mijozlar->passport_iib . '</td>
-                                </tr>
-                                <tr id="#jadst">
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Манзил</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
-                                </tr>
-                                <tr id="#jadst">
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Телефон</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' .$shartnom->mijozlar->phone . '</td>
-                                </tr>
-                                <tr id="#jadst">
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Иш жойи</td>
-                                    <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' . $shartnom->mijozlar->ish_joy . '</td>
-                                </tr>
-                            </table>
-
-
-                            <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px; " id="tovarjad">
-                            <tr>
-                                <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 5%;">№</th>
-                                <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 7%;">Модел ИД</th>
-                                <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 38%;">Маҳсулот номи</th>
-                                <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 10%;">Сони</th>
-                            </tr> <br />';
-
-                            $savdomodel = savdo1::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
-                            $i = 0;
-                            foreach ($savdomodel as $savdomode) {
-                                $i++;
-                                echo "
-                                    <tr class='text-center align-middle m-2'>
-                                        <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . $i . "</td>
-                                        <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . $savdomode->tmodel_id . "</td>
-                                        <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
-                                        <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . number_format(1, 0, ',', ' ') . "</td>
-                                    </tr>";
-                            };
-
-                            echo '
-                               <tr class="text-center align-middle fw-bold">
-                                    <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt"></td>
-                                    <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt">ЖАМИ</td>
-                                    <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt"></td>
-                                    <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt">' . number_format($i, 0, ",", " ") . '</td>
-                                </tr>
-                        </table>
-
-                        </table>
-                        <br />
-                        <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px;" id="tovarjad">
-                            <tr id="#jadst">
-                                <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; width: 40%;">Келажакда нималар сотиб олмокчисиз</td>
-                                <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left;"></td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; width: 40%;">Сизниннг таклифларингиз</td>
-                                <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left;"></td>
-                            </tr>
-                        </table>
-                        <p style="text-align:justify font-size:14px; ">
-                            Менинг берган аризамни ўрганиш жараёнида мен хақимдаги малумотларни иш хақи, бошқа  ташкилотлардан қарздорлигим бор йўқлигини, бошқа молиявий холатимни текширишингизга, шунингдек шартнома бўйича мажбуриятимни, график бўйича тўловларни ўз вақтида қайтарилиши учун менинг хар қандай банк хисоб рақамимдан ёки хар қандай пластик картамдан автоматик тарзда ечиб олинишига розиман.<br>
-                            Аризага қуйидагиларни тақдим этаман.<br><br>
-                            1)  Шахсимни тасдиқловчи хужжат нусхаси,<br><br>
-                            2)  Ўзим тўғримдаги керакли малумотларни тўлиқ.<br>
-
-                        </p>
-                        <h4 style="text-align:left; margin-bottom: -15px;">' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name.  '  ______________________________________</h4>
-
-                        </div>
+        echo'<div class="modal-body m-0">
+            <div class="flex items-center justify-center bg-white ">
+                <div id="certificate" class="text-center p-2">
+                    <h5 style="text-align:center; margin-bottom: -5px;">Муддатли тўлов шарти билан маҳсулот(лар) сотиб олиш учун</h5>
+                    <div>
+                        <h3 style="text-align:center; margin-bottom: -2px;">АРИЗА</h3>
+                        <h4 style="text-align:left; ">'.date("d.m.Y").' йил.</h4>
                     </div>
                 </div>
-            ';
-        }
-        return ;
+                <div>
+                    <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px; " id="tovarjad">
+                        <tr id="#jadst">
+                            <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Ф.И.Ш.</th>
+                            <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" colspan="4">' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name. '</th>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Туғилган йил</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4">' . date("d.m.Y", strtotime($shartnom->mijozlar->t_sana)) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" rowspan="2">Ҳужжат</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Паспорт рақами</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Берилган вақти</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Ким томонидан берилган</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">' . $shartnom->mijozlar->passport_sn . '</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">' . date("d.m.Y", strtotime($shartnom->mijozlar->passport_date)) . '</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">' . $shartnom->mijozlar->passport_iib . '</td>
+                        </tr>
+                        <tr id="#jadst">
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Манзил</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
+                        </tr>
+                        <tr id="#jadst">
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Телефон</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' .$shartnom->mijozlar->phone . '</td>
+                        </tr>
+                        <tr id="#jadst">
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Иш жойи</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' . $shartnom->mijozlar->ish_joy . '</td>
+                        </tr>
+                    </table>
+
+
+                    <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px; " id="tovarjad">
+                    <tr>
+                        <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 5%;">№</th>
+                        <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 7%;">Модел ИД</th>
+                        <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 38%;">Маҳсулот номи</th>
+                        <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; width: 10%;">Сони</th>
+                    </tr> <br />';
+
+                    $savdomodel = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->get();
+                    $i = 0;
+                    foreach ($savdomodel as $savdomode) {
+                        $i++;
+                        echo "
+                            <tr class='text-center align-middle m-2'>
+                                <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . $i . "</td>
+                                <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . $savdomode->tmodel_id . "</td>
+                                <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
+                                <td style='text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt'>" . number_format(1, 0, ',', ' ') . "</td>
+                            </tr>";
+                    };
+
+                    echo '
+                       <tr class="text-center align-middle fw-bold">
+                            <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt"></td>
+                            <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt">ЖАМИ</td>
+                            <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt"></td>
+                            <td style="text-align: center; border: 1px solid black; border-collapse: collapse; font-size: 8pt">' . number_format($i, 0, ",", " ") . '</td>
+                        </tr>
+                </table>
+
+                </table>
+                <br />
+                <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px;" id="tovarjad">
+                    <tr id="#jadst">
+                        <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; width: 40%;">Келажакда нималар сотиб олмокчисиз</td>
+                        <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; width: 40%;">Сизниннг таклифларингиз</td>
+                        <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left;"></td>
+                    </tr>
+                </table>
+                <p style="text-align:justify font-size:14px; ">
+                    Менинг берган аризамни ўрганиш жараёнида мен хақимдаги малумотларни иш хақи, бошқа  ташкилотлардан қарздорлигим бор йўқлигини, бошқа молиявий холатимни текширишингизга, шунингдек шартнома бўйича мажбуриятимни, график бўйича тўловларни ўз вақтида қайтарилиши учун менинг хар қандай банк хисоб рақамимдан ёки хар қандай пластик картамдан автоматик тарзда ечиб олинишига розиман.<br>
+                    Аризага қуйидагиларни тақдим этаман.<br><br>
+                    1)  Шахсимни тасдиқловчи хужжат нусхаси,<br><br>
+                    2)  Ўзим тўғримдаги керакли малумотларни тўлиқ.<br>
+
+                </p>
+                <h4 style="text-align:left; margin-bottom: -15px;">' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name.  '  ______________________________________</h4>
+
+                </div>
+            </div>
+        </div>
+    ';
+
     }
 
     /**
@@ -743,240 +725,233 @@ class SHartnomaOfficeController extends Controller
     public function update(Request $request, string $id)
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+            return response()->json(['message' => "Хатолик!!! <br> Админга мурожат қилинг."], 200);
+        }
 
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            if($request->status == 'tqushish'){
+        if($request->status == 'tqushish'){
 
-                $savdo = new savdo1($request->filial);
-                $savdounix_id = $savdo->where('status', 'Актив')->where('unix_id', $request->savdo_id)->count();
-                if ($savdounix_id >= 1) {
-                    $savdoadd = new savdo1($request->filial);
-                    $tur = $savdoadd->where('unix_id', $request->savdo_id)->where('status', 'Актив')->
-                    update([
-                        'status' => "Шартнома",
-                        'status2' => "Шартнома",
-                        'shartnoma_id' => $request->id,
-                        'q_user_id' => Auth::user()->id,
-                        'q_kun' => date('Y-m-d H:i:s'),
-                        'q_xis_oyi' => $xis_oyi,
-                    ]);
-                    return response()->json(['message' => 'Товар қўшилди .'], 200);
-                }else{
-                    return response()->json(['message' => $request->savdo_id . "<br> Хатолик!!! Савдо рақами топилмади."], 200);
+            $savdounix_id = savdo::where('filial_id', $request->filial)->where('status', 'Актив')->where('unix_id', $request->savdo_id)->count();
+            if ($savdounix_id >= 1) {
+
+                $tur = savdo::where('filial_id', $request->filial)->where('unix_id', $request->savdo_id)->where('status', 'Актив')->
+                update([
+                    'status' => "Шартнома",
+                    'status2' => "Шартнома",
+                    'shartnoma_id' => $request->id,
+                    'shid' => $request->shid,
+                    'q_user_id' => Auth::user()->id,
+                    'q_kun' => date('Y-m-d H:i:s'),
+                    'q_xis_oyi' => $xis_oyi,
+                ]);
+                return response()->json(['message' => 'Товар қўшилди .'], 200);
+            }else{
+                return response()->json(['message' => $request->savdo_id . "<br> Хатолик!!! Савдо рақами топилмади."], 200);
+            }
+
+        }elseif($request->status == 'tuchirish'){
+
+            if (!empty($request->stid)) {
+
+                $shtrix_kod = 0;
+
+                $savdosumma = savdo::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('id', $request->stid)->first();
+
+                if ($savdosumma) {
+                    $shtrix_kod = $savdosumma->shtrix_kod;
+                } else {
+                    // Handle the case where no record is found
+                    $shtrix_kod = 0;
                 }
 
-            }elseif($request->status == 'tuchirish'){
+                if($shtrix_kod > 0){
 
-                if (!empty($request->stid)) {
+                    $Counttovar1 = kirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->count();
 
-                    $shtrix_kod = 0;
+                    if ($Counttovar1 > 0) {
 
-                    $savdo = new savdo1($request->filial);
-                    $savdosumma = $savdo->where('status', 'Шартнома')->where('id', $request->stid)->first();
+                        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                    if ($savdosumma) {
-                        $shtrix_kod = $savdosumma->shtrix_kod;
-                    } else {
-                        // Handle the case where no record is found
-                        $shtrix_kod = 0;
-                    }
+                        $ReadKt = kirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->get();
 
-                    if($shtrix_kod > 0){
+                        foreach ($ReadKt as $ReadKtovar) {
+                            if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
+                                try {
+                                    DB::beginTransaction();
 
-                        $Counttovar = new ktovar1($request->filial);
-                        $Counttovar1 = $Counttovar->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->count();
+                                    $ktovarUpdated = kirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')
+                                        ->where('shtrix_kod', $shtrix_kod)
+                                        ->where('ch_xis_oyi', $xis_oyi)
+                                        ->limit(1)
+                                        ->update([
+                                            'status' => "Сотилмаган",
+                                            'ch_kun' => null,
+                                            'ch_user_id' => 0,
+                                            'ch_xis_oyi' => null,
+                                            'shartnoma_id' => 0,
+                                        ]);
 
-                        if ($Counttovar1 > 0) {
-
-                            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                            $ReadK = new ktovar1($request->filial);
-                            $ReadKt = $ReadK->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->get();
-
-                            foreach ($ReadKt as $ReadKtovar) {
-                                if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
-                                    try {
-                                        DB::beginTransaction();
-
-                                        $ktovar = new ktovar1($request->filial);
-                                        $ktovarUpdated = $ktovar->where('status', 'Шартнома')
-                                            ->where('shtrix_kod', $shtrix_kod)
-                                            ->where('ch_xis_oyi', $xis_oyi)
-                                            ->limit(1)
-                                            ->update([
-                                                'status' => "Сотилмаган",
-                                                'ch_kun' => null,
-                                                'ch_user_id' => 0,
-                                                'ch_xis_oyi' => null,
-                                                'shatnomaid' => 0,
-                                            ]);
-
-                                            $savdorem = new savdo1($request->filial);
-                                            $savdUpdated = $savdorem->where('id', $request->stid)
-                                            ->where('status', 'Шартнома')
-                                            ->limit(1)
-                                            ->update([
-                                                'status' => "Удалит",
-                                                'del_user_id' => Auth::id(),
-                                                'del_kun' => now(),
-                                                'del_xis_oyi' => $xis_oyi,
-                                            ]);
-
-                                        if ($savdUpdated && $ktovarUpdated) {
-                                            DB::commit();
-                                            return response()->json(['message' => "Шартномага бириктирилган товар омборга қайтарилди."], 200);
-                                        } else {
-                                            DB::rollBack();
-                                            return response()->json(['message' => "Маълумот ўчиришда хатолик."], 200);
-                                        }
-                                    } catch (\Exception $e) {
-                                        DB::rollBack();
-                                        return response()->json(['message' => "Маълумот ўчиришда хатолик2."], 200);
-                                    }
-
-                                } else {
-
-                                    $soninar = 0;
-                                    $KtovarBarkod = new ktovar1($request->filial);
-                                    $ktovarbarkods = $KtovarBarkod->where('tmodel_id', $ReadKtovar->tmodel_id)->orderBy('soni', 'desc')->limit(1)->get();
-
-                                    foreach ($ktovarbarkods as $ktovarbarkodsoni) {
-                                        $soninar = $ktovarbarkodsoni->soni;
-                                    }
-
-                                    $soninar++;
-
-                                    $turid2 = str_pad($ReadKtovar->tur_id, 4, "0", STR_PAD_LEFT);
-                                    $brendid2 = str_pad($ReadKtovar->brend_id, 4, "0", STR_PAD_LEFT);
-                                    $model2 = str_pad($ReadKtovar->tmodel_id, 5, "0", STR_PAD_LEFT);
-                                    $soninar2 = str_pad($soninar, 4, "0", STR_PAD_LEFT);
-
-                                    $shtr_kod = $turid2 . $brendid2 . $model2 . $soninar2;
-
-                                    try {
-                                        DB::beginTransaction();
-                                        $ktovarzapis = new ktovar1($request->filial);
-                                        $ktovarzapis->kun = date('Y-m-d');
-                                        $ktovarzapis->tur_id = $ReadKtovar->tur_id;
-                                        $ktovarzapis->brend_id = $ReadKtovar->brend_id;
-                                        $ktovarzapis->tmodel_id = $ReadKtovar->tmodel_id;
-                                        $ktovarzapis->shtrix_kod = $shtr_kod;
-                                        $ktovarzapis->soni = $soninar;
-                                        $ktovarzapis->valyuta_id = $ReadKtovar->valyuta_id;
-                                        $ktovarzapis->narhi = $ReadKtovar->narhi;
-                                        $ktovarzapis->snarhi = $ReadKtovar->snarhi;
-                                        $ktovarzapis->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                                        $ktovarzapis->tannarhi = $ReadKtovar->tannarhi;
-                                        $ktovarzapis->pastavshik_id = $ReadKtovar->pastavshik_id;
-                                        $ktovarzapis->pastavshik2_id = $ReadKtovar->pastavshik2_id;
-                                        $ktovarzapis->filial_id = $request->filial;
-                                        $ktovarzapis->xis_oyi = $xis_oyi;
-                                        $ktovarzapis->user_id = Auth::user()->id;
-                                        $ktovarzapis->save();
-                                        $insid = $ktovarzapis->id;
-
-                                        $CreateTqaytarish = new tmqaytarish;
-                                        $CreateTqaytarish->savdo_turi = $ReadKtovar->status;
-                                        $CreateTqaytarish->shartnoma_id = $ReadKtovar->shatnomaid;
-                                        $CreateTqaytarish->kun = $ReadKtovar->kun;
-                                        $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
-                                        $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
-                                        $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
-                                        $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
-                                        $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
-                                        $CreateTqaytarish->narhi = $ReadKtovar->narhi;
-                                        $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
-                                        $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                                        $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
-                                        $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
-                                        $CreateTqaytarish->xis_oyi = $xis_oyi;
-                                        $CreateTqaytarish->filial_id = $request->filial;
-                                        $CreateTqaytarish->user_id = Auth::user()->id;
-                                        $CreateTqaytarish->kirim_id = $insid;
-                                        $CreateTqaytarish->shtrix_kod_yangi = $shtr_kod;
-                                        $CreateTqaytarish->save();
-
-                                        $savdorem = new savdo1($request->filial);
-                                        $savdUpdated = $savdorem->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
+                                        $savdUpdated = savdo::where('filial_id', $request->filial)->where('id', $request->stid)
+                                        ->where('status', 'Шартнома')
+                                        ->limit(1)
                                         ->update([
                                             'status' => "Удалит",
-                                            'del_user_id' => Auth::user()->id,
-                                            'del_kun' => date('Y-m-d H:i:s'),
+                                            'del_user_id' => Auth::id(),
+                                            'del_kun' => now(),
                                             'del_xis_oyi' => $xis_oyi,
                                         ]);
 
-                                        if ($ktovarzapis && $CreateTqaytarish && $savdUpdated) {
-                                            DB::commit();
-                                            return response()->json(['message' => "Шартномага бириктирилган товар янги".$shtr_kod." рақами блан омборга қайтарилди."], 200);
-                                        } else {
-                                            DB::rollBack();
-                                            return response()->json(['message' => "Нақд савдони ўчиришда хатолик."]);
-                                        }
-                                    } catch (\Exception $e) {
+                                    if ($savdUpdated && $ktovarUpdated) {
+                                        DB::commit();
+                                        return response()->json(['message' => "Шартномага бириктирилган товар омборга қайтарилди."], 200);
+                                    } else {
                                         DB::rollBack();
-                                        return response()->json(['message' => "Нақд савдони ўчиришда хатолик.2"]);
+                                        return response()->json(['message' => "Маълумот ўчиришда хатолик."], 200);
                                     }
+                                } catch (\Exception $e) {
+                                    DB::rollBack();
+                                    return response()->json(['message' => "Маълумот ўчиришда хатолик2."], 200);
+                                }
+
+                            } else {
+
+                                $soninar = 0;
+
+                                $soninar = kirimTovar::where('filial_id', $request->filial)
+                                    ->where('tmodel_id', $ReadKtovar->tmodel_id)
+                                    ->where('tur_id', $ReadKtovar->tur_id)
+                                    ->where('brend_id', $ReadKtovar->brend_id)
+                                    ->max('soni');
+
+                                $soninar++;
+                                $filialId = str_pad($request->filial, 2, "0", STR_PAD_LEFT);
+                                $turid2 = str_pad($ReadKtovar->tur_id, 4, "0", STR_PAD_LEFT);
+                                $brendid2 = str_pad($ReadKtovar->brend_id, 4, "0", STR_PAD_LEFT);
+                                $model2 = str_pad($ReadKtovar->tmodel_id, 5, "0", STR_PAD_LEFT);
+                                $soninar2 = str_pad($soninar, 4, "0", STR_PAD_LEFT);
+
+                                $new_shtr_kod = $filialId . $turid2 . $brendid2 . $model2 . $soninar2;
+
+                                try {
+                                    DB::beginTransaction();
+                                    $ktovarzapis = new kirimTovar;
+                                    $ktovarzapis->kun = date('Y-m-d');
+                                    $ktovarzapis->filial_id = $request->filial;
+                                    $ktovarzapis->tur_id = $ReadKtovar->tur_id;
+                                    $ktovarzapis->brend_id = $ReadKtovar->brend_id;
+                                    $ktovarzapis->tmodel_id = $ReadKtovar->tmodel_id;
+                                    $ktovarzapis->shtrix_kod = $new_shtr_kod;
+                                    $ktovarzapis->soni = $soninar;
+                                    $ktovarzapis->valyuta_id = $ReadKtovar->valyuta_id;
+                                    $ktovarzapis->narhi = $ReadKtovar->narhi;
+                                    $ktovarzapis->snarhi = $ReadKtovar->snarhi;
+                                    $ktovarzapis->valyuta_narhi = $ReadKtovar->valyuta_narhi;
+                                    $ktovarzapis->tannarhi = $ReadKtovar->tannarhi;
+                                    $ktovarzapis->pastavshik_id = 10;
+                                    $ktovarzapis->pastavshik2_id = $ReadKtovar->pastavshik2_id;
+                                    $ktovarzapis->xis_oyi = $xis_oyi;
+                                    $ktovarzapis->user_id = Auth::user()->id;
+                                    $ktovarzapis->save();
+                                    $insid = $ktovarzapis->id;
+
+                                    $CreateTqaytarish = new tmqaytarish;
+                                    $CreateTqaytarish->savdo_turi = $ReadKtovar->status;
+                                    $CreateTqaytarish->shartnoma_id = $ReadKtovar->shartnoma_id;
+                                    $CreateTqaytarish->kun = $ReadKtovar->kun;
+                                    $CreateTqaytarish->filial_id = $request->filial;
+                                    $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
+                                    $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
+                                    $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
+                                    $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
+                                    $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
+                                    $CreateTqaytarish->narhi = $ReadKtovar->narhi;
+                                    $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
+                                    $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
+                                    $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
+                                    $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
+                                    $CreateTqaytarish->xis_oyi = $xis_oyi;
+                                    $CreateTqaytarish->user_id = Auth::user()->id;
+                                    $CreateTqaytarish->kirim_id = $insid;
+                                    $CreateTqaytarish->shtrix_kod_yangi = $new_shtr_kod;
+                                    $CreateTqaytarish->save();
+
+
+                                    $savdUpdated = savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
+                                    ->update([
+                                        'status' => "Удалит",
+                                        'del_user_id' => Auth::user()->id,
+                                        'del_kun' => date('Y-m-d H:i:s'),
+                                        'del_xis_oyi' => $xis_oyi,
+                                    ]);
+
+                                    if ($ktovarzapis && $CreateTqaytarish && $savdUpdated) {
+                                        DB::commit();
+                                        return response()->json(['message' => "Шартномага бириктирилган товар янги".$new_shtr_kod." рақами блан омборга қайтарилди."], 200);
+                                    } else {
+                                        DB::rollBack();
+                                        return response()->json(['message' => "Нақд савдони ўчиришда хатолик."]);
+                                    }
+                                } catch (\Exception $e) {
+                                    DB::rollBack();
+                                    return response()->json(['message' => "Нақд савдони ўчиришда хатолик.2"]);
                                 }
                             }
                         }
+                    }
 
-                    }else{
+                }else{
 
-                        $savdorem = new savdo1($request->filial);
-                        $savdUpdated = $savdorem->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
-                            ->update([
-                                'status' => "Удалит",
-                                'del_user_id' => Auth::id(),
-                                'del_kun' => now(),
-                                'del_xis_oyi' => $xis_oyi,
-                        ]);
+                    $savdUpdated = savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
+                        ->update([
+                            'status' => "Удалит",
+                            'del_user_id' => Auth::id(),
+                            'del_kun' => now(),
+                            'del_xis_oyi' => $xis_oyi,
+                    ]);
 
-                        if ($savdUpdated) {
-                            return response()->json(['message' => "Маълумот ўчирилди."], 200);
-                        } else {
-                            return response()->json(['message' => "Маълумот ўчиришда хатолик."], 200);
-                        }
+                    if ($savdUpdated) {
+                        return response()->json(['message' => "Маълумот ўчирилди."], 200);
+                    } else {
+                        return response()->json(['message' => "Маълумот ўчиришда хатолик."], 200);
                     }
                 }
+            }
 
-            } elseif ($request->status == 'tulovuchrish'){
+        } elseif ($request->status == 'tulovuchrish'){
 
-                $tulovlar = new tulovlar1($request->filial);
-                $tulov = $tulovlar
-                    ->where('id', $request->tulovid)
-                    ->where('shartnomaid', $request->id)
-                    ->where('status', 'Актив')
-                    ->first();
+            $tulov = tulovlar::where('filial_id', $request->filial)
+                ->where('id', $request->tulovid)
+                ->where('shartnoma_id', $request->id)
+                ->where('status', 'Актив')
+                ->first();
 
-                if (date('Y-m-d', strtotime($tulov->kun)) == date("Y-m-d")) {
+            if (date('Y-m-d', strtotime($tulov->kun)) == date("Y-m-d")) {
 
-                     $tulov->update([
-                        'status' => "Удалит",
-                        'del_user_id' => Auth::id(),
-                        'del_kun' => now(),
-                    ]);
+                 $tulov->update([
+                    'status' => "Удалит",
+                    'del_user_id' => Auth::id(),
+                    'del_kun' => now(),
+                ]);
 
-                    return response()->json(['message' => 'Тўлов учирилди.'], 200);
-
-                } else {
-
-                   $tulov->update([
-                        'tulovturi' => "Брон",
-                        'bron_user_id' => Auth::id(),
-                        'bron_kun' => now(),
-                        'bron_xis_oyi' => $xis_oyi,
-                    ]);
-
-                    return response()->json(['message' => 'Тўлов бронга олинди.'], 200);
-                }
+                return response()->json(['message' => 'Тўлов учирилди.'], 200);
 
             } else {
 
-                return response()->json(['message' => "Yuborilgan statusda xatolik"], 200);
+               $tulov->update([
+                    'tulovturi' => "Брон",
+                    'bron_user_id' => Auth::id(),
+                    'bron_kun' => now(),
+                    'bron_xis_oyi' => $xis_oyi,
+                ]);
+
+                return response()->json(['message' => 'Тўлов бронга олинди.'], 200);
             }
-        } else {
-            return response()->json(['message' => "Хатолик!!! <br> Админга мурожат қилинг."], 200);
+
         }
+
+        return response()->json(['message' => "Yuborilgan statusda xatolik"], 200);
+
     }
 
     /**
@@ -993,17 +968,14 @@ class SHartnomaOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $tulovlar = new tulovlar1($filial);
-                $oldindantulov = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-                $tulov = $tulovlar->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
+                $oldindantulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
+                $tulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
 
-                $savdolar = new savdo1($filial);
-                $savdosumma = $savdolar->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
+                $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
 
                 if($oldindantulov == 0 && $tulov == 0 && $savdosumma == 0){
 
-                    $shartnoma = new shartnoma1($filial);
-                    $shartnoma1 = $shartnoma->where('id', $id)->where('status', 'Актив')
+                    $shartnoma1 = shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')
                         ->update([
                             'izox' => "Shartnoma majburiy tarzda uchirildi",
                             'status' => 'Удалит',
@@ -1017,7 +989,7 @@ class SHartnomaOfficeController extends Controller
                         $message = 'Shartnoma majburiy tarzda uchirildi';
                     } else {
 
-                        $message = "Xatolik. $shartnoma";
+                        $message = "Xatolik yuz berdi";
                     }
 
                 }else{
@@ -1030,16 +1002,13 @@ class SHartnomaOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $shartnoma = new shartnoma1($filial);
-                $shartnom = $shartnoma->where('id', $id)->where('status', 'Актив')->first();
+                $shartnom = shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')->first();
 
-                $tulovlar = new tulovlar1($filial);
-                $oldindantulov = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-                $chegirma = $tulovlar->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('chegirma');
-                $tulov = $tulovlar->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
+                $oldindantulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
+                $chegirma = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('chegirma');
+                $tulov = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
 
-                $savdolar = new savdo1($filial);
-                $savdosumma = $savdolar->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
+                $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
 
                 $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
@@ -1067,15 +1036,15 @@ class SHartnomaOfficeController extends Controller
                     $message = 'Shartnoma chegirma bilan yopildi';
                 } else {
 
-                    $message = "Shartnomani yopishda xatolik. $shartnom->id";
+                    $message = "Shartnomani yopishda xatolik. $shartnom->shid";
                 }
 
                 return response()->json(['message' => $message], 200);
             }
 
-        }else{
-            return response()->json(['message' => "Xatolik. Adminga murojaat qiling."], 200);
         }
+
+        return response()->json(['message' => "Xatolik. Adminga murojaat qiling."], 200);
 
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\shartnoma1;
-use App\Models\savdo1;
-use App\Models\tulovlar1;
+use App\Models\shartnoma;
+use App\Models\savdo;
+use App\Models\tulovlar;
 use App\Models\xissobotoy;
 use App\Models\lavozim;
 use App\Models\filial;
@@ -20,8 +20,7 @@ class SHartTahlilOfficeController extends Controller
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
 
             $duombor = date("m", strtotime($xis_oyi));
@@ -64,7 +63,7 @@ class SHartTahlilOfficeController extends Controller
                     break;
             }
 
-            return view('shartnoma.SHTahlil', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial, 'du2' => $du2 ]);
+            return view('shartnoma.SHTahlil', ['filial' => $filial, 'du2' => $du2 ]);
         }else{
                 Auth::guard('web')->logout();
                 session()->invalidate();
@@ -138,43 +137,59 @@ class SHartTahlilOfficeController extends Controller
                     $u_shsoni = 0;
                     $u_shsumma = 0;
 
-                    $shartnoma = new shartnoma1($filial->id);
-                    $shartnoma1=$shartnoma->get();
+
+                    $shartnoma1 = shartnoma::where('filial_id', $filial->id)->get();
                     foreach ($shartnoma1 as $shart) {
 
                         if(($shart->xis_oyi < $xis_oyi && $shart->status=='Актив')){
-                            $obsavdo = new savdo1($filial->id);
-                            $obumumsavdo = $obsavdo->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
-                            if($obumumsavdo>0){
-                                $shsoni++;
-                                $shtsumma+=$obumumsavdo;
+
+                            $obumumsavdo = savdo::where('filial_id', $filial->id)->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+                            if($obumumsavdo > 0){
+                                $shsoni ++;
+                                $shtsumma += $obumumsavdo;
                             }
                         }
 
                         if($shart->xis_oyi<$xis_oyi && $shart->yo_xis_oyi>0 && $shart->yo_xis_oyi>=$xis_oyi){
                             $yo_shsoni ++;
-                            $savdo = new savdo1($filial->id);
-                            $yo_shsumma+=$savdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+
+                            $yo_shsumma += savdo::where('filial_id', $filial->id)
+                                ->where('status', 'Шартнома')
+                                ->where('shartnoma_id', $shart->id)
+                                ->sum('msumma');
                         }
 
-                        if($shart->xis_oyi==$xis_oyi){
+                        if($shart->xis_oyi == $xis_oyi){
                             $nach_shsoni ++;
-                            $savdo = new savdo1($filial->id);
-                            $nach_shsumma +=$savdo->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+                            $savdo = new savdo($filial->id);
+                            $nach_shsumma += savdo::where('filial_id', $filial->id)
+                                ->where('status2', 'Шартнома')
+                                ->where('shartnoma_id', $shart->id)
+                                ->sum('msumma');
                         }
 
                         if($shart->xis_oyi<=$xis_oyi){
-                            $qsavdo = new savdo1($filial->id);
-                            $qushsavdo = $qsavdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->where('q_xis_oyi', $xis_oyi)->sum('msumma');
-                            if($qushsavdo>0){
+
+                            $qushsavdo = savdo::where('filial_id', $filial->id)
+                                ->where('status', 'Шартнома')
+                                ->where('shartnoma_id', $shart->id)
+                                ->where('q_xis_oyi', $xis_oyi)
+                                ->sum('msumma');
+
+                            if($qushsavdo > 0){
                                 $q_shsoni ++;
-                                $q_shsumma+=$qushsavdo;
+                                $q_shsumma += $qushsavdo;
                             }
-                            $usavdo = new savdo1($filial->id);
-                            $uushsavdo = $usavdo->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->where('del_xis_oyi', $xis_oyi)->sum('msumma');
-                            if($uushsavdo>0){
+
+                            $uushsavdo = savdo::where('filial_id', $filial->id)
+                                ->where('status2', 'Шартнома')
+                                ->where('shartnoma_id', $shart->id)
+                                ->where('del_xis_oyi', $xis_oyi)
+                                ->sum('msumma');
+
+                            if($uushsavdo > 0){
                                 $u_shsoni ++;
-                                $u_shsumma+=$uushsavdo;
+                                $u_shsumma += $uushsavdo;
                             }
                         }
                     }
@@ -250,9 +265,7 @@ class SHartTahlilOfficeController extends Controller
      */
     public function show(string $id)
     {
-
-        $shartnoma = new shartnoma1($id);
-        $shartnoma1=$shartnoma->select('xis_oyi')->groupBy('xis_oyi')->get();
+        $shartnoma1 = shartnoma::select('xis_oyi')->where('filial_id', $id)->groupBy('xis_oyi')->get();
         foreach ($shartnoma1 as $shart) {
             $xis_oyi = $shart->xis_oyi;
             $xiso = date("m", strtotime($xis_oyi));
@@ -300,56 +313,82 @@ class SHartTahlilOfficeController extends Controller
                 $u_shsoni = 0;
                 $u_shsumma = 0;
 
-                $shartnoma = new shartnoma1($id);
-                $shartnoma1=$shartnoma->get();
+                $shartnoma1 = shartnoma::where('filial_id', $id)->get();
                 foreach ($shartnoma1 as $shart) {
 
-                    if(($shart->xis_oyi < $xis_oyi && $shart->status=='Актив')){
-                        $obsavdo = new savdo1($id);
-                        $obumumsavdo = $obsavdo->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
-                        if($obumumsavdo>0){
-                            $shsoni++;
-                            $shtsumma+=$obumumsavdo;
+                    if(($shart->xis_oyi < $xis_oyi && $shart->status == 'Актив')){
+
+                        $obumumsavdo = savdo::where('filial_id', $id)
+                            ->where('status2', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->sum('msumma');
+
+                        if($obumumsavdo > 0){
+                            $shsoni ++;
+                            $shtsumma += $obumumsavdo;
                         }
                     }
 
-                    if($shart->xis_oyi<$xis_oyi && $shart->yo_xis_oyi>0 && $shart->yo_xis_oyi>=$xis_oyi){
+                    if($shart->xis_oyi < $xis_oyi && $shart->yo_xis_oyi > 0 && $shart->yo_xis_oyi >= $xis_oyi){
                         $Oy_bosh_yo_soni ++;
-                        $savdo = new savdo1($id);
-                        $Oy_bosh_yo_shsumma+=$savdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+
+                        $Oy_bosh_yo_shsumma += savdo::where('filial_id', $id)
+                            ->where('status', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->sum('msumma');
 
                     }
 
-                    if($shart->yo_xis_oyi==$xis_oyi){
-                        $yo_shsoni++;
-                        $savdo = new savdo1($id);
-                        $yo_shsumma+=$savdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+                    if($shart->yo_xis_oyi == $xis_oyi){
+                        $yo_shsoni ++;
+
+                        $yo_shsumma += savdo::where('filial_id', $id)
+                            ->where('status', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->sum('msumma');
                     }
 
-                    if($shart->xis_oyi==$xis_oyi){
+                    if($shart->xis_oyi == $xis_oyi){
                         $nach_shsoni ++;
-                        $savdonach = new savdo1($id);
-                        $nach_shsumma +=$savdonach->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+
+                        $nach_shsumma += savdo::where('filial_id', $id)
+                            ->where('status2', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->sum('msumma');
                     }
 
-                    if($shart->xis_oyi<=$xis_oyi){
-                        $qsavdo = new savdo1($id);
-                        $qushsavdo = $qsavdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->where('q_xis_oyi', $xis_oyi)->sum('msumma');
-                        if($qushsavdo>0){
+                    if($shart->xis_oyi <= $xis_oyi){
+
+                        $qushsavdo = savdo::where('filial_id', $id)
+                            ->where('status', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->where('q_xis_oyi', $xis_oyi)
+                            ->sum('msumma');
+
+                        if($qushsavdo > 0){
                             $q_shsoni ++;
-                            $q_shsumma+=$qushsavdo;
+                            $q_shsumma += $qushsavdo;
                         }
-                        $usavdo = new savdo1($id);
-                        $uushsavdo = $usavdo->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->where('del_xis_oyi', $xis_oyi)->sum('msumma');
+
+                        $uushsavdo = savdo::where('filial_id', $id)
+                            ->where('status2', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->where('del_xis_oyi', $xis_oyi)
+                            ->sum('msumma');
+
                         if($uushsavdo>0){
                             $u_shsoni ++;
-                            $u_shsumma+=$uushsavdo;
+                            $u_shsumma += $uushsavdo;
                         }
                     }
 
-                    if($shart->xis_oyi==$xis_oyi){
-                        $savdo = new savdo1($id);
-                        $Oy_bosh_udalit+=$usavdo->where('status2', 'Шартнома')->where('shartnoma_id', $shart->id)->where('del_xis_oyi', $xis_oyi)->sum('msumma');
+                    if($shart->xis_oyi == $xis_oyi){
+
+                        $Oy_bosh_udalit += savdo::where('filial_id', $id)
+                            ->where('status2', 'Шартнома')
+                            ->where('shartnoma_id', $shart->id)
+                            ->where('del_xis_oyi', $xis_oyi)
+                            ->sum('msumma');
                     }
 
                 }

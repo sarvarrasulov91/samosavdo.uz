@@ -5,16 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\shartnoma1;
-use App\Models\tulovlar1;
-use App\Models\savdo1;
+use App\Models\shartnoma;
+use App\Models\tulovlar;
+use App\Models\savdo;
 use App\Models\mijozlar;
 use App\Models\tashrif;
 use App\Models\xissobotoy;
-use App\Models\filial;
 
 
-use DateTime;
 use Illuminate\Support\Facades\Validator;
 
 class ShartnomaNewController extends Controller
@@ -26,15 +24,22 @@ class ShartnomaNewController extends Controller
     {
         $tashrif = tashrif::all();
 
-        $savdounix_id = savdo1::select('unix_id')->where('status', 'Актив')->orderBy('unix_id', 'desc')->groupBy('unix_id')->get();
-        
-        $mijozlar = mijozlar::where('status', '1')->where('m_type', '1')->get();
-        
+        $savdounix_id = savdo::where('filial_id', Auth::user()->filial_id)
+            ->select('unix_id')
+            ->where('status', 'Актив')
+            ->orderBy('unix_id', 'desc')
+            ->groupBy('unix_id')
+            ->get();
+
+        $mijozlar = mijozlar::where('filial_id', Auth::user()
+            ->filial_id)->where('status', '1')
+            ->where('m_type', '1')
+            ->get();
+
         return view('shartnoma.ShartnomaNew', [
-            
-            'savdounix_id' => $savdounix_id, 
-            'mijozlar' => $mijozlar, 
-            'tashrif'=>$tashrif
+            'savdounix_id' => $savdounix_id,
+            'mijozlar' => $mijozlar,
+            'tashrif' => $tashrif
             ]);
     }
 
@@ -61,25 +66,33 @@ class ShartnomaNewController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $shartnoma = shartnoma1::whereIn('status', ['Актив', 'Ёпилган'])->where('kun', date('Y-m-d'))->orderBy('id', 'desc')->get();
-                    
-                    $jami = 0;
-                    $trrang = '';
-                    
+                    $shartnoma = shartnoma::whereIn('status', ['Актив', 'Ёпилган'])
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->where('kun', date('Y-m-d'))
+                        ->orderBy('id', 'desc')
+                        ->get();
+
                     foreach ($shartnoma as $shartnom){
-                        
+
                         if ($shartnom->status == 'Ёпилган'){
                             $trrang = 'align-middle text-success';
                         }else{
                             $trrang = 'align-middle';
                         }
-                        
+
                         echo'
-                        <tr id="modalshartshow" data-id="'.$shartnom->id.'" data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"  class="'.$trrang.'" data-bs-toggle="modal"
+                        <tr
+                            id="modalshartshow"
+                            data-id="'.$shartnom->id.'"
+                            data-shid="'.$shartnom->shid.'"
+                            data-filialid="'.$shartnom->filial_id.'"
+                            data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"
+                            class="'.$trrang.'" data-bs-toggle="modal"
                             data-bs-target="#shartnoma_show">
-                            <td>' . $shartnom->id . '</td>
-                            <td style="white-space: wrap; width: 20%;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '</td>
-                            <td style="white-space: wrap; width: 30%;">' . $shartnom->mijozlar->tuman->name_uz .' '. $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
+
+                            <td>' . $shartnom->shid . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->tuman->name_uz .' '. $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
                             <td>' . $shartnom->mijozlar->phone . '</td>
                             <td>' . $shartnom->tashrif->tashrif_name . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
@@ -104,9 +117,9 @@ class ShartnomaNewController extends Controller
             'tashrif' => 'required',
             'savdounix_id' => 'required',
             'muddat' => 'required',
+            'fstatus' => 'required',
             'oldintulovnaqd' => 'required',
             'oldintulovplastik' => 'required',
-            'chegirma' => 'required',
             'izox' => 'required',
         ];
 
@@ -115,10 +128,10 @@ class ShartnomaNewController extends Controller
             'mijoz.required' => 'Мижозни танланг.',
             'tashrif.required' => 'Ташрифни танланг.',
             'muddat.required' => 'Шартнома муддатини танланг.',
+            'fstatus.required' => 'Шартнома фоизини танланг.',
             'savdounix_id.required' => 'Савдо-раками танланг.',
             'oldintulovnaqd.required' => 'Олдиндан туловини киритинг.',
             'oldintulovplastik.required' => 'Олдиндан туловини киритинг.',
-            'chegirma.required' => 'Чегирмани киритинг.',
             'izox.required' => 'Изохни киритинг.',
         ];
 
@@ -126,102 +139,127 @@ class ShartnomaNewController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
-        }else{
-            $msumma = savdo1::where('status', 'Актив')->where('unix_id', $request->savdounix_id)->sum('msumma');
-            if($msumma > 0){
+        }
 
-                $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+        $msumma = savdo::where('status', 'Актив')
+            ->where('unix_id', $request->savdounix_id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->sum('msumma');
 
-                if (date("Y-m", strtotime($xis_oyi)) < date("Y-m")) {
-                    return response()->json(['message' => "Xatolik! <br> Dasturni yangi oyga o'tkazing."], 200);
-                }else{
+        if($msumma <= 0) {
+            return response()->json(['message' => 'Бошқа савдо рақами танланг.'], 200);
+        }
 
-                    $naqd = floatval(preg_replace('/[^\d.]/', '', $request->oldintulovnaqd));
-                    $plastik = floatval(preg_replace('/[^\d.]/', '', $request->oldintulovplastik));
-                    $chegirma = floatval(preg_replace('/[^\d.]/', '', $request->chegirma));
+        $xisobotoy = xissobotoy::latest('id')->first();
+        $xis_oyi = $xisobotoy->xis_oy;
 
-                    $kkuni = $request->yangikun;
-                    $tekshuzgar = strtotime(+$request->muddat . " month", strtotime($kkuni));
-                    $tekshtuga = strtotime('last day of +' . $request->muddat . ' month', strtotime($kkuni));
-                    if ($tekshuzgar >= $tekshtuga) {
-                        $du2 = date('Y.m.d', strtotime('last day of' . +$request->muddat . ' month', strtotime($kkuni)));
-                    } else {
-                        $du2 = date("Y.m.d", strtotime(+$request->muddat . "month", strtotime($kkuni)));
-                    }
-                    
-                    // smartfonlar uchun oldindan tulov 20 foiz olish
-                    
-                    $tulov = 0;
-                    $turIds = savdo1::where('status', 'Актив')->where('unix_id', $request->savdounix_id)->get();
-                    foreach ($turIds as $tur){
-                        if ($tur->tur_id == 1 || $tur->tur_id == 46 || $tur->tur_id == 47){
-                            $tulov += $tur->msumma / 5;
-                        }else{
-                            $tulov += $tur->msumma / 10;
-                        }
-                    }
-                    
-                     if ($tulov > ($naqd + $plastik)){
-                        return response()->json(['message' => "$tulov so'm oldindan tulov qiling."], 200);
-                    }
+        if (date("Y-m", strtotime($xis_oyi)) < date("Y-m")) {
+            return response()->json(['message' => "Xatolik! <br> Dasturni yangi oyga o'tkazing."], 200);
+        }
+
+        $naqd = floatval(preg_replace('/[^\d.]/', '', $request->oldintulovnaqd));
+        $plastik = floatval(preg_replace('/[^\d.]/', '', $request->oldintulovplastik));
+
+        $kkuni = $request->yangikun;
+
+        $tekshuzgar = strtotime(+$request->muddat . " month", strtotime($kkuni));
+
+        $tekshtuga = strtotime('last day of +' . $request->muddat . ' month', strtotime($kkuni));
+
+        if ($tekshuzgar >= $tekshtuga) {
+            $du2 = date('Y.m.d', strtotime('last day of' . +$request->muddat . ' month', strtotime($kkuni)));
+        } else {
+            $du2 = date("Y.m.d", strtotime(+$request->muddat . "month", strtotime($kkuni)));
+        }
+
+        // smartfonlar uchun oldindan tulov 20 foiz olish
+
+        $tulov = 0;
+        $turIds = savdo::where('status', 'Актив')
+            ->where('unix_id', $request->savdounix_id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->get();
 
 
-                    try {
-                        DB::beginTransaction();
-
-                        $shartnoma = new shartnoma1;
-                        $shartnoma->mijozlar_id = $request->mijoz;
-                        $shartnoma->tashrif_id = $request->tashrif;
-                        $shartnoma->fstatus = $request->fstatus;
-                        $shartnoma->kun = $kkuni;
-                        $shartnoma->tug_sana = $du2;
-                        $shartnoma->savdo_id = $request->savdounix_id;
-                        $shartnoma->muddat = $request->muddat;
-                        $shartnoma->izox =  $request->izox;
-                        $shartnoma->xis_oyi = $xis_oyi;
-                        $shartnoma->user_id = Auth::user()->id;
-                        $shartnoma->save();
-                        $insid = $shartnoma->id;
-
-                        $savdo1Updated = savdo1::where('unix_id', $request->savdounix_id)
-                        ->where('status', 'Актив')
-                        ->update([
-                            'status' => "Шартнома",
-                            'status2' => "Шартнома",
-                            'shartnoma_id' => $insid,
-                        ]);
-
-                        $tulovlar = new tulovlar1;
-                        $tulovlar->kun = $kkuni;
-                        $tulovlar->tulovturi = 'Олдиндан тўлов';
-                        $tulovlar->shartnomaid = $insid;
-                        $tulovlar->xis_oyi = $xis_oyi;
-                        $tulovlar->naqd =  $naqd;
-                        $tulovlar->pastik =  $plastik;
-                        $tulovlar->chegirma =  $chegirma;
-                        $tulovlar->umumiysumma =  ($naqd + $plastik);
-                        $tulovlar->user_id = Auth::user()->id;
-                        $tulovlar->save();
-
-                        if ($shartnoma && $savdo1Updated && $tulovlar) {
-                            DB::commit();
-                            $message="Шартнома " . $insid . " ИД рақами билан сақланди.";
-                        } else {
-                            DB::rollBack();
-                            $message="Маълумот сақлашда хатолик.";
-                        }
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        $message="Маълумот сақлашда хатолик.";
-                        // throw $e;
-                    }
-                    return response()->json(['message' => $message], 200);
-                }
-
-            }else{
-                return response()->json(['message' => 'Бошқа савдо рақами танланг.'], 200);
+        foreach ($turIds as $tur){
+            if ($tur->tur_id == 1 || $tur->tur_id == 46 || $tur->tur_id == 47){
+                $tulov += $tur->msumma / 5;
             }
         }
+
+         if ($tulov > ($naqd + $plastik)){
+            return response()->json(['message' => "$tulov so'm oldindan tulov qiling."], 200);
+        }
+
+         // foizlarni hisoblash
+        $foiz_stavka = ($request->fstatus == 1) ? $xisobotoy->foiz_stavka : 0;
+
+        //йиллик фойиз
+        $foiz = (($foiz_stavka / 12) * $request->muddat);
+        $foizSumma = round($msumma * $foiz / 100, 0);
+
+        $maxId = shartnoma::where('filial_id', Auth::user()->filial_id)->latest('id')->value('shid');
+        $maxId++;
+
+        try {
+            DB::beginTransaction();
+
+            $shartnoma = new shartnoma;
+            $shartnoma->filial_id = Auth::user()->filial_id;
+            $shartnoma->shid = $maxId;
+            $shartnoma->mijozlar_id = $request->mijoz;
+            $shartnoma->tashrif_id = $request->tashrif;
+            $shartnoma->fstatus = $request->fstatus;
+            $shartnoma->kun = $kkuni;
+            $shartnoma->tug_sana = $du2;
+            $shartnoma->savdo_id = $request->savdounix_id;
+            $shartnoma->muddat = $request->muddat;
+            $shartnoma->foiz_stavka = $foiz_stavka;
+            $shartnoma->m_summa = $msumma;
+            $shartnoma->old_tulov = $naqd + $plastik;
+            $shartnoma->foiz_summa = $foizSumma;
+            $shartnoma->izox =  $request->izox;
+            $shartnoma->xis_oyi = $xis_oyi;
+            $shartnoma->user_id = Auth::user()->id;
+            $shartnoma->save();
+            $insid = $shartnoma->id;
+
+            savdo::where('unix_id', $request->savdounix_id)
+                ->where('status', 'Актив')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->update([
+                    'status' => "Шартнома",
+                    'status2' => "Шартнома",
+                    'shartnoma_id' => $insid,
+                    'shid' => $maxId,
+                ]);
+
+            $tulovlar = new tulovlar;
+            $tulovlar->kun = $kkuni;
+            $tulovlar->tulovturi = 'Олдиндан тўлов';
+            $tulovlar->filial_id = Auth::user()->filial_id;
+            $tulovlar->shartnoma_id = $insid;
+            $tulovlar->shid = $maxId;
+            $tulovlar->xis_oyi = $xis_oyi;
+            $tulovlar->naqd =  $naqd;
+            $tulovlar->pastik =  $plastik;
+            $tulovlar->chegirma =  0;
+            $tulovlar->umumiysumma =  ($naqd + $plastik);
+            $tulovlar->user_id = Auth::user()->id;
+            $tulovlar->save();
+
+            DB::commit();
+
+            return response()->json(['message' => "Shartnoma " . $shartnoma->shid . " ID raqam bilan saqlandi."], 200);
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json(['message' => 'Маълумот сақлашда хатолик.'], 200);
+            // throw $e;
+        }
+
     }
 
       public function show(string $id)

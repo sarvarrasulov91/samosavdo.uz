@@ -6,12 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\mijozlar;
-use App\Models\savdo1;
-use App\Models\tulovlar1;
-use App\Models\naqdsavdo1;
-use App\Models\ktovar1;
+use App\Models\savdo;
+use App\Models\tulovlar;
+use App\Models\naqdSavdo;
+use App\Models\kirimTovar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -26,9 +25,21 @@ class NaqdSavdoController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            $mijozlar = mijozlar::where('status', '1')->where('m_type', '1')->get();
-            $savdounix_id = savdo1::select('unix_id')->where('status', 'Актив')->orderBy('unix_id', 'desc')->groupBy('unix_id')->get();
+
+            $mijozlar = mijozlar::where('status', '1')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->where('m_type', '1')
+                ->get();
+
+            $savdounix_id = savdo::select('unix_id')
+                ->where('status', 'Актив')
+                ->orderBy('unix_id', 'desc')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->groupBy('unix_id')
+                ->get();
+
             return view('kassa.naqdsavdo', ['savdounix_id' => $savdounix_id, 'mijozlar' => $mijozlar]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -64,22 +75,33 @@ class NaqdSavdoController extends Controller
             ';
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                $naqdsavdojami = naqdsavdo1::where('xis_oyi', $xis_oyi)->where('status', 'Актив')->orderBy('id', 'desc')->get();
+
+                $naqdsavdojami = naqdSavdo::where('xis_oyi', $xis_oyi)
+                    ->where('status', 'Актив')
+                    ->where('filial_id', Auth::user()->filial_id)
+                    ->orderBy('id', 'desc')
+                    ->get();
+
                 foreach ($naqdsavdojami as $naqdsavdojam){
 
-                    $id=$naqdsavdojam->id;
-                    $savdoid=$naqdsavdojam->savdoraqami_id;
-                    $savdosumma = savdo1::where('status', 'Нақд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->sum('msumma');
+                    $id = $naqdsavdojam->id;
 
-                    $jnaqd = 0;
-                    $jplastik =0;
-                    $jhr = 0;
-                    $jClick = 0;
-                    $jchegirma = 0;
-                    $tulovlar = tulovlar1::where('tulovturi', 'Нақд')
-                    ->where('shartnomaid', $id)
-                    ->where('status', 'Актив')
-                    ->get();
+                    $savdoid = $naqdsavdojam->savdoraqami_id;
+
+                    $savdosumma = savdo::where('status', 'Нақд')
+                        ->where('unix_id', $savdoid)
+                        ->where('shartnoma_id', $id)
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->sum('msumma');
+
+                    $jnaqd = $jplastik = $jhr = $jClick = $jchegirma = 0;
+
+                    $tulovlar = tulovlar::where('tulovturi', 'Нақд')
+                        ->where('shartnoma_id', $id)
+                        ->where('status', 'Актив')
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->get();
+
                     foreach ($tulovlar as $tulovla) {
                         $jnaqd += $tulovla->naqd;
                         $jplastik += $tulovla->pastik;
@@ -98,7 +120,7 @@ class NaqdSavdoController extends Controller
                         ';
                     }
                     echo'
-                        <td>' . $naqdsavdojam->id .' </td>
+                        <td>' . $naqdsavdojam->shid .' </td>
                         <td>' . date("d.m.Y", strtotime($naqdsavdojam->kun)) . '</td>
                         <td>' . $naqdsavdojam->mijozlar->last_name . ' ' . $naqdsavdojam->mijozlar->first_name . ' ' . $naqdsavdojam->mijozlar->middle_name . '</td>
                         <td>' . $naqdsavdojam->savdoraqami_id . '</td>
@@ -111,7 +133,14 @@ class NaqdSavdoController extends Controller
                         <td>' . number_format(($jnaqd + $jplastik + $jhr + $jClick + $jchegirma) -$savdosumma, 2, ",", " ") . '
                         </td>
                     ';
-                    $tekshirtovar = savdo1::where('status', 'Нақд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->where('shtrix_kod', 0)->count();
+
+                    $tekshirtovar = savdo::where('status', 'Нақд')
+                        ->where('unix_id', $savdoid)
+                        ->where('shartnoma_id', $id)
+                        ->where('shtrix_kod', 0)
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->count();
+
                     if ($tekshirtovar>0){
                         echo '
                             <td>
@@ -173,66 +202,76 @@ class NaqdSavdoController extends Controller
         }
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $msumma = savdo1::where('status', 'Актив')->where('unix_id', $request->savdounix_id)->sum('msumma');
-        if($msumma>0){
 
-            $naqd = floatval(preg_replace('/[^\d.]/', '', $request->naqd));
-            $plastik = floatval(preg_replace('/[^\d.]/', '', $request->plastik));
-            $click = floatval(preg_replace('/[^\d.]/', '', $request->click));
-            $chegirma = floatval(preg_replace('/[^\d.]/', '', $request->chegirma));
+        $msumma = savdo::where('status', 'Актив')
+            ->where('filial_id', Auth::user()->filial_id)
+            ->where('unix_id', $request->savdounix_id)
+            ->sum('msumma');
 
-            if($msumma!=($naqd+$plastik+$click+$chegirma)){
-                return response()->json(['message' => 'Хатолик: Товар суммаси ва Сиз киритган сумма тўғри эмас.'], 200);
-            }else{
-                try {
-                    DB::beginTransaction();
-
-                    $naqdsavdo = new naqdsavdo1;
-                    $naqdsavdo->mijozlar_id = $request->mijoz;
-                    $naqdsavdo->kun = $request->yangikun;
-                    $naqdsavdo->savdoraqami_id = $request->savdounix_id;
-                    $naqdsavdo->xis_oyi = $xis_oyi;
-                    $naqdsavdo->user_id = Auth::user()->id;
-                    $naqdsavdo->save();
-                    $insid = $naqdsavdo->id;
-
-                    $savdo1Updated = savdo1::where('unix_id', $request->savdounix_id)
-                    ->where('status', 'Актив')
-                    ->update([
-                        'status' => "Нақд",
-                        'status2' => "Нақд",
-                        'shartnoma_id' => $insid,
-                    ]);
-
-                    $tulovlar = new tulovlar1;
-                    $tulovlar->kun = $request->yangikun;
-                    $tulovlar->tulovturi = 'Нақд';
-                    $tulovlar->shartnomaid = $insid;
-                    $tulovlar->xis_oyi = $xis_oyi;
-                    $tulovlar->naqd =  $naqd;
-                    $tulovlar->pastik =  $plastik;
-                    $tulovlar->click =  $click;
-                    $tulovlar->chegirma =  $chegirma;
-                    $tulovlar->umumiysumma =  ($naqd + $plastik + $click);
-                    $tulovlar->user_id = Auth::user()->id;
-                    $tulovlar->save();
-
-                    if ($naqdsavdo && $savdo1Updated && $tulovlar) {
-                        DB::commit();
-                        return response()->json(['message' => 'Маълумот сақланди.'], 200);
-                    } else {
-                        DB::rollBack();
-                        return response()->json(['message' => 'Маълумот сақлашда хатолик.'], 200);
-                    }
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return response()->json(['message' => 'Маълумот сақлашда хатолик2.'], 200);
-                    // throw $e;
-                }
-            }
-        }else{
+        if( $msumma <= 0 ){
             return response()->json(['message' => 'Хатолик: Свдо рақам топилмади бошқа савдо рақами танланг.'], 200);
         }
+
+        $naqd = floatval(preg_replace('/[^\d.]/', '', $request->naqd));
+        $plastik = floatval(preg_replace('/[^\d.]/', '', $request->plastik));
+        $click = floatval(preg_replace('/[^\d.]/', '', $request->click));
+        $chegirma = floatval(preg_replace('/[^\d.]/', '', $request->chegirma));
+
+        if($msumma != ($naqd+$plastik+$click+$chegirma)){
+            return response()->json(['message' => 'Хатолик: Товар суммаси ва Сиз киритган сумма тўғри эмас.'], 200);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $maxId = naqdSavdo::where('filial_id', Auth::user()->filial_id)->max('shid');
+            $maxId++;
+
+            $naqdsavdo = new naqdSavdo;
+            $naqdsavdo->filial_id = Auth::user()->filial_id;
+            $naqdsavdo->shid = $maxId;
+            $naqdsavdo->mijozlar_id = $request->mijoz;
+            $naqdsavdo->kun = $request->yangikun;
+            $naqdsavdo->savdoraqami_id = $request->savdounix_id;
+            $naqdsavdo->xis_oyi = $xis_oyi;
+            $naqdsavdo->user_id = Auth::user()->id;
+            $naqdsavdo->save();
+            $insid = $naqdsavdo->id;
+
+            $savdo1Updated = savdo::where('unix_id', $request->savdounix_id)
+                ->where('status', 'Актив')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->update([
+                    'status' => "Нақд",
+                    'status2' => "Нақд",
+                    'shartnoma_id' => $insid,
+                    'shid' => $maxId,
+                ]);
+
+            $tulovlar = new tulovlar;
+            $tulovlar->kun = $request->yangikun;
+            $tulovlar->tulovturi = 'Нақд';
+            $tulovlar->filial_id = Auth::user()->filial_id;
+            $tulovlar->shartnoma_id = $insid;
+            $tulovlar->shid = $maxId;
+            $tulovlar->xis_oyi = $xis_oyi;
+            $tulovlar->naqd =  $naqd;
+            $tulovlar->pastik =  $plastik;
+            $tulovlar->click =  $click;
+            $tulovlar->chegirma =  $chegirma;
+            $tulovlar->umumiysumma =  ($naqd + $plastik + $click);
+            $tulovlar->user_id = Auth::user()->id;
+            $tulovlar->save();
+
+            DB::commit();
+            return response()->json(['message' => 'Маълумот сақланди.'], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 200);
+            // throw $e;
+        }
+
     }
 
     /**
@@ -293,7 +332,6 @@ class NaqdSavdoController extends Controller
             return $f5;
         }
 
-        $id=$id;
         $filia = filial::where('id', Auth::user()->filial_id)->first();
         $ytt=$filia->ytt;
         $manzil=$filia->manzil;
@@ -302,9 +340,15 @@ class NaqdSavdoController extends Controller
         $bankname=$filia->bankname;
         $mfo=$filia->mfo;
 
-        $naqdsavdojam = naqdsavdo1::where('id', $id)->where('status', 'Актив')->first();
+        $naqdsavdojam = naqdSavdo::where('id', $id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->where('status', 'Актив')
+            ->first();
 
-        $tulovlar = tulovlar1::where('status', 'Актив')->where('shartnomaid', $id)->where('tulovturi', 'Нақд')->get();
+        $tulovlar = tulovlar::where('status', 'Актив')->where('shartnoma_id', $id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->where('tulovturi', 'Нақд')
+            ->get();
 
        foreach($tulovlar as $tulovla){
             echo'
@@ -341,7 +385,7 @@ class NaqdSavdoController extends Controller
                         <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;">Тўлов вакти:</td>
                         <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;"><b>'.date("h:i:s",strtotime($tulovla->created_at)).'</b></td>
                         <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;">Нақд савдо №:</td>
-                        <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;"><b>'.$id.'</b></td>
+                        <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;"><b>'.$naqdsavdojam->shid.'</b></td>
                     </tr>
                     <tr class="align-middle text-muted">
                         <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-size: 10pt; text-align: center; text-transform: uppercase; color: RoyalBlue;" colspan="6"><b>Тўлов тури</b></td>
@@ -387,7 +431,11 @@ class NaqdSavdoController extends Controller
 
                 <tbody id="tab1">';
 
-                    $savdomodel = savdo1::where('status', 'Нақд')->where('shartnoma_id', $id)->get();
+                    $savdomodel = savdo::where('status', 'Нақд')
+                        ->where('shartnoma_id', $id)
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->get();
+
                     $i = 1;
                     $jami = 0;
                     foreach ($savdomodel as $savdomode) {
@@ -426,9 +474,9 @@ class NaqdSavdoController extends Controller
      */
     public function edit(string $id)
     {
-        $savdomodel = savdo1::where('status', 'Актив')->where('unix_id', $id)->get();
+        $savdomodel = savdo::where('status', 'Актив')->where('unix_id', $id)->where('filial_id', Auth::user()->filial_id)->get();
 
-        echo '<h3 class=" text-center text-primary ">' . $id . '</h3>
+        echo '<h3 class=" text-center text-primary ">Шартнома учун товарлар руйхати</h3>
         <table class="table table-bordered table-hover">
             <thead>
                 <tr class="text-center text-bold text-primary align-middle">
@@ -462,7 +510,7 @@ class NaqdSavdoController extends Controller
                 </tr>
             </tbody>
         </table>";
-        return;
+
     }
 
     /**
@@ -471,34 +519,52 @@ class NaqdSavdoController extends Controller
     public function update(Request $request, string $id)
     {
 
-        $tekshirktovar1 = ktovar1::where('status', 'Нақд')->where('shatnomaid', $id)->count();
-        $tekshirsavdo1 = savdo1::where('status', 'Нақд')->where('unix_id', $request->savdoid)->where('shartnoma_id', $id)->where('shtrix_kod','>', 0)->count();
-        if ($tekshirktovar1==0 && $tekshirsavdo1==0){
-            $Readfond1 = naqdsavdo1::where('id', $id)->where('status', 'Актив')->first();
-            $FondKun=$Readfond1->kun;
+        $tekshirktovar1 = kirimTovar::where('status', 'Нақд')
+            ->where('shatnomaid', $id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->count();
+
+        $tekshirsavdo1 = savdo::where('status', 'Нақд')
+            ->where('unix_id', $request->savdoid)
+            ->where('shartnoma_id', $id)
+            ->where('shtrix_kod','>', 0)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->count();
+
+        if ($tekshirktovar1 == 0 && $tekshirsavdo1 == 0){
+
+            $Readfond1 = naqdSavdo::where('id', $id)->where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->first();
+
+            $FondKun = $Readfond1->kun;
+
             $BugungiKun = date("Y-m-d");
-            if($Readfond1->id>0){
-                if($FondKun==$BugungiKun){
+
+            if($Readfond1->id > 0){
+
+                if($FondKun == $BugungiKun){
                     try {
                         DB::beginTransaction();
 
-                        $savdUpdated = savdo1::where('unix_id', $request->savdoid)
+                        $savdUpdated = savdo::where('unix_id', $request->savdoid)
                             ->where('status', 'Нақд')
+                            ->where('filial_id', Auth::user()->filial_id)
                             ->update([
                                 'status' => "Удалит",
                                 'del_kun' => date('Y-m-d H:i:s'),
                                 'del_user_id' => Auth::user()->id,
                             ]);
 
-                        $tulovUpdated = tulovlar1::where('tulovturi', 'Нақд')
-                            ->where('shartnomaid', $id)
+                        $tulovUpdated = tulovlar::where('tulovturi', 'Нақд')
+                            ->where('shartnoma_id', $id)
+                            ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
                             ->update([
                                 'status' => 'Удалит',
                                 'del_kun' => date('Y-m-d'),
                                 'del_user_id' => Auth::user()->id,
                             ]);
-                        $naqdsavdoUpdated = naqdsavdo1::where('id', $id)
+                        $naqdsavdoUpdated = naqdSavdo::where('id', $id)
+                            ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
                             ->update([
                                 'status' => 'Удалит',

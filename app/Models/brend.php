@@ -20,12 +20,12 @@ class brend extends Model
 
     public function ktovar1(): HasOne
     {
-        return $this->hasOne(ktovar1::class);
+        return $this->hasOne(kirimTovar::class);
     }
 
     public function savdo1(): HasOne
     {
-        return $this->hasOne(savdo1::class);
+        return $this->hasOne(savdo::class);
     }
 
     public function natsenka(): BelongsTo

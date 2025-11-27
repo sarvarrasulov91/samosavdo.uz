@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\savdo1;
-use App\Models\ktovar1;
-use App\Models\shartnoma1;
+use App\Models\savdo;
+use App\Models\kirimTovar;
+use App\Models\shartnoma;
 use Illuminate\Support\Facades\DB;
 
 class ShartnomaChiqimController extends Controller
@@ -23,7 +23,7 @@ class ShartnomaChiqimController extends Controller
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        $shartnomainfo = DB::table($shartnoma)
+        $shartnomainfo = shartnoma::where('filial_id', Auth::user()->filial_id)
             ->join('mijozlar', $shartnoma . '.mijoz_id', '=', 'mijozlar.id')
             ->join('region', 'mijozlar.tuman_id', '=', 'region.id')
             ->select($shartnoma . '.*', 'mijozlar.last_name', 'mijozlar.first_name', 'mijozlar.middle_name', 'mijozlar.manzil', 'region.name_uz')->where($shartnoma . '.status', 'Актив')->where($shartnoma . '.tstatus', '0')->orderBy($shartnoma . '.id', 'desc')->get();
@@ -46,28 +46,36 @@ class ShartnomaChiqimController extends Controller
     {
         $krimt = $request->krimt;
         $shid = $request->shid;
-        if (Auth::user()->filial_id == 1) {
-            $tekshir = ktovar1::where('status', 'Сотилмаган')->where('shtrix_kod', $krimt)->get();
-            foreach ($tekshir as $tekshi) {
-                $count = $tekshi->model_id;
-            }
-            if (!empty($count)) {
-                $tekshirsavdo = savdo1::where('status', 'Шартнома')->where('model_id', $count)->where('shtrix_kod', '0')->where('shartnoma_id', $shid)->count();
-                if ($tekshirsavdo > 0) {
-                    savdo1::where('status', 'Шартнома')->where('shartnoma_id', $shid)->where('model_id', $count)->where('shtrix_kod', '0')->limit(1)->update(['shtrix_kod' => $krimt]);
-                    ktovar1::where('status', 'Сотилмаган')->where('model_id', $count)->where('shtrix_kod', $krimt)->limit(1)->update(['status' => 'Шартнома', 'shatnomaid' => $shid]);
 
-                    $countid = savdo1::where('status', 'Шартнома')->where('shtrix_kod', '0')->where('shartnoma_id', $shid)->count();
-                    if (empty($countid)) {
-                        shartnoma1::where('id', $shid)->update(['tstatus' => 1]);
-                    }
-                    $aaa = 'Товар Шартномага бириктирилди.';
-                } else {
-                    $aaa = "Хатолик бундай товар шартномада курсатилмаган.";
-                }
-            } else {
+        if (Auth::user()->filial_id == 1) {
+
+            $tovar = kirimTovar::where('filial_id', Auth::user()->filial_id)
+                ->where('status', 'Сотилмаган')
+                ->where('shtrix_kod', $krimt)
+                ->first();
+
+            $tmodel_id = $tovar->tmodel_id;
+
+            if (!$tovar) {
                 $aaa = "Хатолик бундай товар мавжуд эмас.";
             }
+
+            savdo::where('filial_id', Auth::user()->filial_id)
+                ->where('status', 'Шартнома')
+                ->where('tmodel_id', $tmodel_id)
+                ->where('shtrix_kod', '0')
+                ->where('shartnoma_id', $shid)
+                ->update(['shtrix_kod' => $krimt]);
+
+            $tovar->update([
+                    'status' => 'Шартнома',
+                    'shatnomaid' => $shid
+                ]);
+
+
+            $aaa = 'Товар Шартномага бириктирилди.';
+
+
         }
 
         $id = $shid;

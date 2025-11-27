@@ -7,16 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
-class ktovar1 extends Model
+class kirimTovar extends Model
 {
     use HasFactory;
-    protected $table = [];
+    protected $table = 'kirim_tovar';
 
-    function __construct($filialid=null, array $attributes = [] )
-    {
-        parent::__construct($attributes);
-        $this->setTable('ktovar' . ($filialid==null ? Auth::user()->filial_id : $filialid));
-    }
+//    function __construct($filialid=null, array $attributes = [] )
+//    {
+//        parent::__construct($attributes);
+//        $this->setTable('ktovar' . ($filialid==null ? Auth::user()->filial_id : $filialid));
+//    }
+
+    protected $guarded = [];
 
     public function tur(): BelongsTo
     {
@@ -46,6 +48,11 @@ class ktovar1 extends Model
     public function filial(): BelongsTo
     {
         return $this->belongsTo(filial::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
 }

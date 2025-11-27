@@ -52,7 +52,7 @@
 
                                                 $snaxi = round($kirim_narxi * $valyuta * (100 +  $natsenka + $trans_xarajat) / 100, -3);
                                             @endphp
-                                            <tr title="Кирим нархи-{{ number_format($tmodel->snarhi, 2, ',', ' ') }} * Валюта-{{ number_format($valyuta, 2, ',', ' ') }} + Тр.хар-{{ $trans_xarajat }}%  +  Наценна-{{ $natsenka }}%  =  Сотув нархи-{{ number_format($snaxi, 0, ',', ' ') }} сўм " class='text-center align-middle'>
+                                            <tr class='text-center align-middle'>
                                                 <td>{{ $tmodel->tmodel_id }}</td>
                                                 <td style="white-space: wrap; width: 50%">
                                                     {{ $tmodel->tur->tur_name }} {{ $tmodel->brend->brend_name }} {{ $tmodel->tmodel->model_name }}

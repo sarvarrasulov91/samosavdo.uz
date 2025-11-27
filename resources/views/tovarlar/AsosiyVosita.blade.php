@@ -57,7 +57,7 @@
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="krimt" name="krimt" class="form-control text-center"
-                                maxlength="17" />
+                                maxlength="19" />
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -104,7 +104,7 @@
                 $('#krimt').on('keypress', function(e) {
                     if (e.which === 13) {
                         var krimt = $('#krimt').val();
-                        if (krimt.length != 17) {
+                        if (krimt.length != 17 && krimt.length != 19) {
                             toastr.success("Хатолик!!! Маълумотларни тўлиқ киритмадингиз.");
                         } else {
                             $.ajax({
@@ -124,5 +124,42 @@
                     }
                 });
             })
+
+            $(document).on('click', '.delete-btn', function () {
+                let id = $(this).data('id');
+                let row = $(this).closest('tr');
+
+                if (!confirm('Delete this item?')) return;
+
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ route('AsosiyVosita.index') }}/" + id,
+                    type: 'DELETE',
+                    data: { id: id },
+                    success: function (response) {
+                        if (response.success) {
+                            row.fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                            alert(response.message);
+                        } else {
+                            alert(response.message ?? 'Xatolik yuz berdi!');
+                        }
+                    },
+                    error: function (xhr) {
+                        let msg = "Server error!";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                    }
+                });
+            });
+
         </script>
     @endsection

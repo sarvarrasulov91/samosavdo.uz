@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 
 
 class BarcodTaminotchiController extends Controller
@@ -16,7 +16,7 @@ class BarcodTaminotchiController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $model = ktovar1::where('status','Актив')->orderBy('id', 'desc')->get();
+            $model = kirimTovar::where('status','Актив')->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
 
             return view('tovarlar.barcod', ['model' => $model]);
         }else{
@@ -41,13 +41,24 @@ class BarcodTaminotchiController extends Controller
     public function store(Request $request)
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
+
             $ttovarlar = $request->belginatija;
+
             if ($ttovarlar == null) {
+
                 return redirect()->route('barcod.index');
+
             } else {
+
                 $array = [];
+
                 foreach ($ttovarlar as $ttovarla) {
-                    $model = ktovar1::where('status', 'Актив')->where('id', $ttovarla)->get();
+
+                    $model = kirimTovar::where('status', 'Актив')
+                        ->where('id', $ttovarla)
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->get();
+
                     foreach ($model as $mode) {
                         $arrayitem = [
                             "id" => $mode->id,

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\turharajat;
 use App\Models\valyuta;
-use App\Models\boshqaharajat1;
+use App\Models\xarajat;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
 
@@ -24,7 +24,7 @@ class BoshqaXarajatlarController extends Controller
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
             $turharajat = turharajat::get();
             $valyuta = valyuta::where('id', '1')->get();
-            $chiqim =  boshqaharajat1::where('.status', 'Актив')->where('xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
+            $chiqim =  xarajat::where('status', 'Актив')->where('xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
 
             return view('kassa.boshqaxarajat', [
                 'xis_oyi' => $xis_oyi,
@@ -92,8 +92,9 @@ class BoshqaXarajatlarController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $chiqim = new boshqaharajat1;
+            $chiqim = new xarajat;
             $chiqim->kun = $request->kun;
+            $chiqim->filial_id = Auth::user()->filial_id;
             $chiqim->turharajat_id = $request->turharajat_id;
             $chiqim->valyuta_id = $request->valyuta_id;
             $chiqim->naqd = $naqd;
@@ -112,16 +113,19 @@ class BoshqaXarajatlarController extends Controller
                 $message = 'Маълумот сақлашда хатолик.!!!';
             }
 
-            $chiqim =  boshqaharajat1::
+            $chiqim =  xarajat::
             with(['turharajat'=>function ($query) {
                 $query->select('id','har_name');
             }])->
             with(['valyuta'=>function ($query) {
                 $query->select('id','valyuta__nomi');
             }])->
-
-            select('id','kun','turharajat_id','valyuta_id','naqd','pastik','hr','click','avtot','summasi','izoh')->
-            where('.status', 'Актив')->where('.xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
+            select('id','kun','turharajat_id','valyuta_id','naqd','pastik','hr','click','avtot','summasi','izoh')
+                ->where('status', 'Актив')
+                ->where('xis_oy', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')
+                ->get();
 
             return response()->json(['message' => $message ,'chiqim'=>$chiqim], 200);
         }else{
@@ -164,31 +168,44 @@ class BoshqaXarajatlarController extends Controller
     public function destroy(string $id)
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
-            $boshqaharajat = boshqaharajat1::where('id', $id)->where('status', 'Актив')->first();
+
+            $boshqaharajat = xarajat::where('id', $id)
+                ->where('status', 'Актив')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->first();
+
             $boshqaharajatKun = date("d.m.Y", strtotime($boshqaharajat->created_at));
+
             $BugungiKun = date("d.m.Y");
 
             if($boshqaharajatKun == $BugungiKun){
-                $kirim = boshqaharajat1::where('id', $id)->update([
+
+                $boshqaharajat->update([
                     'status' => "Удалит",
                     'user_id' => Auth::id(),
                 ]);
+
                 $message = "Маълумот ўчирилди.";
+
             }else{
                 $message = 'Хатолик: '.$id.' ИД даги тўлов учириш учун админга мурожат қилинг.';
             }
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $chiqim =  boshqaharajat1::
+            $chiqim =  xarajat::
             with(['turharajat'=>function ($query) {
                 $query->select('id','har_name');
             }])->
             with(['valyuta'=>function ($query) {
                 $query->select('id','valyuta__nomi');
             }])->
-            select('id','kun','turharajat_id','valyuta_id','naqd','pastik','hr','click','avtot','summasi','izoh')->
-            where('.status', 'Актив')->where('.xis_oy', $xis_oyi)->orderBy('id', 'desc')->get();
+            select('id','kun','turharajat_id','valyuta_id','naqd','pastik','hr','click','avtot','summasi','izoh')
+                ->where('status', 'Актив')
+                ->where('xis_oy', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')
+                ->get();
 
             return response()->json(['message' => $message , 'chiqim'=>$chiqim], 200);
 

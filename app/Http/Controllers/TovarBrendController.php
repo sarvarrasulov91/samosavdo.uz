@@ -52,6 +52,7 @@ class TovarBrendController extends Controller
             // $brend->natsenka_id = $request->natsenka;
             $brend->user_id = Auth::user()->id;
             $brend->save();
+
             return redirect()->route('brend.index')->with('message','Маълумот сақланди.');
         }else{
             Auth::guard('web')->logout();

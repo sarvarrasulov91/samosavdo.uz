@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\tmodel;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -102,7 +102,7 @@ class TovarQoldigiOfficeController extends Controller
 
         foreach ($filiallar as $filialinfo) {
 
-            $data = (new ktovar1($filialinfo->id))
+            $data = kirimTovar::where('filial_id', $filialinfo->id)
                 ->selectRaw("
                         SUM(CASE WHEN valyuta_id=2 AND xis_oyi < ?
                                  AND (status='Сотилмаган' OR ch_xis_oyi >= ?) THEN 1 ELSE 0 END) as TOBDSoni,
@@ -206,7 +206,7 @@ class TovarQoldigiOfficeController extends Controller
      */
     public function edit(string $id)
     {
-        $ktovar = (new ktovar1($id))
+        $ktovar = kirimTovar::where('filial_id', $id)
             ->where('status', 'Сотилмаган')
             ->selectRaw("
                 tmodel_id,

@@ -4,12 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\kirim;
-use App\Models\turharajat;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
-
 
 
 
@@ -21,11 +17,16 @@ class SavdoPuliController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
+
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-            $kirim = kirim::where('status','Актив')->where('xis_oyi',$xis_oyi)->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
-            return view('kassa.savdopuli', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'kirim'=>$kirim]);
+
+            $kirim = kirim::where('status','Актив')
+                ->where('xis_oyi', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')
+                ->get();
+
+            return view('kassa.savdopuli', ['kirim' => $kirim]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -103,10 +104,14 @@ class SavdoPuliController extends Controller
             with(['kirimtur'=>function ($query) {
                 $query->select('id','kirim_tur_name');
             }])->
-            select('id','kun','filial_id','kirimtur_id','naqd','pastik','hr','click','avtot','umumiy','izoh')->
-            where('status','Актив')->where('xis_oyi',$xis_oyi)->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
+            select('id','kun','filial_id','kirimtur_id','naqd','pastik','hr','click','avtot','umumiy','izoh')
+                ->where('status','Актив')
+                ->where('xis_oyi', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')
+                ->get();
 
-            return response()->json(['message' => 'Савдо пули сақланди.', 'kirim'=>$kirim], 200);
+            return response()->json(['message' => 'Савдо пули сақланди.', 'kirim' => $kirim], 200);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -149,7 +154,7 @@ class SavdoPuliController extends Controller
 
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
             $kirim = kirim::where('id', $id)->update([
-                'status' => "Удалит",
+                'status' => 'Удалит',
                 'user_id' => Auth::user()->id,
             ]);
 
@@ -162,10 +167,15 @@ class SavdoPuliController extends Controller
             with(['kirimtur'=>function ($query) {
                 $query->select('id','kirim_tur_name');
             }])->
-            select('id','kun','filial_id','kirimtur_id','naqd','pastik','hr','click','avtot','umumiy','izoh')->
-            where('status','Актив')->where('xis_oyi',$xis_oyi)->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
+            select('id','kun','filial_id','kirimtur_id','naqd','pastik','hr','click','avtot','umumiy','izoh')
+                ->where('status','Актив')
+                ->where('xis_oyi', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')
+                ->get();
 
-            return response()->json(['message' => 'Савдо пули ўчирилди.', 'kirim'=>$kirim], 200);
+            return response()->json(['message' => 'Савдо пули ўчирилди.', 'kirim' => $kirim], 200);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

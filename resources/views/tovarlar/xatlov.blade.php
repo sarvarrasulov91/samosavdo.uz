@@ -76,7 +76,7 @@
                             <label>Штрих кодни киритинг
                                 <span class="text-danger">*</span>
                             </label>
-                            <input type="text" id="krimt" name="krimt" class="form-control text-center" maxlength="17" />
+                            <input type="text" id="krimt" name="krimt" class="form-control text-center" maxlength="19" />
                             <h4 class="border p-2 text-center border-0" id="pros" style="color: RoyalBlue;"></h4>
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                             return;  // Exit the function if filial is not selected
                         }
 
-                        if (krimt.length != 17) {
+                        if (krimt.length != 17 && krimt.length != 19) {
                             toastr.success("Хатолик!!! Маълумотларни тўлиқ киритилмади.");
                         } else {
                             $.ajax({

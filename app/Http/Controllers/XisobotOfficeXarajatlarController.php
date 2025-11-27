@@ -6,9 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\chiqim_boshqa;
 use App\Models\turharajat;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 
 class XisobotOfficeXarajatlarController extends Controller
 {
@@ -19,11 +16,8 @@ class XisobotOfficeXarajatlarController extends Controller
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
 
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+            return view('xisobotlar.KunlikOfficeXarajatlar');
 
-            return view('xisobotlar.KunlikOfficeXarajatlar', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -66,11 +60,10 @@ class XisobotOfficeXarajatlarController extends Controller
 
             $turharajat = turharajat::get();
             foreach ($turharajat as $turharaja) {
-                $boshqaharajat=chiqim_boshqa::where('turharajat_id', $turharaja->id)
-                ->where('kun', '>=', $boshkun)
-                ->where('kun', '<=', $yakunkun)
-                ->where('status', 'Актив')
-                ->get();
+                $boshqaharajat = chiqim_boshqa::where('turharajat_id', $turharaja->id)
+                    ->whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('status', 'Актив')
+                    ->get();
 
                 $naqd=0;
                 $pastik=0;
@@ -87,7 +80,7 @@ class XisobotOfficeXarajatlarController extends Controller
                 $djsummasi=0;
 
                 foreach ($boshqaharajat as $boshqaharaja) {
-                    if($boshqaharaja->valyuta_id ==1){
+                    if($boshqaharaja->valyuta_id == 1){
                         $naqd+=$boshqaharaja->naqd;
                         $pastik+=$boshqaharaja->pastik;
                         $hr+=$boshqaharaja->hr;

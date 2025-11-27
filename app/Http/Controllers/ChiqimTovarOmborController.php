@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\filial;
-use App\Models\User;
 
 
 class ChiqimTovarOmborController extends Controller
@@ -16,7 +15,7 @@ class ChiqimTovarOmborController extends Controller
      */
     public function index()
     {
-        if((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив'){
+        if(Auth::user()->filial_id == 10){
             $filial = filial::where('status', 'Актив')->where('id', '!=', '10')->get();
         }else{
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
@@ -54,19 +53,23 @@ class ChiqimTovarOmborController extends Controller
                     <th>Сотув нархи</th>
                     <th>Холати</th>
                     <th>Раками</th>
-
                     <th>Масъул ходим</th>
                 </tr>
             </thead>
             <tbody id="tab1">';
 
-                $i=1;
-                $tovarlar = new ktovar1($request->filial);
-                $model=$tovarlar->whereDate('ch_kun', '>=', $boshkun)->whereDate('ch_kun', '<=', $yakunkun)->where('status', '!=', 'Актив')->where('status', '!=', 'Удалит')->orderBy('ch_kun', 'desc')->get();
+                $i = 1;
+
+                $model = kirimTovar::whereDate('ch_kun', '>=', $boshkun)
+                    ->whereDate('ch_kun', '<=', $yakunkun)
+                    ->whereNotIn('status', ['Актив', 'Удалит'])
+                    ->where('filial_id', $request->filial)
+                    ->orderBy('ch_kun', 'desc')
+                    ->get();
 
                 foreach ($model as $mode){
-                     $ch_user_fio=User::where('id', $mode->ch_user_id)->value('name');
 
+                    $sotuvNarx = $mode->snarhi * $mode->valyuta->valyuta_narhi * (100 + $mode->tur->transport_id + $mode->tur->natsenka_id) / 100;
                     echo'
                     <tr>
                         <td>' . $i++ . '</td>
@@ -76,11 +79,10 @@ class ChiqimTovarOmborController extends Controller
                         <td>' . $mode->brend->brend_name . '</td>
                         <td>' . $mode->tmodel->model_name . '</td>
                         <td>' . $mode->shtrix_kod . '</td>
-                        <td>' . round(($mode->snarhi * $mode->valyuta->valyuta_narhi * $mode->tur->transport_id) / 100 + ($mode->snarhi * $mode->valyuta->valyuta_narhi * $mode->brend->natsenka_id) / 100 + $mode->snarhi * $mode->valyuta->valyuta_narhi, -3)  . '</td>
+                        <td>' . number_format(round($sotuvNarx, -3), 0, ",", " ")  . '</td>
                         <td>' . $mode->status . '</td>
-                        <td>' . $mode->shatnomaid . '</td>
-
-                        <td>' . $ch_user_fio . '</td>
+                        <td>' . $mode->shid . '</td>
+                        <td>' . $mode->user->name . '</td>
                     </tr>
                     ';
                 }

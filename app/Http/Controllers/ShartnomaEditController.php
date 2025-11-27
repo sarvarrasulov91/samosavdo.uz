@@ -4,15 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\xissobotoy;
-use App\Models\tulovlar1;
 use App\Models\valyuta;
 use App\Models\filial;
 use App\Models\mijozlar;
-use App\Models\lavozim;
-use App\Models\shartnoma1;
+use App\Models\shartnoma;
 use App\Models\tashrif;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 class ShartnomaEditController extends Controller
@@ -22,23 +18,18 @@ class ShartnomaEditController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $valyuta = valyuta::get();
         $mijozlar = mijozlar::orderBy('id', 'desc')->get();
         $tashrif = tashrif::get();
-        $shartnoma = shartnoma1::get();
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+        $shartnoma = shartnoma::get();
         $filial = filial::where('status', 'Актив')->whereNotIn('id', [10])->get();
+
         return view('shartnoma.ShartnomaEdit', [
-            'xis_oyi' => $xis_oyi, 
-            'filial' => $filial, 
-            'valyuta' => $valyuta, 
-            'mijozlar' => $mijozlar, 
+            'filial' => $filial,
+            'valyuta' => $valyuta,
+            'mijozlar' => $mijozlar,
             'tashrif' => $tashrif,
             'shartnoma' => $shartnoma,
-            'filial_name' => $filial_name,
-            'lavozim_name' => $lavozim_name,
         ]);
     }
 
@@ -55,14 +46,12 @@ class ShartnomaEditController extends Controller
      */
     public function store(Request $request)
     {
-
         $id = $request->id;
         $filial = $request->filial;
 
-        $shartnoma = new shartnoma1($filial);
-        $shartnom = $shartnoma->where('id', $id)->first();
+        $shartnom = shartnoma::where('filial_id', $filial)->where('id', $id)->first();
 
-        
+
         echo '
         <table class="table table-bordered table-hover">
             <thead>
@@ -94,14 +83,14 @@ class ShartnomaEditController extends Controller
                     <td>' . $shartnom->izox . '</td>
                     <td>
                         <button id="tulovedit" class="btn btn-outline-primary btn-sm me-2 "
-                        data-filial2="' . $filial . '" 
-                        data-shid="' . $shartnom->id . '" 
+                        data-filial2="' . $filial . '"
+                        data-shid="' . $shartnom->id . '"
                         data-mijoz="' . $shartnom->mijozlar_id . '"
                         data-kafil="' . $shartnom->kafil_id . '"
                         data-tashrif="' . $shartnom->tashrif_id . '"
                         data-fstatus="' . $shartnom->fstatus . '"
                         data-kun="' . $shartnom->kun . '"
-                        data-savdo_id="' . $shartnom->savdo_id . '" 
+                        data-savdo_id="' . $shartnom->savdo_id . '"
                         data-muddat="' . $shartnom->muddat . '"
                         data-status="' . $shartnom->status . '"
                         data-izox="' . $shartnom->izox . '"
@@ -113,10 +102,10 @@ class ShartnomaEditController extends Controller
         </table>';
 
         }else{
-            
+
             echo'
             <tr class="text-center align-middle">
-                <td colspan="10"> Shartnoma topilmadi!</td> 
+                <td colspan="10"> Shartnoma topilmadi!</td>
             <tr>';
         }
         return;
@@ -173,10 +162,9 @@ class ShartnomaEditController extends Controller
         }
 
         $branchId = $request->integer('filial2');
-        $contracts = new shartnoma1($branchId);
 
         $user = Auth::user();
-        $contract = $contracts->where('id', $id)->first();
+        $contract = shartnoma::where('filial_id', $branchId)->where('id', $id)->first();
 
         if (!$contract) {
             return response()->json(['message' => "Shartnoma topilmadi!"]);

@@ -12,6 +12,7 @@ class tmqaytarish extends Model
 {
     use HasFactory;
     protected $table = 'tmqaytarish';
+    protected $guarded = [];
 
     public function filial(): BelongsTo
     {

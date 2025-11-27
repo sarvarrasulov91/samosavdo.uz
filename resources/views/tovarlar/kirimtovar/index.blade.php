@@ -30,7 +30,7 @@
                                         <label>Куни
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <input type="date" name="yangikun" id="yangikun"
+                                        <input type="date" name="yangikun" id="yangikun" readonly
                                             class="form-control form-control-sm text-center">
                                         <span id="yangikun_error" class="text-danger error-text"></span>
                                     </div>
@@ -114,7 +114,7 @@
                                         <label>Товар сонини киритинг
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" name="tsoni" id="tsoni"
+                                        <input type="number" name="tsoni" id="tsoni" min="1" max="50"
                                             class="form-control form-control-sm text-center" placeholder="Товор сони..." maxlength="3">
                                         <span id="tsoni_error" class="text-danger error-text"></span>
                                     </div>
@@ -122,7 +122,7 @@
                                         <label>Товар суммаси киритинг
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <input type="txet" name="tsumma" id="tsumma"
+                                        <input type="number" name="tsumma" id="tsumma" min="1" max="15000000" step="0.01"
                                             class="form-control form-control-sm text-center" placeholder="Товор суммаси..." maxlength="12">
                                         <span id="tsumma_error" class="text-danger error-text"></span>
                                     </div>
@@ -156,6 +156,7 @@
                                                 <th>№</th>
                                                 <th>ID</th>
                                                 <th>Куни</th>
+                                                <th>Модели</th>
                                                 <th>Товар номи</th>
                                                 <th>Пул бр.</th>
                                                 <th>Нархи</th>
@@ -172,6 +173,7 @@
                                             <tr class="text-bold text-primary">
                                                 <th>ID</th>
                                                 <th>Куни</th>
+                                                <th>Модели</th>
                                                 <th>Тур</th>
                                                 <th>Бренд</th>
                                                 <th>Модел</th>
@@ -201,13 +203,15 @@
         <script>
             function tabyuklash(model) {
                 var filial = $('#filial').val();
+
                 $('#tab1').html(' ');
-                var html = '';
+
                 if(model.length>0){
                      model.map(item => {
                         let tr =`<tr>
                                     <td>${item.id}</td>
                                     <td>${new Date(item.kun).toLocaleDateString()}</td>
+                                    <td>${item.tmodel_id}</td>
                                     <td>${item.tur.tur_name}</td>
                                     <td>${item.brend.brend_name}</td>
                                     <td>${item.tmodel.model_name}</td>
@@ -264,14 +268,16 @@
                             _token: csrf
                         },
                         success: function(response) {
+
                             $('#tabprosmodel').html(' ');
-                            var html = '';
+
                             if(response.data.length>0){
                                 response.data.map(item => {
                                     let tr =`<tr>
                                                 <td>1</td>
                                                 <td>${item.id}</td>
                                                 <td>${new Date(item.kun).toLocaleDateString()}</td>
+                                                <td>${item.tmodel_id}</td>
                                                 <td>${item.tur.tur_name+' '+item.brend.brend_name+' '+item.tmodel.model_name}</td>
                                                 <td>${item.valyuta.valyuta__nomi}</td>
                                                 <td>${item.narhi}</td>
@@ -287,7 +293,7 @@
                 $('#add_tovar').on('submit', function(e) {
                     e.preventDefault();
                     var formData = $(this).serialize();
-                    var filial = $('#filial').val();
+
                     var csrf = document.querySelector('meta[name="csrf-token"]').content;
                     $.ajax({
                         url: "{{ route('kirimtovar.store') }}",
@@ -310,17 +316,20 @@
             })
 
             function tovarudalit(id,filial) {
+
                 var uzid = confirm(id + ' ' + filial + ' ўчирилмокда. ТАСДИҚЛАНГ !!!')
-                var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
                 if (uzid == true) {
+
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
                     $.ajax({
                         url: "{{ route('kirimtovar.index') }}/" + id,
-                        method: "PUT",
+                        method: "DELETE",
                         data: {
                             id: id,
                             filial: filial
@@ -333,24 +342,5 @@
                 }
             }
 
-
-            function digits_float(target) {
-                let val = $(target).val().replace(/[^0-9\.]/g, '');
-                if (val.indexOf(".") !== -1) {
-                    val = val.substring(0, val.indexOf(".") + 3);
-                }
-                val = val.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-                $(target).val(val);
-            }
-
-            $(function($) {
-                const inputSelectors = ['#tsoni', '#tsumma'];
-                $('body').on('input', inputSelectors.join(', '), function(e) {
-                    digits_float(this);
-                });
-                inputSelectors.forEach(function(selector) {
-                    digits_float(selector);
-                });
-            });
         </script>
     @endsection

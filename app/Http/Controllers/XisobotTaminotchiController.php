@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\kirimTovar;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -69,21 +71,20 @@ class XisobotTaminotchiController extends Controller
                 $qayts = 0;
                 $qaytd = 0;
 
-                $filial = filial::where('status', 'Актив')->get();
-                foreach ($filial as $filial) {
-                    $ktovar = 'ktovar' . $filial->id;
-                    $rkrimtomars = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
-                    $rkrimtomard = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+                $filials = filial::where('status', 'Актив')->get();
+                foreach ($filials as $filial) {
 
-                    $rkrimtqayts = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '1')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
-                    $rkrimtqaytd = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '2')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                    $rkrimtomars = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+                    $rkrimtomard = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
 
-                    $rkrimts = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
-                    $rkrimtd = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+                    $rkrimtqayts = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '1')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                    $rkrimtqaytd = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '2')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
 
-                    $xisoyqaytgans = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '1')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
-                    $xisoyqaytgand = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '2')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                    $rkrimts = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+                    $rkrimtd = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
 
+                    $xisoyqaytgans = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '1')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                    $xisoyqaytgand = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '2')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
 
 
                     $zadd01s += $rkrimtomars;
@@ -192,14 +193,13 @@ class XisobotTaminotchiController extends Controller
         <tbody >
         ';
 
-        $filial = filial::where('status', 'Актив')->get();
-        foreach ($filial as $filial) {
-            $ktovar = 'ktovar' . $filial->id;
+        $filials = filial::where('status', 'Актив')->get();
+        foreach ($filials as $filial) {
 
-            $rssoni = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->count('narhi');
-            $rs = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->sum('narhi');
-            $rdsoni = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->count('narhi');
-            $rd = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->sum('narhi');
+            $rssoni = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->count('narhi');
+            $rs = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->sum('narhi');
+            $rdsoni = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->count('narhi');
+            $rd = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->sum('narhi');
 
 
             echo "
@@ -290,53 +290,25 @@ class XisobotTaminotchiController extends Controller
     public function show(string $id)
     {
         $i = 1;
-        $umzadd01s = 0;
-        $umzadd01d = 0;
+
         $umnachs = 0;
         $umnachd = 0;
         $umopls = 0;
         $umopld = 0;
-        $pas_id = $id;
 
         $uqayts = 0;
         $uqaytd = 0;
 
-        $umzadd13s = 0;
-        $umzadd13d = 0;
 
-        $pastavshik = pastavshik::where('id', $pas_id)->get()->toArray();
-        $pash_name = $pastavshik[0]['pastav_name'];
+        $pastavshik = pastavshik::where('id', $id)->first();
+        $pash_name = $pastavshik->pastav_name;
 
-        $rktovar01 = DB::table('ktovar1')->select('xis_oyi')->groupBy('xis_oyi')->get();
+        $rktovar01 = kirimTovar::select('xis_oyi')->where('pastavshik_id', $id)->groupBy('xis_oyi')->get();
+
         foreach ($rktovar01 as $rktovar) {
             $xis_oyi = $rktovar->xis_oyi;
-            $xiso = date("m", strtotime($xis_oyi));
 
-            if ($xiso == 01) {
-                $du2 = "Январь-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 2) {
-                $du2 = "Февраль-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 3) {
-                $du2 = "Март-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 4) {
-                $du2 = "Апрель-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 5) {
-                $du2 = "Май-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 6) {
-                $du2 = "Июнь-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 7) {
-                $du2 = "Июль-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 8) {
-                $du2 = "Август-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 9) {
-                $du2 = "Сентябрь-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 10) {
-                $du2 = "Октябрь-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 11) {
-                $du2 = "Ноябрь-" . date("Y", strtotime($xis_oyi)) . "й";
-            } elseif ($xiso == 12) {
-                $du2 = "Декабрь-" . date("Y", strtotime($xis_oyi)) . "й";
-            }
+            $du2 = Carbon::parse($xis_oyi)->locale('ru')->translatedFormat('Y-F');
 
             $zadd01s = 0;
             $zadd01d = 0;
@@ -344,29 +316,25 @@ class XisobotTaminotchiController extends Controller
             $qayt01s = 0;
             $qayt01d = 0;
 
-
             $nachs = 0;
             $nachd = 0;
             $qayts = 0;
             $qaytd = 0;
 
-            $filial = filial::where('status', 'Актив')->get();
-            foreach ($filial as $filial) {
-                $ktovar = 'ktovar' . $filial->id;
-                $rkrimtomars = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
-                $rkrimtomard = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+            $filials = filial::where('status', 'Актив')->get();
+            foreach ($filials as $filial) {
 
-                $rkrimtqayts = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '1')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
-                $rkrimtqaytd = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '2')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                $rkrimtomars = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $id)->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+                $rkrimtomard = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $id)->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
 
+                $rkrimtqayts = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $id)->where('valyuta_id', '1')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                $rkrimtqaytd = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $id)->where('valyuta_id', '2')->where('ch_xis_oyi', '<', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
 
+                $rkrimts = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
+                $rkrimtd = kirimTovar::where('filial_id', $filial->id)->where('pastavshik_id', $id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
 
-                $rkrimts = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
-                $rkrimtd = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('narhi');
-
-                $xisoyqaytgans = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '1')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
-                $xisoyqaytgand = DB::table($ktovar)->where('pastavshik2_id', $pas_id)->where('valyuta_id', '2')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
-
+                $xisoyqaytgans = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $id)->where('valyuta_id', '1')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
+                $xisoyqaytgand = kirimTovar::where('filial_id', $filial->id)->where('pastavshik2_id', $id)->where('valyuta_id', '2')->where('ch_xis_oyi', '=', $xis_oyi)->where('status', 'Кайтган')->sum('narhi');
 
                 $zadd01s += $rkrimtomars;
                 $zadd01d += $rkrimtomard;
@@ -381,13 +349,13 @@ class XisobotTaminotchiController extends Controller
 
             }
 
-            $rtulovsums01 = DB::table('chiqim_taminot')->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
-            $rtulovsumd01 = DB::table('chiqim_taminot')->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
+            $rtulovsums01 = chiqim_taminot::where('pastavshik_id', $id)->where('valyuta_id', '1')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
+            $rtulovsumd01 = chiqim_taminot::where('pastavshik_id', $id)->where('valyuta_id', '2')->where('xis_oyi', '<', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
 
-            $rtulovsumsx = DB::table('chiqim_taminot')->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
-            $rtulovsumdx = DB::table('chiqim_taminot')->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
+            $rtulovsumsx = chiqim_taminot::where('pastavshik_id', $id)->where('valyuta_id', '1')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
+            $rtulovsumdx = chiqim_taminot::where('pastavshik_id', $id)->where('valyuta_id', '2')->where('xis_oyi', '=', $xis_oyi)->where('status', '!=', 'Удалит')->sum('rsumma');
 
-            echo "<tr id='modalgamurojatfil' data-pas_id='".$pas_id."' data-du2='".$du2."' data-pash_name='".$pash_name."' data-xis_oy='".$xis_oyi."'>";
+            echo "<tr id='modalgamurojatfil' data-pas_id='".$id."' data-du2='".$du2."' data-pash_name='".$pash_name."' data-xis_oy='".$xis_oyi."'>";
 
             echo '<td>' . $i . '</td>
                     <td>' . $du2 . '</td>
@@ -405,8 +373,7 @@ class XisobotTaminotchiController extends Controller
             ';
 
             $i++;
-            $umzadd01s += $zadd01s - $rtulovsums01;
-            $umzadd01d += $zadd01d - $rtulovsumd01;
+
             $umnachs += $nachs;
             $umnachd += $nachd;
             $umopls += $rtulovsumsx;
@@ -414,9 +381,6 @@ class XisobotTaminotchiController extends Controller
 
             $uqayts += $qayts;
             $uqaytd += $qaytd;
-
-            $umzadd13s += ($zadd01s - $qayt01s - $rtulovsums01) + $nachs - $uqayts - $rtulovsumsx;
-            $umzadd13d += ($zadd01d - $qayt01d - $rtulovsumd01) + $nachd - $uqaytd - $rtulovsumdx;
         }
         echo '<tr class="fw-bold">
                 <td></td>
@@ -433,7 +397,6 @@ class XisobotTaminotchiController extends Controller
                 <td></td>
             ';
 
-            return;
     }
 
     /**
@@ -470,38 +433,54 @@ class XisobotTaminotchiController extends Controller
         $tek_oy = $request->tek_oy;
         $xis_oy = $request->xis_oy;
 
-        $ktovar = 'ktovar' . $rfilia;
         $i = 1;
         $dollarsoni = 0;
         $dollarjami = 0;
         $sumsoni = 0;
         $sumjami = 0;
 
-        $rktovar = DB::table($ktovar)->select('kun')->where('pastavshik_id', $pas_id)->where('xis_oyi', $xis_oy)->where('status', '!=', 'Удалит')->groupBy('kun')->get();
-        foreach ($rktovar as $rktova) {
-            $kuntekshir = $rktova->kun;
+        $rktovar = kirimTovar::where('filial_id', $rfilia)
+            ->where('pastavshik_id', $pas_id)
+            ->where('xis_oyi', $xis_oy)
+            ->where('status', '!=', 'Удалит')
+            ->selectRaw('kun,
+                SUM(CASE WHEN valyuta_id = 1 THEN narhi ELSE 0 END) as sum_uzs,
+                COUNT(CASE WHEN valyuta_id = 1 THEN 1 END) as count_uzs,
+                SUM(CASE WHEN valyuta_id = 2 THEN narhi ELSE 0 END) as sum_usd,
+                COUNT(CASE WHEN valyuta_id = 2 THEN 1 END) as count_usd
+            ')
+            ->groupBy('kun')
+            ->orderBy('kun')
+            ->get();
 
-            $rssoni = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('kun', $kuntekshir)->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->count('narhi');
-            $rs = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '1')->where('kun', $kuntekshir)->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->sum('narhi');
-            $rdsoni = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('kun', $kuntekshir)->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->count('narhi');
-            $rd = DB::table($ktovar)->where('pastavshik_id', $pas_id)->where('valyuta_id', '2')->where('kun', $kuntekshir)->where('xis_oyi', '=', $xis_oy)->where('status', '!=', 'Удалит')->sum('narhi');
+        foreach ($rktovar as $tovar) {
 
-            echo "<tr id='mnomanom' data-rfilia='".$rfilia."' data-fil_name='".$fil_name."' data-pas_id='".$pas_id."' data-name_pas='".$name_pas."' data-tek_oy='".$tek_oy."' data-xis_oy='".$xis_oy."' data-kuni='".$kuntekshir."'>";
+            echo "<tr id='mnomanom'
+                data-rfilia='{$rfilia}'
+                data-fil_name='{$fil_name}'
+                data-pas_id='{$pas_id}'
+                data-name_pas='{$name_pas}'
+                data-tek_oy='{$tek_oy}'
+                data-xis_oy='{$xis_oy}'
+                data-kuni='{$tovar->kun}'
+            >";
 
             echo '
                 <td>' . $i . '</td>
-                <td>' . date("d.m.Y", strtotime($kuntekshir)) . '</td>
-                <td>' . number_format($rssoni, 0, ",", " ") . '</td>
-                <td>' . number_format($rs, 0, ",", " ") . '</td>
-                <td>' . number_format($rdsoni, 0, ",", " ") . '</td>
-                <td>' . number_format($rd, 2, ",", " ") . '</td>
-            </tr>
-            ';
+                <td>' . date("d.m.Y", strtotime($tovar->kun)) . '</td>
+                <td>' . number_format($tovar->count_uzs, 0, ",", " ") . '</td>
+                <td>' . number_format($tovar->sum_uzs, 0, ",", " ") . '</td>
+                <td>' . number_format($tovar->count_usd, 0, ",", " ") . '</td>
+                <td>' . number_format($tovar->sum_usd, 2, ",", " ") . '</td>
+            </tr>';
+
             $i++;
-            $dollarsoni += $rdsoni;
-            $dollarjami += $rd;
-            $sumsoni += $rssoni;
-            $sumjami += $rs;
+
+            // Totals
+            $sumsoni     += $tovar->count_uzs;
+            $sumjami     += $tovar->sum_uzs;
+            $dollarsoni  += $tovar->count_usd;
+            $dollarjami  += $tovar->sum_usd;
         }
 
         echo '
@@ -522,40 +501,31 @@ class XisobotTaminotchiController extends Controller
     public function storename(Request $request)
     {
         $rfilia = $request->rfilia;
-        $fil_name = $request->fil_name;
         $pas_id = $request->pas_id;
-        $name_pas = $request->name_pas;
-        $tek_oy = $request->tek_oy;
-        $xis_oy = $request->xis_oy;
         $kuni = $request->kuni;
 
-        $ktovar = 'ktovar' . $rfilia;
+        $models = kirimTovar::where('filial_id', $rfilia)
+            ->whereNotIn('status', ['Удалит', 'Кайтган'])
+            ->where('pastavshik_id', $pas_id)
+            ->where('kun', $kuni)
+            ->with(['tur', 'brend', 'tmodel', 'valyuta'])
+            ->get();
 
-        $i = 1;
-        $model = DB::table($ktovar)
-            ->join('tur', $ktovar . '.tur_id', '=', 'tur.id')
-            ->join('brend', $ktovar . '.brend_id', '=', 'brend.id')
-            ->join('tmodel', $ktovar . '.tmodel_id', '=', 'tmodel.id')
-            ->join('valyuta', $ktovar . '.valyuta_id', '=', 'valyuta.id')
-            ->join('pastavshik', $ktovar . '.pastavshik_id', '=', 'pastavshik.id')
-            ->select($ktovar . '.*', 'tur.tur_name', 'brend.brend_name', 'tmodel.model_name', 'valyuta.valyuta__nomi', 'pastavshik.pastav_name')
-            ->where($ktovar . '.status', '!=', 'Удалит')->where($ktovar . '.status', '!=', 'Кайтган')->where($ktovar . '.pastavshik_id', '=', $pas_id)->where($ktovar . '.kun', '=', $kuni)->get();
-
-        foreach ($model as $model) {
+        foreach ($models as $model) {
 
             echo '
             <tr>
                <td>' . $model->id . '</td>
                <td>' . date("d.m.Y", strtotime($model->kun)) . '</td>
-               <td>' . $model->tur_name . ' ' . $model->brend_name . ' ' . $model->model_name . '</td>
-               <td>' . $model->valyuta__nomi . '</td>
+               <td>' . $model->tur->tur_name . ' ' . $model->brend->brend_name . ' ' . $model->tmodel->model_name . '</td>
+               <td>' . $model->valyuta->valyuta__nomi . '</td>
                <td>1</td>
                <td>' . number_format($model->narhi, 0, ",", " ") . '</td>
                <td>' . $model->status . '</td>
             </tr>
             ';
         }
-        return;
+
     }
 }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\filial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\kirim;
@@ -21,7 +22,12 @@ class OfficeKassaKirimController extends Controller
     {
         $kirimtur = kirimtur::get();
         $valyuta = valyuta::get();
-        return view('kassa.OfficeKassaKirim', ['kirimtur' => $kirimtur,'valyuta' => $valyuta]);
+        $filials = filial::where('status', 'Актив')->get();
+        return view('kassa.OfficeKassaKirim', [
+            'kirimtur' => $kirimtur,
+            'valyuta' => $valyuta,
+            'filials' => $filials
+        ]);
     }
 
     /**
@@ -90,7 +96,7 @@ class OfficeKassaKirimController extends Controller
     public function store(Request $request)
     {
         $rules = [
-
+            'filial_id' => 'required',
             'kun' => 'required',
             'naqd' => 'required',
             'plastik' => 'required',
@@ -103,6 +109,7 @@ class OfficeKassaKirimController extends Controller
         ];
 
         $messages = [
+            'filial_id.required' => 'Филиални танланг.',
             'kun.required' => 'Сана киритилмади.',
             'naqd.required' => 'Сумма киритилмади.',
             'plastik.required' => 'Сумма киритилмади.',
@@ -129,7 +136,7 @@ class OfficeKassaKirimController extends Controller
 
         $chiqim = new kirim;
         $chiqim->kun = $request->kun;
-        $chiqim->filial_id = 10;
+        $chiqim->filial_id = $request->filial_id;
         $chiqim->kirimtur_id = $request->kirim_id;
         $chiqim->valyuta_id = $request->val_id;
         $chiqim->naqd = $naqd;

@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\tqaytarish;
 use Illuminate\Support\Facades\DB;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -21,11 +20,10 @@ class TovarTaminotQaytarishController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->get();
-            return view('tovarlar.tovarqaytarish', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial]);
+
+            return view('tovarlar.tovarqaytarish', ['filial' => $filial]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -47,25 +45,30 @@ class TovarTaminotQaytarishController extends Controller
      */
     public function store(Request $request)
     {
+        $filial = $request->filial;
+        $krimt = $request->krimt;
 
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
 
-            $CountKtova = new ktovar1($request->filial);
-            $CountKtovar = $CountKtova->where('shtrix_kod', $request->krimt)
-            ->where('status', 'Сотилмаган')
-            ->count();
+            $CountKtovar = kirimTovar::where('shtrix_kod', $krimt)
+                ->where('filial_id', $filial)
+                ->where('status', 'Сотилмаган')
+                ->count();
 
         if ($CountKtovar == 1) {
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $ReadKtova = new ktovar1($request->filial);
-            $ReadKtovar = $ReadKtova->where('shtrix_kod', $request->krimt)->where('status', 'Сотилмаган')->first();
+            $ReadKtovar = kirimTovar::where('shtrix_kod', $krimt)
+                ->where('filial_id', $filial)
+                ->where('status', 'Сотилмаган')
+                ->first();
 
             try {
                 DB::beginTransaction();
 
                 $CreateTqaytarish = new tqaytarish;
                 $CreateTqaytarish->kun = $ReadKtovar->kun;
+                $CreateTqaytarish->filial_id = $request->filial;
                 $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
                 $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
                 $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
@@ -77,21 +80,20 @@ class TovarTaminotQaytarishController extends Controller
                 $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
                 $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
                 $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
-                $CreateTqaytarish->filial_id = $request->filial;
                 $CreateTqaytarish->xis_oyi = $xis_oyi;
                 $CreateTqaytarish->user_id = Auth::user()->id;
                 $CreateTqaytarish->save();
 
-                $ktovar1Update = new ktovar1($request->filial);
-                $ktovar1Updated=$ktovar1Update->where('shtrix_kod', $request->krimt)
-                ->where('status', 'Сотилмаган')
-                ->limit(1)
-                ->update([
-                    'status' => 'Кайтган',
-                    'ch_kun' => now(), // Yoki date('Y-m-d H:i:s') ko'rsatilgan shakli
-                    'ch_xis_oyi' => $xis_oyi,
-                    'ch_user_id' => Auth::user()->id,
-                ]);
+                $ktovar1Updated = kirimTovar::where('shtrix_kod', $krimt)
+                    ->where('filial_id', $filial)
+                    ->where('status', 'Сотилмаган')
+                    ->limit(1)
+                    ->update([
+                        'status' => 'Кайтган',
+                        'ch_kun' => now(), // Yoki date('Y-m-d H:i:s') ko'rsatilgan shakli
+                        'ch_xis_oyi' => $xis_oyi,
+                        'ch_user_id' => Auth::user()->id,
+                    ]);
 
                 if ($ktovar1Updated && $CreateTqaytarish) {
                     DB::commit();

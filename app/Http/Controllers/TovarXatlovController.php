@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\filial;
 
 
@@ -15,9 +15,10 @@ class TovarXatlovController extends Controller
      */
     public function index()
     {
-
         if(Auth::user()->filial_id == 10 && Auth::user()->status == 'Актив'){
+
             $filial = filial::where('status', 'Актив')->get();
+
         }else{
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
         }
@@ -43,14 +44,28 @@ class TovarXatlovController extends Controller
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив'){
 
             $krimt = $request->krimt;
+            $filial = $request->filial;
 
-            $ktovar = new ktovar1($request->filial);
-            $model = $ktovar->where('shtrix_kod', $krimt)->where('status', 'Сотилмаган')->where('inv_shtrix_kod', '0')->count();
+            $model = kirimTovar::where('shtrix_kod', $krimt)
+                ->where('filial_id', $filial)
+                ->where('status', 'Сотилмаган')
+                ->where('inv_shtrix_kod', '0')
+                ->count();
+
+            $tovar = kirimTovar::where('shtrix_kod', $krimt)
+                ->where('filial_id', $filial)
+                ->where('status', 'Сотилмаган')
+                ->where('inv_shtrix_kod', '0')
+                ->first();
 
             if ($model == 1) {
-                $ktovar->where('shtrix_kod', $krimt)->where('status', 'Сотилмаган')->limit(1)->update(['inv_shtrix_kod' => $krimt]);
+
+                $tovar->update(['inv_shtrix_kod' => $krimt]);
+
                 return response()->json(['message' => $krimt.'<br> Товар хатловдан ўтказилди.'], 200);
-            } elseif ($model != 1) {
+
+            } else{
+
                 return response()->json(['message' => $krimt.'<br> Хатолик!!! Товар топилмади ёки хатловдан ўтказилган бўлиши мумкин.'], 200);
             }
 
@@ -82,9 +97,10 @@ class TovarXatlovController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                    $ktovar = new ktovar1($id);
-                    $model = $ktovar->where('status', 'Сотилмаган')->orderBy('id', 'desc')->get();
+                    $model = kirimTovar::where('status', 'Сотилмаган')->where('filial_id', $id)->orderBy('id', 'desc')->get();
+
                     foreach ($model as $mode){
+
                         if ($mode->inv_shtrix_kod == 0){
                             echo'
                             <tr>
@@ -131,10 +147,11 @@ class TovarXatlovController extends Controller
 
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив'){
 
-            $ktovar = new ktovar1($id);
-
-            $ktovar->where('status', 'Сотилмаган')
-                ->update(['inv_shtrix_kod' => '0']);
+            kirimTovar::where('status', 'Сотилмаган')
+                ->where('filial_id', $id)
+                ->update([
+                    'inv_shtrix_kod' => '0'
+                ]);
 
             return response()->json(['message' => $filialName.'<br> База тозаланди.'], 200);
 

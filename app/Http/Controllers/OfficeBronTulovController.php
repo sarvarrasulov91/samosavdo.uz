@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar1;
+use App\Models\tulovlar;
 use App\Models\filial;
 use App\Models\User;
 use App\Models\lavozim;
@@ -18,16 +18,17 @@ class OfficeBronTulovController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        $xis_oy = xissobotoy::all();
-        if((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 12 || Auth::user()->lavozim_id == 13 || Auth::user()->lavozim_id == 14) && Auth::user()->status == 'Актив'){
+        if(Auth::user()->filial_id == 10 && Auth::user()->status == 'Актив'){
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
+
         }else{
+
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
+
         }
-        return view('kassa.officebrontulov', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name,'filial' => $filial, 'xis_oyi' => $xis_oyi]);
+
+        return view('kassa.officebrontulov', ['filial' => $filial]);
     }
 
     /**
@@ -65,11 +66,11 @@ class OfficeBronTulovController extends Controller
                     <th>Масъул ходим</th>
                     <th>Брон кун</th>
                     <th>Брон ходим</th>
-                    
+
                 </tr>
             </thead>
             <tbody id="tab1">';
-                
+
                 $i=1;
                 $naqd=0;
                 $plastik=0;
@@ -86,18 +87,23 @@ class OfficeBronTulovController extends Controller
                 $uavtot=0;
                 $uchegirma=0;
                 $ujami=0;
-                
-                $tulovlar = new tulovlar1($request->filial);
-                $model=$tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('tulovturi', 'Брон')->orderBy('id', 'desc')->get();
+
+                $model = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('tulovturi', 'Брон')
+                    ->where('filial_id', $request->filial)
+                    ->orderBy('id', 'desc')
+                    ->get();
+
                 foreach ($model as $mode){
-                    $kirimUser=User::where('id', $mode->user_id)->value('name');
-                    $delUser=User::where('id', $mode->del_user_id)->value('name');
+
+                    $kirimUser = User::where('id', $mode->user_id)->value('name');
+                    $delUser = User::where('id', $mode->del_user_id)->value('name');
                     echo'
                     <tr>
                         <td>' . $i++ . '</td>
                         <td>' . date('d.m.Y', strtotime($mode->kun)) . '</td>
                         <td>' . $mode->tulovturi . '</td>
-                        <td>' . $mode->shartnomaid . '</td>
+                        <td>' . $mode->shartnoma_id . '</td>
                         <td>' . $mode->status . '</td>
                         <td>' . number_format($mode->naqd, 0, ',', ' ') . '</td>
                         <td>' . number_format($mode->pastik, 0, ',', ' ') . '</td>
@@ -111,7 +117,7 @@ class OfficeBronTulovController extends Controller
                         <td style="white-space: wrap; width: 10%;">' . $delUser . '</td>
                     </tr>
                     ';
-                    
+
                     $naqd+=$mode->naqd;
                     $plastik+=$mode->pastik;
                     $hr+=$mode->hr;
@@ -145,10 +151,10 @@ class OfficeBronTulovController extends Controller
                         <td></td>
                         <td></td>
                         <td></td>
-                        
+
                     </tr>
                     ';
-            
+
                 echo'
             </tbody>
         </table>

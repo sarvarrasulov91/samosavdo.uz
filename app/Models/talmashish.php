@@ -12,6 +12,9 @@ class talmashish extends Model
 {
     use HasFactory;
     protected $table = 'talmashish';
+    protected $fillable = [
+        'status',
+    ];
 
     public function filial(): BelongsTo
     {

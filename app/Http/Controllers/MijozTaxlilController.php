@@ -9,7 +9,7 @@ use App\Models\filial;
 use App\Models\mijozlar;
 use App\Models\lavozim;
 use App\Models\tashrif;
-use App\Models\shartnoma1;
+use App\Models\shartnoma;
 
 class MijozTaxlilController extends Controller
 {
@@ -18,15 +18,12 @@ class MijozTaxlilController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        if((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 12 || Auth::user()->lavozim_id == 13) && Auth::user()->status == 'Актив'){
+        if(Auth::user()->filial_id == 10 ){
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
         }else{
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
         }
-        return view('mijoz.mijoztaxlil', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'filial' => $filial, 'xis_oyi' => $xis_oyi]);
+        return view('mijoz.mijoztaxlil', ['filial' => $filial]);
     }
 
     /**
@@ -44,7 +41,7 @@ class MijozTaxlilController extends Controller
     {
         $boshkun = $request->boshkun;
         $yakunkun = $request->yakunkun;
-        
+
         // Mijozlar taxlili ko'rish
 
         echo '
@@ -90,30 +87,25 @@ class MijozTaxlilController extends Controller
                             $filialbase = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
                         }
                         foreach ($filialbase as $filia) {
-                            $mijozlar = 0;
-                            $maktab = 0;
-                            $MTM = 0;
-                            $tibbiyot = 0;
-                            $davTashkilot = 0;
-                            $pensioner = 0;
-                            $ijtimoiy = 0;
-                            $bolaPuli = 0;
-                            $yatt = 0;
-                            $mchj = 0;
-                            $boshqalar = 0;
 
-                            $mijozlar = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('filial_id', $filia->id)->where('status',1)->count();
-                            $maktab = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Мактаб')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $MTM = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'МТМ')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $tibbiyot = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Тиббиёт')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $davTashkilot = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Давлат ташкилоти')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $pensioner = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Пенсионер')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $ijtimoiy = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Ижтимоий нафақа')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $bolaPuli = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Бола пули')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $yatt = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'ЯТТ')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $mchj = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'МЧЖ')->where('filial_id', $filia->id)->where('status','1')->count();
-                            $boshqalar = mijozlar::whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('ish_joy', 'Бошкалар')->where('filial_id', $filia->id)->where('status','1')->count();
-                            
+                            $jamiMijozlar = mijozlar::whereDate('created_at', '>=', $boshkun)
+                                ->whereDate('created_at', '<=', $yakunkun)
+                                ->where('filial_id', $filia->id)
+                                ->where('status', 1)
+                                ->get();
+
+                            $mijozlar = $jamiMijozlar->count();
+                            $maktab = $jamiMijozlar->where('ish_joy', 'Мактаб')->count();
+                            $MTM = mijozlar::where('ish_joy', 'МТМ')->count();
+                            $tibbiyot = mijozlar::where('ish_joy', 'Тиббиёт')->count();
+                            $davTashkilot = mijozlar::where('ish_joy', 'Давлат ташкилоти')->count();
+                            $pensioner = mijozlar::where('ish_joy', 'Пенсионер')->count();
+                            $ijtimoiy = mijozlar::where('ish_joy', 'Ижтимоий нафақа')->count();
+                            $bolaPuli = mijozlar::where('ish_joy', 'Бола пули')->count();
+                            $yatt = mijozlar::where('ish_joy', 'ЯТТ')->count();
+                            $mchj = mijozlar::where('ish_joy', 'МЧЖ')->count();
+                            $boshqalar = mijozlar::where('ish_joy', 'Бошкалар')->count();
+
                             $jamiMijozSoni += $mijozlar;
                             $jamiMaktab += $maktab;
                             $jamiMTM += $MTM;
@@ -125,7 +117,7 @@ class MijozTaxlilController extends Controller
                             $jamiYATT += $yatt;
                             $jamiMCHJ += $mchj;
                             $jamiBoshqalar += $boshqalar;
-                    
+
                             echo '
                             <tr class="text-center align-middle">
                                 <td>' . $filia->id . '</td>
@@ -141,7 +133,7 @@ class MijozTaxlilController extends Controller
                                 <td>' . number_format($yatt, 0, ',', ' ') . '</td>
                                 <td>' . number_format($mchj, 0, ',', ' ') . '</td>
                                 <td>' . number_format($boshqalar, 0, ',', ' ') . '</td>
-                                
+
                             </tr>';
                         }
 
@@ -180,7 +172,7 @@ class MijozTaxlilController extends Controller
                     </tbody>
                 </table>
             </div>
-        </div>'; 
+        </div>';
 
         // Tashrif taxlili ko'rish
 
@@ -220,7 +212,7 @@ class MijozTaxlilController extends Controller
                         $jamiBanner = 0;
                         $jamiTargibot = 0;
                         $jamiTashabbus = 0;
-                        
+
 
                         // $filialbase = filial::where('status', 'Актив')->where('id','!=','10')->get();
                         if(Auth::user()->filial_id == 10){
@@ -232,11 +224,24 @@ class MijozTaxlilController extends Controller
                             $ShartnomaSoni = 0;
                             $tashrifName=[];
                             $tashriflar = tashrif::where('status', 'Актив')->get();
+
                             foreach($tashriflar as $tashrif){
-                                $shartnomalar = new shartnoma1($filia->id);
-                                $ShartnomaSoni = $shartnomalar->whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('status','Актив')->count();            
-                                $tashrifName[] += $shartnomalar->whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->where('tashrif_id', $tashrif->id)->where('status','Актив')->count();                                
+
+                                $ShartnomaSoni = shartnoma::whereDate('created_at', '>=', $boshkun)
+                                    ->whereDate('created_at', '<=', $yakunkun)
+                                    ->where('status','Актив')
+                                    ->where('filial_id', $filia->id)
+                                    ->count();
+
+                                $tashrifName[] +=
+                                    shartnoma::whereDate('created_at', '>=', $boshkun)
+                                        ->whereDate('created_at', '<=', $yakunkun)
+                                        ->where('tashrif_id', $tashrif->id)
+                                        ->where('filial_id', $filia->id)
+                                        ->where('status','Актив')
+                                        ->count();
                             }
+
                             $jamiShartnoma += $ShartnomaSoni;
                             $jamiEskiMijoz += $tashrifName[0];
                             $jamiTV += $tashrifName[1];
@@ -264,7 +269,7 @@ class MijozTaxlilController extends Controller
                                 <td>' . number_format($tashrifName[7], 0, ',', ' ') . '</td>
                                 <td>' . number_format($tashrifName[8], 0, ',', ' ') . '</td>
                                 <td>' . number_format($tashrifName[9], 0, ',', ' ') . '</td>
-                                
+
                             </tr>';
                         }
 
@@ -283,7 +288,7 @@ class MijozTaxlilController extends Controller
                             <td>' . number_format($jamiBanner, 0, ',', ' ') . '</td>
                             <td>' . number_format($jamiTargibot, 0, ',', ' ') . '</td>
                             <td>' . number_format($jamiTashabbus, 0, ',', ' ') . '</td>
-                            
+
                         </tr>
 
                         <tr class="text-center align-middle text-danger fw-bold">
@@ -300,14 +305,14 @@ class MijozTaxlilController extends Controller
                             <td>' . number_format($jamiBanner/$jamiShartnoma*100, 0, ',', ' ') . '%' . '</td>
                             <td>' . number_format($jamiTargibot/$jamiShartnoma*100, 0, ',', ' ') . '%' . '</td>
                             <td>' . number_format($jamiTashabbus/$jamiShartnoma*100, 0, ',', ' ') . '%' . '</td>
-                            
+
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </div>'; 
+        </div>';
 
-        return;   
+        return;
     }
 
     /**

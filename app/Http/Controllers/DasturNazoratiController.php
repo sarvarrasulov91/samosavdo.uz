@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdobonus1;
-use App\Models\savdo1;
-use App\Models\ktovar1;
+use App\Models\bonusSavdo;
+use App\Models\savdo;
+use App\Models\kirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\filial;
 
@@ -67,19 +67,23 @@ class DasturNazoratiController extends Controller
                 </thead>
                 <tbody id="tab1">
             ';
-            $i=0;
-            $ktovar1 = new ktovar1($id);
-            $ktovar = $ktovar1->where('status', '!=', 'Удалит')->get();
-            foreach ($ktovar as $ktovar){
-                $xona=strlen($ktovar->shtrix_kod);
-                $KtovarCount = new ktovar1($id);
-                $KtovarCount = $KtovarCount->where('shtrix_kod', $ktovar->shtrix_kod)->count();
-                if($xona!=17 || $KtovarCount>1){
+
+            $i = 0;
+
+            $ktovars = kirimTovar::where('status', '!=', 'Удалит')->where('filial_id', $id)->get();
+
+            foreach ($ktovars as $tovar){
+
+                $xona = strlen($tovar->shtrix_kod);
+
+                $KtovarCount = kirimTovar::where('shtrix_kod', $tovar->shtrix_kod)->where('filial_id', $id)->count();
+
+                if($xona != 17 || $KtovarCount > 1 || $xona != 19){
                     echo'
                         <tr class="align-middle">
-                            <td>'.$ktovar->id.'</td>
-                            <td>' . date('d.m.Y', strtotime($ktovar->kun)) .'</td>
-                            <td>'.$ktovar->shtrix_kod.'</td>
+                            <td>'.$tovar->id.'</td>
+                            <td>' . date('d.m.Y', strtotime($tovar->kun)) .'</td>
+                            <td>'.$tovar->shtrix_kod.'</td>
                             <td>'.$xona.'</td>
                             <td>'.$KtovarCount.'</td>
                         </tr>
@@ -87,7 +91,7 @@ class DasturNazoratiController extends Controller
                     $i++;
                 }
             }
-            if($i==0){
+            if($i == 0){
                 echo'
                     <tr class="align-middle">
                         <td colspan="5">Камчиликлар аниқланмади.</td>
@@ -115,32 +119,34 @@ class DasturNazoratiController extends Controller
                 </thead>
                 <tbody id="tab1">
             ';
-            $i=0;
-            $ktovar1 = new ktovar1($id);
-            $ktovar = $ktovar1->where('status', 'Шартнома')->get();
-            foreach ($ktovar as $ktovar){
-                $SavdoCount = new savdo1($id);
-                $SavdoCount = $SavdoCount->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Шартнома')->first();
+            $i = 0;
 
-                if(($SavdoCount->shtrix_kod ?? 0) != $ktovar->shtrix_kod){
+            $ktovars = kirimTovar::where('status', 'Шартнома')->where('filial_id', $id)->get();
 
-                    $tmqaytarish = tmqaytarish::where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Актив')->first();
+            foreach ($ktovars as $tovar){
+
+                $SavdoCount = savdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Шартнома')->first();
+
+                if(($SavdoCount->shtrix_kod ?? 0) != $tovar->shtrix_kod){
+
+                    $tmqaytarish = tmqaytarish::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Актив')->first();
+
                     if(!$tmqaytarish){
                         echo'
                         <tr class="align-middle">
-                            <td style="width: 10%;">'.$ktovar->id . '</td>
-                            <td style="width: 20%;">' . date('d.m.Y', strtotime($ktovar->kun)) . '</td>
-                            <td style="width: 20%;">' . $ktovar->shtrix_kod . '</td>
-                            <td style="width: 20%;">' . $ktovar->shatnomaid . '</td>
-                            <td style="width: 15%;">' . $ktovar->status . '</td>
-                            <td style="width: 15%;">' . date('d.m.Y', strtotime($ktovar->ch_kun)) . '</td>
+                            <td style="width: 10%;">'. $tovar->id . '</td>
+                            <td style="width: 20%;">' . date('d.m.Y', strtotime($tovar->kun)) . '</td>
+                            <td style="width: 20%;">' . $tovar->shtrix_kod . '</td>
+                            <td style="width: 20%;">' . $tovar->shartnoma_id . '</td>
+                            <td style="width: 15%;">' . $tovar->status . '</td>
+                            <td style="width: 15%;">' . date('d.m.Y', strtotime($tovar->ch_kun)) . '</td>
                         </tr>
                     ';
                     $i++;
                     }
                 }
             }
-            if($i==0){
+            if( $i == 0){
                 echo'
                     <tr class="align-middle">
                         <td colspan="6">Камчиликлар аниқланмади.</td>
@@ -158,30 +164,33 @@ class DasturNazoratiController extends Controller
                 <tbody id="tab1">
             ';
 
-            $i=0;
-            $ktovar1 = new ktovar1($id);
-            $ktovar = $ktovar1->where('status', 'Нақд')->get();
-            foreach ($ktovar as $ktovar){
-                $SavdoCount = new savdo1($id);
-                $SavdoCount = $SavdoCount->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Нақд')->first();
-                if(($SavdoCount->shtrix_kod ?? 0) != $ktovar->shtrix_kod){
-                    $tmqaytarish = tmqaytarish::where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Актив')->first();
+            $i = 0;
+
+            $ktovars = kirimTovar::where('status', 'Нақд')->where('filial_id', $id)->get();
+            foreach ($ktovars as $tovar){
+
+                $SavdoCount = savdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Нақд')->first();
+
+                if(($SavdoCount->shtrix_kod ?? 0) != $tovar->shtrix_kod){
+
+                    $tmqaytarish = tmqaytarish::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Актив')->first();
+
                     if(!$tmqaytarish){
                         echo'
                             <tr class="align-middle">
-                                <td style="width: 10%;">'.$ktovar->id.'</td>
-                                <td style="width: 20%;">' . date('d.m.Y', strtotime($ktovar->kun)) .'</td>
-                                <td style="width: 20%;">'.$ktovar->shtrix_kod.'</td>
-                                <td style="width: 20%;">'.$ktovar->shatnomaid.'</td>
-                                <td style="width: 15%;">'.$ktovar->status.'</td>
-                                <td style="width: 15%;">' . date('d.m.Y', strtotime($ktovar->ch_kun)) .'</td>
+                                <td style="width: 10%;">'. $tovar->id.'</td>
+                                <td style="width: 20%;">'. date('d.m.Y', strtotime($tovar->kun)) .'</td>
+                                <td style="width: 20%;">'.$tovar->shtrix_kod.'</td>
+                                <td style="width: 20%;">'.$tovar->shartnoma_id.'</td>
+                                <td style="width: 15%;">'.$tovar->status.'</td>
+                                <td style="width: 15%;">' . date('d.m.Y', strtotime($tovar->ch_kun)) .'</td>
                             </tr>
                         ';
                         $i++;
                     }
                 }
             }
-            if($i==0){
+            if($i == 0){
                 echo'
                     <tr class="align-middle">
                         <td colspan="6">Камчиликлар аниқланмади.</td>
@@ -199,55 +208,17 @@ class DasturNazoratiController extends Controller
                 <tbody id="tab1">
             ';
 
-            $i=0;
-            $ktovar1 = new ktovar1($id);
-            $ktovar = $ktovar1->where('status', 'Фонд')->get();
-            foreach ($ktovar as $ktovar){
-                $SavdoCount = new savdo1($id);
-                $SavdoCount = $SavdoCount->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Фонд')->first();
+            $i = 0;
+
+            $ktovars = kirimTovar::where('status', 'Фонд')->where('filial_id', $id)->get();
+            foreach ($ktovars as $ktovar){
+
+                $SavdoCount = savdo::where('filial_id', $id)->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Фонд')->first();
+
                 if(($SavdoCount->shtrix_kod ?? 0) != $ktovar->shtrix_kod){
-                    $tmqaytarish = tmqaytarish::where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Актив')->first();
-                    if(!$tmqaytarish){
-                        echo'
-                            <tr class="align-middle">
-                                <td style="width: 10%;">'.$ktovar->id.'</td>
-                                <td style="width: 20%;">' . date('d.m.Y', strtotime($ktovar->kun)) .'</td>
-                                <td style="width: 20%;">'.$ktovar->shtrix_kod.'</td>
-                                <td style="width: 20%;">'.$ktovar->shatnomaid.'</td>
-                                <td style="width: 15%;">'.$ktovar->status.'</td>
-                                <td style="width: 15%;">' . date('d.m.Y', strtotime($ktovar->ch_kun)) .'</td>
-                            </tr>
-                        ';
-                        $i++;
-                    }
-                }
-            }
-            if($i==0){
-                echo'
-                    <tr class="align-middle">
-                        <td colspan="6">Камчиликлар аниқланмади.</td>
-                    </tr>
-                ';
-            }
-        echo'
-            </tbody>
-            </table>
-        ';
 
+                    $tmqaytarish = tmqaytarish::where('filial_id', $id)->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Актив')->first();
 
-        echo'<h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">Бонус</h5>';
-        echo '
-            <table class="table table-bordered text-center align-middle ">
-                <tbody id="tab1">
-            ';
-            $i=0;
-            $ktovar1 = new ktovar1($id);
-            $ktovar = $ktovar1->where('status', 'Бонус')->get();
-            foreach ($ktovar as $ktovar){
-                $savdobonusCount = new savdobonus1($id);
-                $savdobonusCount = $savdobonusCount->where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Актив')->first();
-                if(($savdobonusCount->shtrix_kod ?? 0) != $ktovar->shtrix_kod){
-                    $tmqaytarish = tmqaytarish::where('shtrix_kod', $ktovar->shtrix_kod)->where('status','Актив')->first();
                     if(!$tmqaytarish){
                         echo'
                             <tr class="align-middle">
@@ -275,6 +246,52 @@ class DasturNazoratiController extends Controller
             </table>
         ';
 
+
+        echo'<h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">Бонус</h5>';
+        echo '
+            <table class="table table-bordered text-center align-middle ">
+                <tbody id="tab1">
+            ';
+
+            $i = 0;
+
+            $ktovars = kirimTovar::where('filial_id', $id)->where('status', 'Бонус')->get();
+
+            foreach ($ktovars as $tovar){
+
+                $savdobonusCount = bonusSavdo::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Актив')->first();
+
+                if(($savdobonusCount->shtrix_kod ?? 0) != $tovar->shtrix_kod){
+
+                    $tmqaytarish = tmqaytarish::where('filial_id', $id)->where('shtrix_kod', $tovar->shtrix_kod)->where('status','Актив')->first();
+
+                    if(!$tmqaytarish){
+                        echo'
+                            <tr class="align-middle">
+                                <td style="width: 10%;">'. $tovar->id.'</td>
+                                <td style="width: 20%;">'. date('d.m.Y', strtotime($tovar->kun)) .'</td>
+                                <td style="width: 20%;">'. $tovar->shtrix_kod.'</td>
+                                <td style="width: 20%;">'. $tovar->shartnoma_id.'</td>
+                                <td style="width: 15%;">'. $tovar->status.'</td>
+                                <td style="width: 15%;">' . date('d.m.Y', strtotime($tovar->ch_kun)) .'</td>
+                            </tr>
+                        ';
+                        $i++;
+                    }
+                }
+            }
+            if($i == 0){
+                echo'
+                    <tr class="align-middle">
+                        <td colspan="6">Камчиликлар аниқланмади.</td>
+                    </tr>
+                ';
+            }
+        echo'
+            </tbody>
+            </table>
+        ';
+
         echo'<h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">Мижозлардан кайтган товарларга янги яратилган баркодларни текшириш</h5>';
         echo '
             <table class="table table-bordered text-center align-middle ">
@@ -289,26 +306,28 @@ class DasturNazoratiController extends Controller
                 </thead>
                 <tbody id="tab1">
             ';
-            $i=0;
+            $i = 0;
 
-            $tmqaytarish = tmqaytarish::where('status','Актив')->where('filial_id',$id)->get();
+            $tmqaytarish = tmqaytarish::where('filial_id', $id)->where('status','Актив')->where('filial_id',$id)->get();
+
             foreach ($tmqaytarish as $tmqaytaris){
-                $ktovar1 = new ktovar1($id);
-                $ktovar = $ktovar1->where('shtrix_kod', $tmqaytaris->shtrix_kod_yangi)->where('status', '!=', 'Удалит')->first();
+
+                $ktovar = kirimTovar::where('filial_id', $id)->where('shtrix_kod', $tmqaytaris->shtrix_kod_yangi)->where('status', '!=', 'Удалит')->first();
+
                 if(!$ktovar){
                     echo'
                         <tr class="align-middle">
-                            <td>'.$tmqaytaris->id.'</td>
-                            <td>' . date('d.m.Y', strtotime($tmqaytaris->kun)) .'</td>
-                            <td>'.$tmqaytaris->shtrix_kod_yangi.'</td>
-                            <td>'.$tmqaytaris->status.'</td>
-                            <td>'.$tmqaytaris->kirim_id.'</td>
+                            <td>'. $tmqaytaris->id.'</td>
+                            <td>'. date('d.m.Y', strtotime($tmqaytaris->kun)) .'</td>
+                            <td>'. $tmqaytaris->shtrix_kod_yangi.'</td>
+                            <td>'. $tmqaytaris->status.'</td>
+                            <td>'. $tmqaytaris->kirim_id.'</td>
                         </tr>
                     ';
                     $i++;
                 }
             }
-            if($i==0){
+            if($i == 0){
                 echo'
                     <tr class="align-middle">
                         <td colspan="6">Камчиликлар аниқланмади.</td>

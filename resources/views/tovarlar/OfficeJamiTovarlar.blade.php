@@ -57,24 +57,36 @@
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
+
             function tabyuklash() {
-                var id = $('#filial').val();
-                var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+                let id = $('#filial').val();
+
                 if (id > 0) {
+
+                    $('#tabpros').html(`
+                        <div style="margin: 100px 0;" class="text-center d-block">
+                            <div class="mx-auto spinner-border text-primary"></div>
+                        </div>
+                    `);
+
                     $.ajax({
                         url: "{{ route('OfficeJamiTovarlar.index') }}/" + id,
                         method: "GET",
-                        data: {
-                            filial: id,
-                            _token: csrf
-                        },
-                        success: function(data) {
+                        success: function (data) {
                             $('#tabpros').html(data);
-
+                        },
+                        error: function(xhr) {
+                            $('#tabpros').html(`
+                                <div class="alert alert-danger text-center">
+                                    Ma'lumot yuklashda xatolik yuz berdi!
+                                </div>
+                            `);
                         }
-                    })
+                    });
                 }
             }
+
 
             $(document).ready(function() {
 

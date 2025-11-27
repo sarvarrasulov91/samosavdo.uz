@@ -249,12 +249,11 @@
             })
 
 
-
             $(document).on('click', '#tovarudalit', function() {
                 var id = $(this).data('id');
                 var savdoid = $(this).data('savdoid');
                 var uzid = confirm(id + ' ' + savdoid + ' ўчирилмокда. ТАСДИҚЛАНГ !!!')
-                if (uzid == true) {
+                if (uzid) {
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

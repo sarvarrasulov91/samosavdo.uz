@@ -8,23 +8,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class shartnoma1 extends Model
+class shartnoma extends Model
 {
     use HasFactory;
 
-    protected $table = [];
+    protected $table = 'shartnoma';
     protected $guarded = [];
 
-    function __construct($filialid=null, array $attributes = [] )
-    {
-        parent::__construct($attributes);
-        $this->setTable('shartnoma' . ($filialid==null ? Auth::user()->filial_id : $filialid));
-    }
+//    function __construct($filialid=null, array $attributes = [] )
+//    {
+//        parent::__construct($attributes);
+//        $this->setTable('shartnoma' . ($filialid==null ? Auth::user()->filial_id : $filialid));
+//    }
 
 
     public function mijozlar(): BelongsTo
     {
-        return $this->belongsTo(mijozlar::class);
+        return $this->belongsTo(mijozlar::class, 'mijozlar_id');
     }
 
     public function User(): BelongsTo
@@ -39,11 +39,12 @@ class shartnoma1 extends Model
 
     public function tulovlar1(): HasOne
     {
-        return $this->hasOne(tulovlar1::class, 'shartnomaid', 'id');
+        return $this->hasOne(tulovlar::class, 'shartnomaid', 'id');
     }
 
-
-
-
+    public function filial(): BelongsTo
+    {
+        return $this->belongsTo(filial::class, 'filial_id');
+    }
 
 }

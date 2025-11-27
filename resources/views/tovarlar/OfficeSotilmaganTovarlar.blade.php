@@ -69,6 +69,7 @@
             }
 
             $(document).ready(function() {
+
                 $("#qidirish").keyup(function() {
                     var value = $(this).val().toLowerCase();
                     $("#tab1 tr").filter(function() {
@@ -79,9 +80,6 @@
                 $("#filial").select2({
                     placeholder: "Филиал...",
                 });
-
-                $("#yakunkun").val(new Date().toISOString().substring(0, 10));
-                $("#boshkun").val(new Date().toISOString().substring(0, 8) + '01');
 
                 $('#saqlash').on('click', function() {
                     var filial = $('#filial').val();

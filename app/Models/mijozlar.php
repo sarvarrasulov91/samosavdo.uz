@@ -16,17 +16,17 @@ class mijozlar extends Model
 
     public function naqdsavdo1(): HasOne
     {
-        return $this->hasOne(naqdsavdo1::class);
+        return $this->hasOne(naqdSavdo::class);
     }
 
     public function shartnoma1(): HasOne
     {
-        return $this->hasOne(shartnoma1::class);
+        return $this->hasOne(shartnoma::class);
     }
 
     public function fond1(): HasOne
     {
-        return $this->hasOne(fond1::class);
+        return $this->hasOne(fondSavdo::class);
     }
 
     public function viloyat(): BelongsTo
@@ -43,17 +43,17 @@ class mijozlar extends Model
     {
         return $this->belongsTo(mfy::class);
     }
-    
+
     public function filial(): BelongsTo
     {
         return $this->belongsTo(filial::class);
     }
-    
+
     public function ish_joy(): BelongsTo
     {
         return $this->belongsTo(ish_joy::class);
     }
-    
+
     public function ish_tashkiloti(): BelongsTo
     {
         return $this->belongsTo(ish_tashkiloti::class);

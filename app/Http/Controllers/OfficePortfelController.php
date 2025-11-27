@@ -4,17 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\shartnoma1;
-use App\Models\tulovlar1;
-use App\Models\savdo1;
+use App\Models\shartnoma;
+use App\Models\tulovlar;
+use App\Models\savdo;
 use App\Models\xodimlar;
-use App\Models\mijozlar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
-
 use DateTime;
-
 
 
 class OfficePortfelController extends Controller
@@ -24,7 +20,7 @@ class OfficePortfelController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+        if (Auth::user()->filial_id == 10 && Auth::user()->status == 'Актив') {
 
             $filial = filial::where('status', 'Актив')->where('id', '!=', '10')->get();
 
@@ -109,8 +105,7 @@ class OfficePortfelController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $model = new shartnoma1($id);
-                $shartnoma = $model->where('status', 'Актив')->orderBy('id', 'desc')->get();
+                $shartnoma = shartnoma::where('status', 'Актив')->where('filial_id', $id)->orderBy('id', 'desc')->get();
 
                 $shsumma = 0;
                 $shotulov = 0;
@@ -127,21 +122,15 @@ class OfficePortfelController extends Controller
 
                 foreach ($shartnoma as $shartnom){
 
-                    $shJamiSumma = 0;
-
-                    $joqarz = 0;
-                    $joqarzm = 0;
-
                     $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
-                    $savdo = new savdo1($id);
-                    $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                    $savdosumma = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                    $oldindantulovinfo = new tulovlar1($id);
-                    $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                    $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-                    $tulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
-                    $tulovinfo = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
+                    $oldindantulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
+                    $chegirma = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('chegirma');
+                    $tulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
+
+                    $tulovinfo = tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
                     $tsumma = 0;
                     $tsumma = $tulovinfo->umumiysumma ?? 0;
@@ -190,7 +179,7 @@ class OfficePortfelController extends Controller
                         $currentMonth = date('m');
                         $yearDiff = date('Y') - date('Y', strtotime($shkun));
                         $contractMonth = date('m', strtotime($shkun));
-                        $months = $currentMonth + ($yearDiff * 12) - $contractMonth;
+                        $months = +$currentMonth + ($yearDiff * 12) - $contractMonth;
 
                         //$months = ($jointerval->y * 12) + $jointerval->m;
 
@@ -239,7 +228,7 @@ class OfficePortfelController extends Controller
                         <tr class="' . $trrang . '">
                             <td>' . $shartnom->mijozlar_id . '</td>
                             <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                            <td>' . $shartnom->id . '</td>
+                            <td>' . $shartnom->shid . '</td>
                             <td>' . $shartnom->mijozlar->passport_sn . '</td>
                             <td>' . $shartnom->mijozlar->pinfl . '</td>
                             <td>' . $shartnom->mijozlar->tuman->name_uz . '</td>
@@ -362,8 +351,8 @@ class OfficePortfelController extends Controller
                 </thead>
 
                 <tbody id="tab1">';
-                $savdo = new savdo1($request->filial);
-                $savdomodel = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
+
+                $savdomodel = savdo::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
                 $i = 1;
                 $jami = 0;
                 foreach ($savdomodel as $savdomode) {

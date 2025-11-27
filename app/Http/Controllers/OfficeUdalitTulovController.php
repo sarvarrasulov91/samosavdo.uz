@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\xissobotoy;
-use App\Models\tulovlar1;
+use App\Models\tulovlar;
 use App\Models\filial;
-use App\Models\lavozim;
 use App\Models\User;
 
 class OfficeUdalitTulovController extends Controller
@@ -17,15 +15,12 @@ class OfficeUdalitTulovController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        if((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 12 || Auth::user()->lavozim_id == 13 || Auth::user()->lavozim_id == 14) && Auth::user()->status == 'Актив'){
+        if(Auth::user()->filial_id == 10){
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
         }else{
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
         }
-        return view('kassa.officeudalittulov', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'filial' => $filial, 'xis_oyi' => $xis_oyi]);
+        return view('kassa.officeudalittulov', ['filial' => $filial]);
     }
 
     /**
@@ -50,7 +45,7 @@ class OfficeUdalitTulovController extends Controller
                 <tr class="text-bold text-primary">
                     <th>ID</th>
                     <th>Куни</th>
-                    
+
                     <th>Тулов тури</th>
                     <th>Шарт-№</th>
                     <th>Статус</th>
@@ -64,39 +59,31 @@ class OfficeUdalitTulovController extends Controller
                     <th>Масъул ходим</th>
                     <th>Учирган кун</th>
                     <th>Учирган ходим</th>
-                    
+
                 </tr>
             </thead>
             <tbody id="tab1">';
-                
-                $i=1;
-                $naqd=0;
-                $plastik=0;
-                $hr=0;
-                $click=0;
-                $avtot=0;
-                $chegirma=0;
-                $jami=0;
 
-                $unaqd=0;
-                $uplastik=0;
-                $uhr=0;
-                $uclick=0;
-                $uavtot=0;
-                $uchegirma=0;
-                $ujami=0;
-                
-                $tulovlar = new tulovlar1($request->filial);
-                $model=$tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Удалит')->orderBy('id', 'desc')->get();
+                $i=1;
+                $naqd = $plastik = $hr = $click = $avtot = $chegirma = $jami = 0;
+
+                $unaqd = $uplastik = $uhr = $uclick = $uavtot = $uchegirma = $ujami = 0;
+
+                $model = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('status', 'Удалит')
+                    ->where('filial_id', $request->filial)
+                    ->orderBy('id', 'desc')
+                    ->get();
+
                 foreach ($model as $mode){
-                    $kirimUser=User::where('id', $mode->user_id)->value('name');
-                    $delUser=User::where('id', $mode->del_user_id)->value('name');
+                    $kirimUser = User::where('id', $mode->user_id)->value('name');
+                    $delUser = User::where('id', $mode->del_user_id)->value('name');
                     echo'
                     <tr>
                         <td>' . $i++ . '</td>
                         <td>' . date('d.m.Y', strtotime($mode->kun)) . '</td>
                         <td>' . $mode->tulovturi . '</td>
-                        <td>' . $mode->shartnomaid . '</td>
+                        <td>' . $mode->shartnoma_id . '</td>
                         <td>' . $mode->status . '</td>
                         <td>' . number_format($mode->naqd, 0, ',', ' ') . '</td>
                         <td>' . number_format($mode->pastik, 0, ',', ' ') . '</td>
@@ -110,22 +97,22 @@ class OfficeUdalitTulovController extends Controller
                         <td style="white-space: wrap; width: 10%;">' . $delUser . '</td>
                     </tr>
                     ';
-                    
-                    $naqd+=$mode->naqd;
-                    $plastik+=$mode->pastik;
-                    $hr+=$mode->hr;
-                    $click+=$mode->click;
-                    $avtot+=$mode->avtot;
-                    $chegirma+=$mode->chegirma;
-                    $jami+=$mode->umumiysumma;
+
+                    $naqd += $mode->naqd;
+                    $plastik += $mode->pastik;
+                    $hr += $mode->hr;
+                    $click += $mode->click;
+                    $avtot += $mode->avtot;
+                    $chegirma += $mode->chegirma;
+                    $jami += $mode->umumiysumma;
                 }
-                $unaqd+=$naqd;
-                $uplastik+=$plastik;
-                $uhr+=$hr;
-                $uclick+=$click;
-                $uavtot+=$avtot;
-                $uchegirma+=$chegirma;
-                $ujami+=$jami;
+                $unaqd += $naqd;
+                $uplastik += $plastik;
+                $uhr += $hr;
+                $uclick += $click;
+                $uavtot += $avtot;
+                $uchegirma += $chegirma;
+                $ujami += $jami;
 
                 echo'
                     <tr class="fw-bold">
@@ -144,10 +131,10 @@ class OfficeUdalitTulovController extends Controller
                         <td></td>
                         <td></td>
                         <td></td>
-                        
+
                     </tr>
                     ';
-            
+
                 echo'
             </tbody>
         </table>

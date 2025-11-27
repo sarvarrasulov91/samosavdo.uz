@@ -33,7 +33,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                
+
                                 <div class="col-2">
                                     <button id="saqlash" class="btn btn-primary btn-xs"> Тасдиқлаш </button>
                                 </div>
@@ -42,10 +42,10 @@
                                 </div>
 
                             </div>
-                           
+
                         </div>
                         <div class="card-body">
-                            <div class="people-list dz-scroll" id="tabpros">
+                            <div class="people-list dz-scroll" id="tabpros" style="overflow: auto">
 
                             </div>
                         </div>
@@ -102,7 +102,7 @@
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                     })
                 })
-                
+
                 $("#filial").select2({
                     placeholder: "Филиал...",
                 });

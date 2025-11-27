@@ -63,6 +63,19 @@
                                 <span id="kun_error" class="text-danger error-text"></span>
                             </div>
                             <div class="p-1">
+                                <label>Филиални танланг
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select id="filial_id" name="filial_id" class="multi-select form-control">
+                                    <option value="">Filial...</option>
+                                    @foreach ($filials as $filial)
+                                        <option value="{{ $filial->id }}">{{ $filial->fil_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span id="filial_id_error" class="text-danger error-text"></span>
+                            </div>
+                            <div class="p-1">
                                 <label>Кирим турини танланг
                                     <span class="text-danger">*</span>
                                 </label>
@@ -166,6 +179,10 @@
                 });
 
                 $("#kirim_id").select2({
+                    dropdownParent: $('#kirim')
+                });
+
+                $("#filial_id").select2({
                     dropdownParent: $('#kirim')
                 });
 

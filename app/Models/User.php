@@ -45,18 +45,18 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    
+
     public function savdo1(): HasMany
     {
-        return $this->hasMany(savdo1::class);
+        return $this->hasMany(savdo::class);
     }
     public function shartnoma1(): HasMany
     {
-        return $this->hasMany(shartnoma1::class);
+        return $this->hasMany(shartnoma::class);
     }
     public function tulovlar1(): HasMany
     {
-        return $this->hasMany(tulovlar1::class);
+        return $this->hasMany(tulovlar::class);
     }
     public function sms(): HasMany
     {

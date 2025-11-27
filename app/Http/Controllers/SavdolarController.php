@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdo1;
-use App\Models\ktovar1;
+use App\Models\savdo;
+use App\Models\kirimTovar;
 use App\Models\tmodel;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -18,18 +18,17 @@ class SavdolarController extends Controller
      */
     public function index()
     {
-        
-        $model = ktovar1::where('status', 'Сотилмаган')->get();
-        
-        $latestSavdo = Savdo1::where('status', '!=', 'Удалит')->max('unix_id');
-        
+        $model = kirimTovar::where('status', 'Сотилмаган')->where('filial_id', Auth::user()->filial_id)->get();
+
+        $latestSavdo = savdo::where('status', '!=', 'Удалит')->max('unix_id');
+
         if ($latestSavdo !== null) { // Buni tekshirish kerak
             $unix_id = ($latestSavdo * 1) + 1;
         } else {
             $unix_id = 1;
         }
-        
-        return view('savdo.savdolar', ['model'=>$model, 'unix_id' => $unix_id]);
+
+        return view('savdo.savdolar', ['model' => $model, 'unix_id' => $unix_id]);
     }
 
     /**
@@ -37,9 +36,13 @@ class SavdolarController extends Controller
      */
     public function create()
     {
-        $savdounix_id = savdo1::select('unix_id')->where('status', 'Актив')->orderBy('unix_id', 'desc')->groupBy('unix_id')->get();
-        
-        $savdomodel = savdo1::where('status', 'Актив')
+        $savdounix_id = savdo::select('unix_id')->where('status', 'Актив')
+            ->where('filial_id', Auth::user()->filial_id)
+            ->orderBy('unix_id', 'desc')
+            ->groupBy('unix_id')
+            ->get();
+
+        $savdomodel = savdo::where('status', 'Актив')
         ->with(['tur' => function ($query) {
             $query->select('id','tur_name');
         }])
@@ -50,6 +53,7 @@ class SavdolarController extends Controller
             $query->select('id','model_name');
         }])
         ->select('id','tur_id','brend_id','tmodel_id','unix_id','msumma','qushimch','created_at')
+        ->where('filial_id', Auth::user()->filial_id)
         ->get();
 
         return response()->json(['savdounix_id' => $savdounix_id, 'savdomodel' => $savdomodel ], 200);
@@ -60,35 +64,38 @@ class SavdolarController extends Controller
      */
     public function store(Request $request)
     {
-        $model = savdo1::where('unix_id', $request->unix_id)->where('status', '!=', 'Актив')->where('status', '!=', 'Удалит')->count();
+        $model = savdo::where('unix_id', $request->unix_id)
+            ->whereNotIn('status', ['Актив', 'Удалит'])
+            ->where('filial_id', Auth::user()->filial_id)
+            ->count();
+
         if ($model >= 1) {
-            return response()->json(['message' => ' Хурматли: ' . Auth::user()->name  .'  ' . $request->unix_id.'- савдо рақам ишлатилганлиги сабабли янги савдо рақамини олишингизни тавсия этамиз.'], 200);
+            return response()->json(['message' => 'Boshqa savdo raqam tanlang.'], 200);
         }else{
 
-            $chegirma=0;
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
             $chegirma = tmodel::where('id', $request->model_id)->value('aksiya');
-            if($chegirma>0){
-                $chegirmamiqdor=round(($request->modelsumma*($chegirma/100)),-3);
-            }else{
-                $chegirmamiqdor=0;
-            }
 
-            $bonusTur = 0;
-            $bonusFilial = 0;
+            if($chegirma > 0){
+                $chegirmamiqdor = round(($request->modelsumma * ($chegirma / 100)),-3);
+            }else{
+                $chegirmamiqdor = 0;
+            }
 
             $bonusTur = tur::where('id', $request->tur_id)->value('aksiya');
             $bonusFilial = filial::where('id', Auth::user()->filial_id)->value('bonus_daraja');
-            
+
             if($bonusTur > $bonusFilial){
                 $bonussumma = round((($request->modelsumma - $chegirmamiqdor) * ($bonusTur / 100)), -3);
             }else{
                 $bonussumma = round((($request->modelsumma - $chegirmamiqdor) * ($bonusFilial / 100)), -3);
             }
 
-            $zaqis = new Savdo1;
+            $zaqis = new savdo;
+            $zaqis->kun = today();
             $zaqis->unix_id = $request->unix_id;
+            $zaqis->filial_id = Auth::user()->filial_id;
             $zaqis->tur_id = $request->tur_id;
             $zaqis->brend_id = $request->brend_id;
             $zaqis->tmodel_id = $request->model_id;
@@ -130,9 +137,9 @@ class SavdolarController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $id = $request->id;
-        $savdo = Savdo1::where('id', $id)->first();
+        $savdo = savdo::where('id', $id)->where('filial_id', Auth::user()->filial_id)->first();
+
         if (!$savdo) {
             return response()->json(['message' => 'Хатолик. Товар шартномага бириктирилган.'], 500);
         }
@@ -141,8 +148,9 @@ class SavdolarController extends Controller
         $chegirma = $savdo->chegirma;
         $qushimch = $request->qushmchsumma;
 
-        $result = Savdo1::where('id', $id)
+        $result = savdo::where('id', $id)
             ->where('status', 'Актив')
+            ->where('filial_id', Auth::user()->filial_id)
             ->limit(1)
             ->update([
                 'msumma' => $sotuvnarhi + $qushimch - $chegirma,
@@ -161,27 +169,22 @@ class SavdolarController extends Controller
      */
     public function destroy(string $id)
     {
+        $savdo = savdo::where('id', $id)
+            ->where('shartnoma_id', 0)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->where('status', 'Актив')
+            ->where('status2', 'Актив')
+            ->where('shtrix_kod', 0)
+            ->where('fond_id', 0)
+            ->first();
 
-        $savdo = Savdo1::where('id', $id)->first();
         if (!$savdo) {
             return response()->json(['message' => 'Хатолик. Товар шартномага бириктирилган.'], 500);
         }
 
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $result = Savdo1::where('id', $id)
-            ->where('status', 'Актив')
-            ->limit(1)
-            ->update([
-                'status' => "Удалит",
-                'del_kun' => now(), // O'zgarishi kerak bo'lgan qatnashchilarning vaqtini hisoblash uchun 'now()' funksiyasidan foydalanamiz
-                'del_xis_oyi' => $xis_oyi,
-                'del_user_id' => Auth::user()->id,
-            ]);
+        $savdo->delete();
 
-        if ($result == 1) {
-            return response()->json(['message' => 'Товар ўчирилди.'], 200);
-        } else {
-            return response()->json(['message' => 'Товарни ўчиришда хатолик. Товар шартномага бириктирилган.'], 500);
-        }
+        return response()->json(['message' => 'Товар ўчирилди.'], 200);
+
     }
 }

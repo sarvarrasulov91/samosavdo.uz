@@ -3,20 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class savdobonus1 extends Model
+
+class savdo extends Model
 {
     use HasFactory;
-    protected $table = [];
 
-    function __construct($filialid=null, array $attributes = [] )
-    {
-        parent::__construct($attributes);
-        $this->setTable('savdobonus' . ($filialid==null ? Auth::user()->filial_id : $filialid));
-    }
+    protected $table = 'savdo';
+
+    protected $guarded = [];
+
+//    function __construct($filialid=null, array $attributes = [] )
+//    {
+//        parent::__construct($attributes);
+//        $this->setTable('savdo' . ($filialid==null ? Auth::user()->filial_id : $filialid));
+//    }
 
     public function tur(): BelongsTo
     {
@@ -32,4 +36,10 @@ class savdobonus1 extends Model
     {
         return $this->belongsTo(tmodel::class);
     }
+
+    public function filial(): BelongsTo
+    {
+        return $this->belongsTo(filial::class);
+    }
+
 }
