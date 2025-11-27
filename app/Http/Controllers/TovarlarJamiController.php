@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 
 
 class TovarlarJamiController extends Controller
@@ -16,10 +16,12 @@ class TovarlarJamiController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $model2 = ktovar1::where('status', 'Сотилмаган')->orderBy('id', 'desc')->get();
+            $model2 = kirimTovar::where('status', 'Сотилмаган')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')->get();
 
             return view('tovarlar.jamitovarlar', [
-                'model2'=>$model2
+                'model2' => $model2
                 ]);
         }else{
             Auth::guard('web')->logout();
@@ -53,7 +55,7 @@ class TovarlarJamiController extends Controller
 
                 foreach ($ttovarlar as $ttovarla) {
 
-                    $model = ktovar1::where('id', $ttovarla)->get();
+                    $model = kirimTovar::where('id', $ttovarla)->where('filial_id', Auth::user()->filial_id)->get();
 
                     foreach ($model as $mode) {
 

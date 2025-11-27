@@ -69,8 +69,8 @@
                                     <select name="mijoz" id="mijoz" class="multi-select form-control">
                                         <option value="">Мижоз номи...</option>
                                         @foreach ($shartnoma as $shartnom)
-                                            <option value="{{ $shartnom->id }}">
-                                                {{ $shartnom->id . ' - ' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name }}
+                                            <option value="{{ $shartnom->id }}" data-filial="{{ $shartnom->filial_id }}" data-shid="{{ $shartnom->shid }}">
+                                                {{ $shartnom->shid . ' - ' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -167,11 +167,14 @@
             });
 
             $("#mijoz").change(function() {
-                var shid = $('#mijoz').val();
+                var id = $('#mijoz').val();
+                var filialId = $('#mijoz option:selected').data('filial');
+                var shid = $('#mijoz option:selected').data('shid');
                 $.ajax({
-                    url: "{{ route('shartnomalar.index') }}/" + shid,
+                    url: "{{ route('shartnomalar.index') }}/" + id,
                     method: "GET",
                     data: {
+                        filialId: filialId,
                         shid: shid,
                     },
                     success: function(data) {
@@ -190,11 +193,14 @@
                     success: function(response) {
                         toastr.success(response.message);
                         tabyuklash();
-                        var shid = $('#mijoz').val();
+                        var id = $('#mijoz').val();
+                        var filialId = $('#mijoz option:selected').data('filial');
+                        var shid = $('#mijoz option:selected').data('shid');
                         $.ajax({
-                            url: "{{ route('shartnomalar.index') }}/" + shid,
+                            url: "{{ route('shartnomalar.index') }}/" + id,
                             method: "GET",
                             data: {
+                                filialId: filialId,
                                 shid: shid,
                             },
                             success: function(data) {
@@ -247,10 +253,9 @@
                 });
                 $.ajax({
                     url: "{{ route('shartnomatulov.index') }}/" + id,
-                    method: "PUT",
+                    method: "DELETE",
                     data: {
-                        id: id,
-                        fio: fio
+
                     },
                     success: function(response) {
                         toastr.success(response.message);

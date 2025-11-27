@@ -8,8 +8,6 @@ use App\Models\chiqim_boshqa;
 use App\Models\valyuta;
 use App\Models\turharajat;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -22,12 +20,9 @@ class OfficeKassaChiqimBoshController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
             $valyuta = valyuta::get();
-            $turharajat=turharajat::get();
-            return view('kassa.OfficeKassaCHiqBoshqa', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'valyuta' => $valyuta, 'turharajat'=>$turharajat]);
+            $turharajat = turharajat::get();
+            return view('kassa.OfficeKassaCHiqBoshqa', ['valyuta' => $valyuta, 'turharajat' => $turharajat]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

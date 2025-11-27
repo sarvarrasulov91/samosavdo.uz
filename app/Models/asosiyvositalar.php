@@ -14,22 +14,7 @@ class asosiyvositalar extends Model
     protected $table = 'asosiyvositalar';
 
     protected $fillable = [
-        'kun',
-        'tur_id',
-        'brend_id',
-        'tmodel_id',
-        'shtrix_kod',
-        'valyuta_id',
-        'narhi',
-        'snarhi',
-        'valyuta_narhi',
-        'tannarhi',
-        'pastavshik_id',
-        'xis_oyi',
-        'user_id',
-        'filial_id',
-        'kirim_id',
-
+        'status',
         // qolgan maydonlar
     ];
 
@@ -62,7 +47,7 @@ class asosiyvositalar extends Model
     {
         return $this->belongsTo(filial::class);
     }
-    
+
     public function lavozim(): BelongsTo
     {
         return $this->belongsTo(lavozim::class);

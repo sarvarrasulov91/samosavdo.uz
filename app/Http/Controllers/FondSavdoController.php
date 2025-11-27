@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\mijozlar;
 use App\Models\fond;
-use App\Models\fond1;
-use App\Models\savdo1;
-use App\Models\tulovlar1;
-use App\Models\ktovar1;
+use App\Models\fondSavdo;
+use App\Models\savdo;
+use App\Models\tulovlar;
+use App\Models\kirimTovar;
 use App\Models\xissobotoy;
 use App\Models\lavozim;
 use App\Models\filial;
@@ -28,15 +28,21 @@ class FondSavdoController extends Controller
     {
 
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
 
             $fond = fond::where('status', 'Актив')->get();
             $mijozlar = mijozlar::where('status', '1')->where('m_type', '1')->get();
-            $savdounix_id = savdo1::select('unix_id')->where('status', 'Актив')->orderBy('unix_id', 'desc')->groupBy('unix_id')->get();
+            $savdounix_id = savdo::select('unix_id')->where('status', 'Актив')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('unix_id', 'desc')
+                ->groupBy('unix_id')
+                ->get();
 
-            return view('fond.fondsavdo', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'savdounix_id' => $savdounix_id, 'xis_oyi' => $xis_oyi, 'mijozlar' => $mijozlar, 'fond' => $fond]);
+            return view('fond.fondsavdo', [
+                'savdounix_id' => $savdounix_id,
+                'mijozlar' => $mijozlar,
+                'fond' => $fond
+            ]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -73,25 +79,40 @@ class FondSavdoController extends Controller
                 <tbody id="tab1">';
 
                     $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                    $fondsavdojami = fond1::where('status', 'Актив')->where('.xis_oyi', $xis_oyi)->orderBy('.id', 'desc')->get();
-                    foreach ($fondsavdojami as $fondsavdojam){
-                    $id=$fondsavdojam->id;
-                    $savdoid=$fondsavdojam->savdoraqami_id;
-                    $savdosumma = savdo1::where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->sum('msumma');
 
-                    $jnaqd = 0;
-                    $jplastik =0;
-                    $jhr = 0;
-                    $jClick = 0;
-                    $jchegirma = 0;
-                    $tulovlar = tulovlar1::where('tulovturi', 'Фонд')->where('shartnomaid', $id)->where('status', 'Актив')->get();
-                    foreach ($tulovlar as $tulovla) {
-                        $jnaqd += $tulovla->naqd;
-                        $jplastik += $tulovla->pastik;
-                        $jhr += $tulovla->hr;
-                        $jClick += $tulovla->click;
-                        $jchegirma += $tulovla->chegirma;
-                    }
+                    $fondsavdojami = fondSavdo::where('status', 'Актив')
+                        ->where('xis_oyi', $xis_oyi)
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->orderBy('id', 'desc')
+                        ->get();
+
+                    foreach ($fondsavdojami as $fondsavdojam){
+
+                        $id = $fondsavdojam->id;
+
+                        $savdoid = $fondsavdojam->savdoraqami_id;
+
+                        $savdosumma = savdo::where('status', 'Фонд')
+                            ->where('unix_id', $savdoid)
+                            ->where('shartnoma_id', $id)
+                            ->where('filial_id', Auth::user()->filial_id)
+                            ->sum('msumma');
+
+                        $jnaqd = $jplastik = $jhr = $jClick = $jchegirma = 0;
+
+                        $tulovlar = tulovlar::where('tulovturi', 'Фонд')
+                            ->where('shartnomaid', $id)
+                            ->where('status', 'Актив')
+                            ->where('filial_id', Auth::user()->filial_id)
+                            ->get();
+
+                        foreach ($tulovlar as $tulovla) {
+                            $jnaqd += $tulovla->naqd;
+                            $jplastik += $tulovla->pastik;
+                            $jhr += $tulovla->hr;
+                            $jClick += $tulovla->click;
+                            $jchegirma += $tulovla->chegirma;
+                        }
 
                         echo'
                         <tr class="align-middle">
@@ -108,7 +129,7 @@ class FondSavdoController extends Controller
                             <td>' . number_format($jchegirma, 2, ',', ' ') .'</td>
                             <td>' . number_format($savdosumma-$jnaqd-$jplastik-$jchegirma, 2, ',', ' ') .'</td>
                             ';
-                            $tekshirtovar = savdo1::where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->where('shtrix_kod', 0)->count();
+                            $tekshirtovar = savdo::where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->where('shtrix_kod', 0)->count();
                             if ($tekshirtovar>0){
                                 echo'
                                     <td>
@@ -183,12 +204,17 @@ class FondSavdoController extends Controller
 
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $msumma = savdo1::where('status', 'Актив')->where('unix_id', $request->savdounix_id)->sum('msumma');
-            if($msumma>0){
+            $msumma = savdo::where('status', 'Актив')
+                ->where('unix_id', $request->savdounix_id)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->sum('msumma');
+
+            if( $msumma > 0 ){
                 try {
                     DB::beginTransaction();
 
-                    $fond1 = new fond1;
+                    $fond1 = new fondSavdo;
+                    $fond1->filial_id = Auth::user()->filial_id;
                     $fond1->mijozlar_id = $request->mijoz;
                     $fond1->kun = $request->yangikun;
                     $fond1->savdoraqami_id = $request->savdounix_id;
@@ -199,17 +225,19 @@ class FondSavdoController extends Controller
                     $fond1->save();
                     $insid = $fond1->id;
 
-                    $savdo1Updated = savdo1::where('unix_id', $request->savdounix_id)
-                    ->where('status', 'Актив')
-                    ->update([
-                        'status' => "Фонд",
-                        'status2' => "Фонд",
-                        'shartnoma_id' => $insid,
-                    ]);
+                    $savdo1Updated = savdo::where('unix_id', $request->savdounix_id)
+                        ->where('status', 'Актив')
+                        ->where('filial_id', Auth::user()->filial_id)
+                        ->update([
+                            'status' => "Фонд",
+                            'status2' => "Фонд",
+                            'shartnoma_id' => $insid,
+                        ]);
 
-                    $tulovlar = new tulovlar1;
+                    $tulovlar = new tulovlar;
                     $tulovlar->kun = $request->yangikun;
                     $tulovlar->tulovturi = 'Фонд';
+                    $tulovlar->filial_id = Auth::user()->filial_id;
                     $tulovlar->shartnomaid = $insid;
                     $tulovlar->xis_oyi = $xis_oyi;
                     $tulovlar->naqd =  $naqd;
@@ -245,10 +273,18 @@ class FondSavdoController extends Controller
      */
     public function show(string $id)
     {
-        $savdounix_id = savdo1::select('unix_id')->where('status', 'Актив')->orderBy('unix_id', 'desc')->groupBy('unix_id')->get();
+        $savdounix_id = savdo::select('unix_id')
+            ->where('status', 'Актив')
+            ->where('filial_id', Auth::user()->filial_id)
+            ->orderBy('unix_id', 'desc')
+            ->groupBy('unix_id')->get();
+
                 echo '<option value="">Савдо рақами...</option>';
+
             foreach ($savdounix_id as $savdounix_i){
+
                 echo '<option value="'.$savdounix_i->unix_id .'">'. $savdounix_i->unix_id .'</option>';
+
             }
         return;
     }
@@ -259,8 +295,6 @@ class FondSavdoController extends Controller
     public function edit(string $id)
 
     {
-
-
         function num2str($num)
         {
             $nul = '00';
@@ -312,7 +346,6 @@ class FondSavdoController extends Controller
             return $f5;
         }
 
-        $id=$id;
         $filia = filial::where('id', Auth::user()->filial_id)->first();
         $ytt=$filia->ytt;
         $manzil=$filia->manzil;
@@ -321,11 +354,16 @@ class FondSavdoController extends Controller
         $bankname=$filia->bankname;
         $mfo=$filia->mfo;
 
-        $naqdsavdojami = fond1::where('id', $id)->where('status', 'Актив')->get();
-        foreach ($naqdsavdojami as $naqdsavdojam){
-        }
+        $naqdsavdojami = fondSavdo::where('id', $id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->where('status', 'Актив')
+            ->get();
 
-        $tulovlar = tulovlar1::where('status', 'Актив')->where('shartnomaid', $id)->where('tulovturi', 'Фонд')->get();
+        $tulovlar = tulovlar::where('status', 'Актив')
+            ->where('shartnomaid', $id)
+            ->where('tulovturi', 'Фонд')
+            ->where('filial_id', Auth::user()->filial_id)
+            ->get();
 
        foreach($tulovlar as $tulovla){
 
@@ -408,7 +446,7 @@ class FondSavdoController extends Controller
                 </thead>
                 <tbody id="tab1">';
 
-                $savdomodel = savdo1::where('status', 'Фонд')->where('shartnoma_id', $id)->get();
+                $savdomodel = savdo::where('status', 'Фонд')->where('shartnoma_id', $id)->get();
                 $i = 0;
                 $jami = 0;
                 foreach ($savdomodel as $savdomode) {
@@ -449,27 +487,36 @@ class FondSavdoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $tekshirktovar1 = ktovar1::where('status', 'Фонд')->where('shatnomaid', $id)->count();
-        $tekshirsavdo1 = savdo1::where('status', 'Фонд')->where('unix_id', $request->savdoid)->where('shartnoma_id', $id)->where('shtrix_kod','>', 0)->count();
-        if ($tekshirktovar1==0 && $tekshirsavdo1==0){
-            $Readfond1 = fond1::where('id', $id)->where('status', 'Актив')->first();
-            $FondKun=$Readfond1->kun;
+        $tekshirktovar1 = kirimTovar::where('status', 'Фонд')->where('filial_id', Auth::user()->filial_id)->where('shartnoma_id', $id)->count();
+
+        $tekshirsavdo1 = savdo::where('status', 'Фонд')
+            ->where('unix_id', $request->savdoid)
+            ->where('shartnoma_id', $id)
+            ->where('shtrix_kod','>', 0)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->count();
+
+        if ($tekshirktovar1 == 0 && $tekshirsavdo1 == 0){
+            $Readfond1 = fondSavdo::where('id', $id)->where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->first();
+            $FondKun = $Readfond1->kun;
             $BugungiKun = date("Y-m-d");
-            if($Readfond1->id>0){
-                if($FondKun==$BugungiKun){
+            if($Readfond1->id > 0){
+                if($FondKun == $BugungiKun){
                     try {
                         DB::beginTransaction();
 
-                        $savdUpdated = savdo1::where('unix_id', $request->savdoid)
+                        $savdUpdated = savdo::where('unix_id', $request->savdoid)
                             ->where('status', 'Фонд')
+                            ->where('filial_id', Auth::user()->filial_id)
                             ->update([
                                 'status' => "Удалит",
                                 'del_kun' => date('Y-m-d H:i:s'),
                                 'del_user_id' => Auth::user()->id,
                             ]);
 
-                        $tulovUpdated = tulovlar1::where('tulovturi', 'Фонд')
+                        $tulovUpdated = tulovlar::where('tulovturi', 'Фонд')
                             ->where('shartnomaid', $id)
+                            ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
                             ->update([
                                 'status' => 'Удалит',
@@ -477,7 +524,8 @@ class FondSavdoController extends Controller
                                 'del_user_id' => Auth::user()->id,
                             ]);
 
-                        $fondUpdated = fond1::where('id', $id)
+                        $fondUpdated = fondSavdo::where('id', $id)
+                            ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
                             ->update([
                                 'status' => 'Удалит',

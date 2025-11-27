@@ -11,10 +11,10 @@ use App\Models\mijozlar;
 use App\Models\mfy;
 use App\Models\tuman;
 use App\Models\filial;
-use App\Models\fond1;
-use App\Models\naqdsavdo1;
-use App\Models\shartnoma1;
-use App\Models\savdo1;
+use App\Models\fondSavdo;
+use App\Models\naqdSavdo;
+use App\Models\shartnoma;
+use App\Models\savdo;
 
 
 
@@ -30,12 +30,9 @@ class NewMijozController extends Controller
     public function index()
     {
         $mfy = mfy::get();
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         $tuman = tuman::get();
 
-        return view('mijoz.newmijoz', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'tuman' => $tuman, 'mfy'=>$mfy]);
+        return view('mijoz.newmijoz', ['tuman' => $tuman, 'mfy' => $mfy]);
     }
 
     /**
@@ -64,8 +61,8 @@ class NewMijozController extends Controller
                 </thead>
                 <tbody id="tab1">
                 ';
-                   if (Auth::user()->filial_id == 10){
-                    $mijozlar = mijozlar::where('status', 1)->orderBy('id', 'desc')->get();
+                    if (Auth::user()->filial_id == 10){
+                        $mijozlar = mijozlar::where('status', 1)->orderBy('id', 'desc')->get();
                     }else{
                         $mijozlar = mijozlar::where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
                     }
@@ -175,7 +172,7 @@ class NewMijozController extends Controller
     public function edit(string $id)
 
     {
-        $i=1;
+        $i = 1;
         $mijozlar = mijozlar::where('id', $id)->get();
 
         foreach ($mijozlar as $mijozla) {
@@ -194,65 +191,27 @@ class NewMijozController extends Controller
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-                    $filial = filial::where('status', 'Актив')->get();
-                    foreach ($filial as $filialinfo){
-                        $shartnoma = new shartnoma1($filialinfo->id);
-                        $shartnom=$shartnoma->where('mijozlar_id',$mijozla->id)->get();
-                        foreach ($shartnom as $shartnom){
-                            $savdosumma = savdo1::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
-                            echo'
-                            <tr class="text-center align-middle">
-                                <td>' . $i . '</td>
-                                <td>' . $filialinfo->fil_name . '</td>
-                                <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                                </td>
-                                <td>Шартнома</td>
-                                <td>' . $shartnom->id . '</td>
-                                <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
-                                <td>' . number_format($savdosumma, 2, ',', ' ') . '</td>
-                                <td>' . $shartnom->status . '</td>
-                            </tr>';
-                            $i++;
-                        }
 
-                        $shartnoma = new naqdsavdo1($filialinfo->id);
-                        $shartnom=$shartnoma->where('mijozlar_id',$mijozla->id)->where('status','Актив')->get();
-                        foreach ($shartnom as $shartnom){
-                            $savdosumma = savdo1::where('status', 'Нақд')->where('shartnoma_id', $shartnom->id)->sum('msumma');
-                            echo'
-                            <tr class="text-center align-middle">
-                                <td>' . $i . '</td>
-                                <td>' . $filialinfo->fil_name . '</td>
-                                <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                                </td>
-                                <td>Нақд</td>
-                                <td>' . $shartnom->id . '</td>
-                                <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
-                                <td>' . number_format($savdosumma, 2, ',', ' ') . '</td>
-                                <td>' . $shartnom->status . '</td>
-                            </tr>';
-                            $i++;
-                        }
-                        $shartnoma = new fond1($filialinfo->id);
-                        $shartnom=$shartnoma->where('mijozlar_id',$mijozla->id)->where('status','Актив')->get();
-                        foreach ($shartnom as $shartnom){
-                            $savdosumma = savdo1::where('status', 'Фонд')->where('shartnoma_id', $shartnom->id)->sum('msumma');
-                            echo'
-                            <tr class="text-center align-middle">
-                                <td>' . $i . '</td>
-                                <td>' . $filialinfo->fil_name . '</td>
-                                <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                                </td>
-                                <td>Фонд</td>
-                                <td>' . $shartnom->id . '</td>
-                                <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
-                                <td>' . number_format($savdosumma, 2, ',', ' ') . '</td>
-                                <td>' . $shartnom->status . '</td>
-                            </tr>';
-                            $i++;
-                        }
+                    $shartnoma = shartnoma::where('mijozlar_id', $mijozla->id)->get();
+                    foreach ($shartnoma as $shartnom){
+                        $savdosumma = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        echo'
+                        <tr class="text-center align-middle">
+                            <td>' . $i . '</td>
+                            <td>' . $shartnom->filial->fil_name . '</td>
+                            <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
+                            </td>
+                            <td>Шартнома</td>
+                            <td>' . $shartnom->id . '</td>
+                            <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
+                            <td>' . number_format($savdosumma, 2, ',', ' ') . '</td>
+                            <td>' . $shartnom->status . '</td>
+                        </tr>';
 
+                        $i++;
                     }
+
+
         }
 
 

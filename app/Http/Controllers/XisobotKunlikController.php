@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdo1;
-use App\Models\tulovlar1;
-use App\Models\boshqaharajat1;
+use App\Models\savdo;
+use App\Models\tulovlar;
+use App\Models\xarajat;
 use App\Models\kirim;
-use App\Models\fond1;
+use App\Models\fondSavdo;
 use App\Models\fond;
-use App\Models\shartnoma1;
-use App\Models\naqdsavdo1;
-use App\Models\savdobonus1;
+use App\Models\shartnoma;
+use App\Models\naqdSavdo;
+use App\Models\bonusSavdo;
 use App\Models\xissobotoy;
 use App\Models\filial;
 
@@ -49,6 +49,7 @@ class XisobotKunlikController extends Controller
 
         $boshkun = $request->boshkun;
         $yakunkun = $request->yakunkun;
+        $filial = $request->filial;
 
         $jnaqd = 0;
         $jplastik = 0;
@@ -106,8 +107,11 @@ class XisobotKunlikController extends Controller
         $bonuschegirma = 0;
         $bonusumumiy = 0;
 
-            $tulovlar = new tulovlar1($request->filial);
-            $tulovlar2=$tulovlar->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+            $tulovlar2 = tulovlar::where('filial_id', $filial)
+                ->whereBetween('kun', [$boshkun, $yakunkun])
+                ->where('status', 'Актив')
+                ->get();
+
         foreach ($tulovlar2 as $tulovla) {
                 $jnaqd += $tulovla->naqd;
                 $jplastik += $tulovla->pastik;
@@ -370,8 +374,12 @@ class XisobotKunlikController extends Controller
         $bronxclick = 0;
         $bronxavtot = 0;
 
-        $boshqaharajat = new boshqaharajat1($request->filial);
-        $shsqltulovlar2=$boshqaharajat->where('kun', '>=', $boshkun)->where('valyuta_id', '=', 1)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+        $shsqltulovlar2 = xarajat::where('filial_id', $filial)
+            ->whereBetween('kun', [$boshkun, $yakunkun])
+            ->where('valyuta_id', '=', 1)
+            ->where('status', 'Актив')
+            ->get();
+
         foreach ($shsqltulovlar2 as $shsqltulovlar) {
 
             if($shsqltulovlar->turharajat_id!=14){
@@ -397,7 +405,13 @@ class XisobotKunlikController extends Controller
         $spclick = 0;
         $spavtot = 0;
 
-        $kirim2 = kirim::where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('kirimtur_id', 1)->where('filial_id', $request->filial)->where('status', 'Актив')->get();
+        $kirim2 = kirim::where('kun', '>=', $boshkun)
+            ->where('kun', '<=', $yakunkun)
+            ->where('kirimtur_id', 1)
+            ->where('filial_id', $filial)
+            ->where('status', 'Актив')
+            ->get();
+
         foreach ($kirim2 as $kirim) {
             $spnaqd += $kirim->naqd;
             $spplastik += $kirim->pastik;
@@ -493,8 +507,6 @@ class XisobotKunlikController extends Controller
         <br>
         ';
 
-
-
         $TOyBoshiNaqd = 0;
         $TOyBoshiPastik = 0;
         $TOyBoshiHr = 0;
@@ -504,16 +516,16 @@ class XisobotKunlikController extends Controller
         $TOyBoshiBron = 0;
         $TOyBoshiJasmi = 0;
 
-        $TulovlarOyBoshga1 = new tulovlar1($request->filial);
-        $TulovlarOyBoshga=$TulovlarOyBoshga1->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
-        foreach ($TulovlarOyBoshga as $TulovlarOyBoshga) {
+
+        $TulovlarOyBoshga1 = tulovlar::where('filial_id', $filial)->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
+        foreach ($TulovlarOyBoshga1 as $TulovlarOyBoshga) {
             $TOyBoshiNaqd += $TulovlarOyBoshga->naqd;
             $TOyBoshiPastik += $TulovlarOyBoshga->pastik;
             $TOyBoshiHr += $TulovlarOyBoshga->hr;
             $TOyBoshiClick += $TulovlarOyBoshga->click;
             $TOyBoshiAvtot += $TulovlarOyBoshga->avtot;
             $TOyBoshiChegirma += $TulovlarOyBoshga->chegirma;
-            if($TulovlarOyBoshga->tulovturi=="Брон"){
+            if($TulovlarOyBoshga->tulovturi == "Брон"){
                 $TOyBoshiBron += $TulovlarOyBoshga->naqd+$TulovlarOyBoshga->pastik+$TulovlarOyBoshga->hr+$TulovlarOyBoshga->click+$TulovlarOyBoshga->avtot;
             }
             $TOyBoshiJasmi += $TulovlarOyBoshga->naqd+$TulovlarOyBoshga->pastik+$TulovlarOyBoshga->hr+$TulovlarOyBoshga->click+$TulovlarOyBoshga->avtot;
@@ -529,8 +541,7 @@ class XisobotKunlikController extends Controller
         $TDavrOrasiJami = 0;
 
 
-        $TulovlarDavrOras = new tulovlar1($request->filial);
-        $TulovlarDavrOrasi1=$TulovlarDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+        $TulovlarDavrOrasi1 = tulovlar::where('filial_id', $filial)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
         foreach ($TulovlarDavrOrasi1 as $TulovlarDavrOrasi) {
             $TDavrOrasiNaqd += $TulovlarDavrOrasi->naqd;
             $TDavrOrasiPastik += $TulovlarDavrOrasi->pastik;
@@ -538,7 +549,7 @@ class XisobotKunlikController extends Controller
             $TDavrOrasiClick += $TulovlarDavrOrasi->click;
             $TDavrOrasiAvtot += $TulovlarDavrOrasi->avtot;
             $TDavrOrasiChegirma += $TulovlarDavrOrasi->chegirma;
-            if($TulovlarDavrOrasi->tulovturi=="Брон"){
+            if($TulovlarDavrOrasi->tulovturi == "Брон"){
                 $TDavrOrasiBron += $TulovlarDavrOrasi->naqd+$TulovlarDavrOrasi->pastik+$TulovlarDavrOrasi->hr+$TulovlarDavrOrasi->click+$TulovlarDavrOrasi->avtot;
             }
             $TDavrOrasiJami += $TulovlarDavrOrasi->naqd+$TulovlarDavrOrasi->pastik+$TulovlarDavrOrasi->hr+$TulovlarDavrOrasi->click+$TulovlarDavrOrasi->avtot;
@@ -553,8 +564,7 @@ class XisobotKunlikController extends Controller
         $CHOyBoshiBron = 0;
         $CHOyBoshiJami = 0;
 
-        $CHiqimOyBoshg = new boshqaharajat1($request->filial);
-        $CHiqimOyBoshga1=$CHiqimOyBoshg->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
+        $CHiqimOyBoshga1 = xarajat::where('filial_id', $filial)->where('kun', '<', $boshkun)->where('status', 'Актив')->get();
         foreach ($CHiqimOyBoshga1 as $CHiqimOyBoshga) {
             $CHOyBoshiNaqd += $CHiqimOyBoshga->naqd;
             $CHOyBoshiPastik += $CHiqimOyBoshga->pastik;
@@ -562,7 +572,7 @@ class XisobotKunlikController extends Controller
             $CHOyBoshiClick += $CHiqimOyBoshga->click;
             $CHOyBoshiAvtot += $CHiqimOyBoshga->avtot;
             $CHOyBoshiChegirma += $CHiqimOyBoshga->chegirma;
-            if($CHiqimOyBoshga->tulovturi=="Брон"){
+            if($CHiqimOyBoshga->turharajat_id == 14){
                 $CHOyBoshiBron += $CHiqimOyBoshga->naqd+$CHiqimOyBoshga->pastik+$CHiqimOyBoshga->hr+$CHiqimOyBoshga->click+$CHiqimOyBoshga->avtot;
             }
             $CHOyBoshiJami += $CHiqimOyBoshga->naqd+$CHiqimOyBoshga->pastik+$CHiqimOyBoshga->hr+$CHiqimOyBoshga->click+$CHiqimOyBoshga->avtot;
@@ -579,8 +589,7 @@ class XisobotKunlikController extends Controller
         $CHDavrOrasiBron = 0;
         $CHDavrOrasiJami = 0;
 
-        $CHiqimDavrOras = new boshqaharajat1($request->filial);
-        $CHiqimDavrOrasi1=$CHiqimDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+        $CHiqimDavrOrasi1 = xarajat::where('filial_id', $filial)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
         foreach ($CHiqimDavrOrasi1 as $CHiqimDavrOrasi) {
             $CHDavrOrasiNaqd += $CHiqimDavrOrasi->naqd;
             $CHDavrOrasiPastik += $CHiqimDavrOrasi->pastik;
@@ -588,7 +597,7 @@ class XisobotKunlikController extends Controller
             $CHDavrOrasiClick += $CHiqimDavrOrasi->click;
             $CHDavrOrasiAvtot += $CHiqimDavrOrasi->avtot;
             $CHDavrOrasiChegirma += $CHiqimDavrOrasi->chegirma;
-            if($CHiqimDavrOrasi->turharajat_id==14){
+            if($CHiqimDavrOrasi->turharajat_id == 14){
                 $CHDavrOrasiBron += $CHiqimDavrOrasi->naqd+$CHiqimDavrOrasi->pastik+$CHiqimDavrOrasi->hr+$CHiqimDavrOrasi->click+$CHiqimDavrOrasi->avtot;
             }
             $CHDavrOrasiJami += $CHiqimDavrOrasi->naqd+$CHiqimDavrOrasi->pastik+$CHiqimDavrOrasi->hr+$CHiqimDavrOrasi->click+$CHiqimDavrOrasi->avtot;
@@ -601,7 +610,7 @@ class XisobotKunlikController extends Controller
         $SPOyBoshiAvtot = 0;
         $SPOyBoshiJami = 0;
 
-        $SPOyBoshga1 = kirim::where('kun', '<', $boshkun)->where('kirimtur_id','1')->where('filial_id', $request->filial)->where('status', 'Актив')->get();
+        $SPOyBoshga1 = kirim::where('kun', '<', $boshkun)->where('kirimtur_id','1')->where('filial_id', $filial)->where('status', 'Актив')->get();
 
         foreach ($SPOyBoshga1 as $SPOyBoshga) {
             $SPOyBoshiNaqd += $SPOyBoshga->naqd;
@@ -619,7 +628,13 @@ class XisobotKunlikController extends Controller
         $SPDavrOrasiAvtot = 0;
         $SPDavrOrasiJami = 0;
 
-        $SPDavrOrasi1 = kirim::where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('kirimtur_id', '1')->where('filial_id', $request->filial)->where('status', 'Актив')->get();
+        $SPDavrOrasi1 = kirim::where('kun', '>=', $boshkun)
+            ->where('kun', '<=', $yakunkun)
+            ->where('kirimtur_id', '1')
+            ->where('filial_id', $filial)
+            ->where('status', 'Актив')
+            ->get();
+
         foreach ($SPDavrOrasi1 as $SPDavrOrasi) {
             $SPDavrOrasiNaqd += $SPDavrOrasi->naqd;
             $SPDavrOrasiPastik += $SPDavrOrasi->pastik;
@@ -695,21 +710,11 @@ class XisobotKunlikController extends Controller
                         </tr>
                     </tbody>
                 </table>
-            </div>';
+            </div>
 
-            //chegirma olib tashlandi
-                    // <tr class="text-center align-middle">
-                    //     <td><span class="text-muted">Чегирма</span></td>
-                    //     <td class="badge-pill text-danger">' . number_format($TOyBoshiChegirma-$CHOyBoshiChegirma, 2, ',', ' ') . '</td>
-                    //     <td class="badge-pill text-danger">' . number_format($TDavrOrasiChegirma, 2, ',', ' ') . '</td>
-                    //     <td class="badge-pill text-danger">' . number_format($CHDavrOrasiChegirma, 2, ',', ' ') . '</td>
-                    //     <td class="badge-pill text-danger">' . number_format($TOyBoshiChegirma+$TDavrOrasiChegirma-$CHOyBoshiChegirma-$CHDavrOrasiChegirma, 2, ',', ' ') . '</td>
-                    // </tr>
+            <br>
 
-
-            // Fond savdolar taxlili
-
-        echo '<br><div class="row justify-content-md-center">
+            <div class="row justify-content-md-center">
                 <h3 class=" text-center text-primary"><b> Ф О Н Д Л А Р</b></h3>
                 <div class="col-xl-12">
                 <table class="table table-bordered table-hover">
@@ -740,16 +745,25 @@ class XisobotKunlikController extends Controller
                 $fotpalatik = 0;
                 $fchegirma = 0;
 
-                $fsumma0 = new savdo1($request->filial);
-                $fsumma = $fsumma0->where('fond_id', $fid)->where('status', 'Фонд')->whereDate('created_at', '>=', $boshkun)->whereDate('created_at', '<=', $yakunkun)->sum('msumma');
 
-                $fond0 = new fond1($request->filial);
-                $fond01=$fond0->where('fond_id', $fid)->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->get();
+                $fsumma = savdo::where('filial_id', $filial)
+                    ->where('fond_id', $fid)
+                    ->where('status', 'Фонд')
+                    ->whereDate('created_at', '>=', $boshkun)
+                    ->whereDate('created_at', '<=', $yakunkun)
+                    ->sum('msumma');
+
+                $fond01 = fondSavdo::where('filial_id', $filial)->where('fond_id', $fid)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
 
                 foreach ($fond01 as $fond0){
                     $fsoni++;
-                    $TulovfondlarDavrOras = new tulovlar1($request->filial);
-                    $TulovfondlarDavrOra=$TulovfondlarDavrOras->where('kun', '>=', $boshkun)->where('kun', '<=', $yakunkun)->where('status', 'Актив')->where('tulovturi', 'Фонд')->where('shartnomaid', $fond0->id)->get();
+
+                    $TulovfondlarDavrOra = tulovlar::where('filial_id', $filial)
+                        ->whereBetween('kun', [$boshkun, $yakunkun])
+                        ->where('status', 'Актив')
+                        ->where('tulovturi', 'Фонд')
+                        ->where('shartnoma_id', $fond0->id)
+                        ->get();
 
                     foreach ($TulovfondlarDavrOra as $TulovfondlarDavrOr) {
                         $fotnaqd += $TulovfondlarDavrOr->naqd;
@@ -789,12 +803,11 @@ class XisobotKunlikController extends Controller
                 </tbody>
                         </table>
                     </div>
-                    </div>';
+                    </div>
 
-
-        // Shartnomalar taxlilini korish
-
-        echo '<br><div class="row justify-content-md-center">
+        <!----Shartnomalar taxlilini korish  --->
+        <br>
+        <div class="row justify-content-md-center">
                 <h3 class=" text-center text-primary"><b>ШАРТНОМАЛАР</b></h3>
                 <div class="col-xl-12">
                 <table class="table table-bordered table-hover">
@@ -802,128 +815,70 @@ class XisobotKunlikController extends Controller
                     <tr class="text-center text-bold text-primary align-middle">
                         <th>ID</th>
                         <th>Филиал</th>
-                        <th>Сони</th>
-                        <th>Шартнома<br>суммаси</th>
-                        <th>Қайтиш<br>суммаси</th>
-                        <th style="width: 10px;">Ёпилган <br> шартномалар сони</th>
-                        <th>Ёпилган <br> шартномалар суммаси</th>
-                        <th>Ёпилган <br> шартномалар тулови</th>
+                        <th>Шартнома Сони</th>
+                        <th>Шартнома суммаси</th>
+                        <th>Қайтиш суммаси</th>
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-            $ushsoni = 0;
-            $ushsumma = 0;
-            $ushqsumma = 0;
-            $ushtsumma = 0;
-            $uyoshsoni = 0;
-            $uyoshsumma = 0;
-            $ujamitulov = 0;
 
-            $filialbase = filial::where('status', 'Актив')->where('id', $request->filial)->get();
-            foreach ($filialbase as $filia) {
-                $shsoni = 0;
-                $shtsumma = 0;
-                $shqsumma = 0;
-                $yoshsoni = 0;
-                $yoshsumma = 0;
-                $yoshtsumma = 0;
-                $jamitulov = 0;
+            $branch = filial::where('status', 'Актив')->where('id', $filial)->first();
 
+            $shsoni = $shtsumma = $shqsumma = 0;
 
-                $shartnoma = new shartnoma1($request->filial);
+            $shartnoma1 = shartnoma::whereBetween('kun', [$boshkun, $yakunkun])
+                ->where('filial_id', $filial)
+                ->whereIn('status', ['Актив', 'Ёпилган'])
+                ->get();
 
-                $shartnoma1 = $shartnoma->whereBetween('kun', [$boshkun, $yakunkun])
-                    ->where(function($query){
-                    $query->where('status', 'Актив')->orWhere('status', 'Ёпилган');
-                    })->get();
+            foreach ($shartnoma1 as $shart) {
 
-                foreach ($shartnoma1 as $shart) {
-                    $shsoni++;
-                    $savdo = new savdo1($request->filial);
-                    $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
+                $shsoni++;
+                $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
 
-                    $oldindantulovinfo = new tulovlar1($request->filial);
-                    $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
+                $oldindantulovinfo = tulovlar::where('filial_id', $filial)
+                    ->where('tulovturi', 'Олдиндан тўлов')
+                    ->where('status', 'Актив')
+                    ->where('shartnoma_id', $shart->id)
+                    ->first();
 
-                    $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('chegirma');
+                $oldindantulov = $oldindantulovinfo->umumiysumma;
+                $chegirma = $oldindantulovinfo->chegirma;
 
-                    $foiz = xissobotoy::where('xis_oy', $shart->xis_oyi)->value('foiz');
+                $foiz = xissobotoy::where('xis_oy', $shart->xis_oyi)->value('foiz');
 
-                    if($shart->fstatus == 0){
-                        $foiz = 0;
-                    }
-
-                    //йиллик фойиз
-                    $foiz = (($foiz / 12) * $shart->muddat);
-
-                    if ($shart->kun < "2023-12-05"){
-                        $xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
-                    }else{
-                        $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-                    }
-
-                    $shtsumma += $savdosumma-$chegirma;
-                    $shqsumma += $savdosumma-$oldindantulov-$chegirma+$xis_foiz;
-
+                if($shart->fstatus == 0){
+                    $foiz = 0;
                 }
-                    $ushsoni += $shsoni;
-                    $ushtsumma += $shtsumma;
-                    $ushqsumma += $shqsumma;
 
+                //йиллик фойиз
+                $foiz = (($foiz / 12) * $shart->muddat);
 
-                // Yopilgan shartnomalar sonini aniqlash
+                $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
-                $shartnoma1 = $shartnoma->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Ёпилган')->get();
-                foreach ($shartnoma1 as $shart) {
-
-                    $oldindantulovinfo = new tulovlar1($request->filial);
-                    $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
-                    $grafiktulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $shart->id)->sum('umumiysumma');
-                    $savdosumma = new savdo1($request->filial);
-                    $savdosumma = $savdosumma->where('status', 'Шартнома')->where('shartnoma_id', $shart->id)->sum('msumma');
-                    $jamitulov += $oldindantulov+$grafiktulov;
-                    $yoshsoni ++;
-                    $yoshtsumma += $savdosumma;
-
-                }
-                    $uyoshsoni += $yoshsoni;
-                    $uyoshsumma += $yoshtsumma;
-                    $ujamitulov += $jamitulov;
-
-                echo '
-                        <tr class="text-center align-middle">
-                            <td>' . $filia->id . '</td>
-                            <td>' . $filia->fil_name . '</td>
-                            <td>' . number_format($shsoni, 0, ',', ' ') . '</td>
-                            <td>' . number_format($shtsumma, 0, ',', ' ') . '</td>
-                            <td>' . number_format($shqsumma, 0, ',', ' ') . '</td>
-                            <td style="width: 10px;">' . number_format($yoshsoni, 0, ',', ' ') . '</td>
-                            <td>' . number_format($yoshtsumma, 0, ',', ' ') . '</td>
-                            <td>' . number_format($jamitulov, 0, ',', ' ') . '</td>
-                        </tr>';
+                $shtsumma += $savdosumma-$chegirma;
+                $shqsumma += $savdosumma-$oldindantulov-$chegirma+$xis_foiz;
             }
-                echo '
+
+            echo '
                     <tr class="text-center align-middle">
-                    <td></td>
-                    <td>ЖАМИ</td>
-                    <td>' . number_format($ushsoni, 0, ',', ' ') . '</td>
-                    <td>' . number_format($ushtsumma, 0, ',', ' ') . '</td>
-                    <td>' . number_format($ushqsumma, 0, ',', ' ') . '</td>
-                    <td style="width: 10px;">' . number_format($uyoshsoni, 0, ',', ' ') . '</td>
-                    <td>' . number_format($uyoshsumma, 0, ',', ' ') . '</td>
-                    <td>' . number_format($ujamitulov, 0, ',', ' ') . '</td>
-                </tr>
-                </tbody>
-                        </table>
-                    </div>
-                    </div>';
+                        <td>' . $filial . '</td>
+                        <td>' . $branch->fil_name . '</td>
+                        <td>' . number_format($shsoni, 0, ',', ' ') . '</td>
+                        <td>' . number_format($shtsumma, 0, ',', ' ') . '</td>
+                        <td>' . number_format($shqsumma, 0, ',', ' ') . '</td>
+                    </tr>
 
+            </tbody>
+                    </table>
+                </div>
+                </div>
 
+        <!----/*Naqda savdoni taxlilini korish*/ --->
 
-        /*Naqda savdoni taxlilini korish*/
-
-        echo '<br><div class="row justify-content-md-center">
-        <h3 class=" text-center text-primary"><b>Нақд савдолар тахлили</b></h3>
+        <br>
+        <div class="row justify-content-md-center">
+            <h3 class=" text-center text-primary"><b>Нақд савдолар тахлили</b></h3>
         <div class="col-xl-12">
         <table class="table table-bordered table-hover">
         <thead>
@@ -932,88 +887,52 @@ class XisobotKunlikController extends Controller
                 <th>Филиал</th>
                 <th>Сони</th>
                 <th>Савдо<br>суммаси</th>
-                <th>Ёпилган <br> нақд савдо сони</th>
             </tr>
         </thead>
         <tbody id="tab1">';
 
-        $unssoni = 0;
-        $unssumma = 0;
-        $uyonssoni = 0;
-        $uyonssumma = 0;
-        $ubssoni = 0;
-        $ubssumma = 0;
-        $uyobssoni = 0;
-        $uyobssumma = 0;
-        $uchegirmasumma = 0;
-        $ubtsoni = 0;
-        $ubtsumma = 0;
+            $nssoni = $nssumma = $chegirmasumma = 0;
 
-        foreach ($filialbase as $filia) {
-            $nssoni = 0;
-            $nssumma = 0;
-            $yonssoni = 0;
-            $yonssumma = 0;
-            $chegirmasumma = 0;
+            $naqdsavdo1 = naqdSavdo::where('filial_id', $filial)
+                ->whereBetween('kun', [$boshkun, $yakunkun])
+                ->where('status','Актив')
+                ->get();
 
-            $naqdsavdo = new naqdsavdo1($request->filial);
-            $naqdsavdo1=$naqdsavdo->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
             foreach ($naqdsavdo1 as $naqd) {
-                $savdosumma = new savdo1($request->filial);
-                $savdosumma = $savdosumma->where('status', 'Нақд')->where('shartnoma_id', $naqd->id)->sum('msumma');
+
+                $savdosumma = savdo::where('filial_id', $filial)
+                    ->where('status', 'Нақд')
+                    ->where('shartnoma_id', $naqd->id)
+                    ->sum('msumma');
+
                 $nssoni ++;
                 $nssumma += $savdosumma;
 
-                $naqdchegirma = new tulovlar1($filia->id);
-                $chegirmasum = $naqdchegirma->where('tulovturi', 'Нақд')->where('status', 'Актив')->where('shartnomaid', $naqd->id)->sum('chegirma');
+                $chegirmasum = tulovlar::where('filial_id', $filial)
+                    ->where('tulovturi', 'Нақд')
+                    ->where('status', 'Актив')
+                    ->where('shartnoma_id', $naqd->id)
+                    ->sum('chegirma');
+
                 $chegirmasumma += $chegirmasum;
 
             }
-                $unssoni += $nssoni;
-                $unssumma += $nssumma;
-                $uchegirmasumma += $chegirmasumma;
-
-            $naqdsavdo1=$naqdsavdo->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Удалит')->get();
-            foreach ($naqdsavdo1 as $naqd) {
-                $savdosumma = new savdo1($request->filial);
-                $savdosumma = $savdosumma->where('status', 'Нақд')->where('shartnoma_id', $naqd->id)->sum('msumma');
-                $yonssoni ++;
-                $yonssumma += $savdosumma;
-            }
-                $uyonssoni += $yonssoni;
-                $uyonssumma += $yonssumma;
 
             echo '
                     <tr class="text-center align-middle">
-                        <td>' . $filia->id . '</td>
-                        <td>' . $filia->fil_name . '</td>
+                        <td>' . $filial . '</td>
+                        <td>' . $branch->fil_name . '</td>
                         <td>' . number_format($nssoni, 0, ',', ' ') . '</td>
                         <td>' . number_format($nssumma - $chegirmasumma, 0, ',', ' ') . '</td>
-                        <td>' . number_format($yonssoni, 0, ',', ' ') . '</td>
-                    </tr>';
-        }
-        echo '
-            <tr class="text-center align-middle">
-            <td></td>
-            <td>ЖАМИ</td>
-            <td>' . number_format($unssoni, 0, ',', ' ') . '</td>
-            <td>' . number_format($unssumma - $uchegirmasumma, 0, ',', ' ') . '</td>
-            <td>' . number_format($uyonssoni, 0, ',', ' ') . '</td>
-        </tr>
-        </tbody>
+                    </tr>
+            </tbody>
                 </table>
             </div>
-            </div>';
+            </div>
 
-
-            /*Naqda savdoni taxlilini tugadi*/
-
-
-
-
-             /*Bonus savdoni taxlilini ko'rish*/
-
-            echo '<br><div class="row justify-content-md-center">
+             <!--Bonus savdoni taxlilini kurish-->
+            <br>
+            <div class="row justify-content-md-center">
                 <h3 class=" text-center text-primary"><b>Бонус савдолар тахлили</b></h3>
                 <div class="col-xl-12">
                 <table class="table table-bordered table-hover">
@@ -1024,85 +943,39 @@ class XisobotKunlikController extends Controller
                         <th>Товар сони</th>
                         <th>Товар<br>суммаси</th>
                         <th>Тулов<br>суммаси</th>
-                        <th>Ёпилган <br> бонус товарлар сони</th>
                     </tr>
                 </thead>
                 <tbody id="tab1">';
 
+                $bonussavdo = bonusSavdo::where('filial_id', $filial)
+                    ->whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('status','Актив')
+                    ->get();
 
-                foreach ($filialbase as $filia) {
-                    $bssoni = 0;
-                    $bssumma = 0;
-                    $yobssoni = 0;
-                    $yobssumma = 0;
-                    $btsoni = 0;
-                    $btsumma = 0;
+                $bssoni = $bonussavdo->count();
+                $bssumma = $bonussavdo->sum('msumma');
 
-                    $bonussavdo = new savdobonus1($request->filial);
-                    $bonussavdo1=$bonussavdo->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
-                    foreach ($bonussavdo1 as $bonus) {
-                        $bssoni ++;
-                        $bssumma += $bonus->msumma;
-                    }
-                        $ubssoni += $bssoni;
-                        $ubssumma += $bssumma;
+                //Bonuslar  tulov summasi sonini aniqlash
 
-
-                    //Bonuslar  tulov summasi sonini aniqlash
-                    $tulovlar = new tulovlar1($filia->id);
-                    $tulovlar1=$tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status','Актив')->get();
-                    foreach ($tulovlar1 as $tulov) {
-                        $bonussavdo = new tulovlar1($filia->id);
-                        $savdosumma = $bonussavdo->where('tulovturi','Бонус')->where('id', $tulov->id)->sum('umumiysumma');
-                        $btsoni ++;
-                        $btsumma += $savdosumma;
-                    }
-                        $ubtsoni += $btsoni;
-                        $ubtsumma += $btsumma;
-
-
-                        //O'chirilgan bonus savdo sonini aniqlash
-
-                    $bonussavdo2=$bonussavdo->whereBetween('del_kun', [$boshkun, $yakunkun])->where('status','Удалит')->get();
-                    foreach ($bonussavdo2 as $bonus) {
-                        $yobssoni ++;
-                        $yobssumma += $bonus->msumma;
-                    }
-                        $uyobssoni += $yobssoni;
-                        $uyobssumma += $yobssumma;
-
-                    echo '
-                            <tr class="text-center align-middle">
-                                <td>' . $filia->id . '</td>
-                                <td>' . $filia->fil_name . '</td>
-                                <td>' . number_format($bssoni, 0, ',', ' ') . '</td>
-                                <td>' . number_format($bssumma, 0, ',', ' ') . '</td>
-                                <td>' . number_format($ubtsumma, 0, ',', ' ') . '</td>
-                                <td>' . number_format($yobssoni, 0, ',', ' ') . '</td>
-                            </tr>';
-                }
-
+                $bonusTulovSumma = tulovlar::where('filial_id', $filial)
+                    ->whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('tulovturi','Бонус')
+                    ->where('status','Актив')
+                    ->sum('umumiysumma');
 
                 echo '
-                    <tr class="text-center align-middle">
-                    <td></td>
-                    <td>ЖАМИ</td>
-                    <td>' . number_format($ubssoni, 0, ',', ' ') . '</td>
-                    <td>' . number_format($ubssumma, 0, ',', ' ') . '</td>
-                    <td>' . number_format($bonusumumiy, 0, ',', ' ') . '</td>
-                    <td>' . number_format($uyobssoni, 0, ',', ' ') . '</td>
-                </tr>
+                        <tr class="text-center align-middle">
+                            <td>' . $filial . '</td>
+                            <td>' . $branch->fil_name . '</td>
+                            <td>' . number_format($bssoni, 0, ',', ' ') . '</td>
+                            <td>' . number_format($bssumma, 0, ',', ' ') . '</td>
+                            <td>' . number_format($bonusTulovSumma, 0, ',', ' ') . '</td>
+                        </tr>
                 </tbody>
                         </table>
                     </div>
                     </div>';
 
-
-            /*Bonus savdoni taxlilini tugadi*/
-
-
-
-        return;
     }
 
     /**

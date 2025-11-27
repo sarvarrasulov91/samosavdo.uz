@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\boshqaharajat1;
+use App\Models\xarajat;
 use App\Models\chiqim_taminot;
 use App\Models\filial;
 use App\Models\kirim;
 use App\Models\kirim_dollar;
-use App\Models\kirim_old;
-use App\Models\tulovlar1;
-use App\Models\xissobotoy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,7 +18,6 @@ class XisobotOfficeInvController extends Controller
     public function index()
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
             if (Auth::user()->filial_id == 10){
                 $filial = filial::where('status', 'Актив')->get();
@@ -29,7 +25,8 @@ class XisobotOfficeInvController extends Controller
                 $filial = filial::where('id', Auth::user()->filial_id)->get();
             }
 
-            return view('xisobotlar.XisobotOfficeInv', ['xis_oyi' => $xis_oyi, 'filial' => $filial]);
+            return view('xisobotlar.XisobotOfficeInv', ['filial' => $filial]);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -103,8 +100,8 @@ class XisobotOfficeInvController extends Controller
         $dollarBank = $dollarAlmPlastik + $dollarAlmHr + $dollarAlmClick + $dollarAlmAvtot;
 
         // tasischiga chiqim  hisoblash
-        $ofisXarajat = new boshqaharajat1(10);
-        $xarajatData = $ofisXarajat->whereBetween('kun', [$boshkun, $yakunkun])
+
+        $xarajatData = xarajat::where('filial_id', '10')->whereBetween('kun', [$boshkun, $yakunkun])
             ->where('status', 'Актив')
             ->get(['naqd', 'pastik', 'hr', 'click', 'avtot', 'valyuta_id', 'turharajat_id']);
 
@@ -183,7 +180,7 @@ class XisobotOfficeInvController extends Controller
                     <td>' . number_format($jamiNaqdChiqimSumma, 0, ",", " ") . '</td>
                     <td>' . number_format(($jamiNaqdSumma-$jamiNaqdChiqimSumma), 0, ",", " ") . '</td>
                 </tr>
-                
+
                 <tr>
                     <td>Х/Р сумма</td>
                     <td>' . number_format($savdoPuliBank, 0, ",", " ") . '</td>
@@ -197,7 +194,7 @@ class XisobotOfficeInvController extends Controller
                     <td>' . number_format($jamiBankChiqimSumma, 0, ",", " ") . '</td>
                     <td>' . number_format(($jamiBankSumma-$jamiBankChiqimSumma), 0, ",", " ") . '</td>
                 </tr>
-                
+
                 <tr>
                     <td>Доллар</td>
                     <td>' . number_format(0, 0, ",", " ") . '</td>

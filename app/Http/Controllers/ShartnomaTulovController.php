@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
-use App\Models\tulovlar1;
-use App\Models\shartnoma1;
-use App\Models\savdo1;
+use App\Models\tulovlar;
+use App\Models\shartnoma;
+use App\Models\savdo;
 use Illuminate\Support\Facades\Validator;
 use App\Models\xissobotoy;
 use App\Models\filial;
@@ -22,7 +22,12 @@ class ShartnomaTulovController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            $shartnoma = shartnoma1::where('status', 'Актив')->orderBy('id', 'desc')->get();
+
+            $shartnoma = shartnoma::where('filial_id', Auth::user()->filial_id)
+                ->where('status', 'Актив')
+                ->orderBy('id', 'desc')
+                ->get();
+
             return view('kassa.shartnomatulov', ['shartnoma' => $shartnoma]);
         }else{
             Auth::guard('web')->logout();
@@ -52,22 +57,30 @@ class ShartnomaTulovController extends Controller
                     <th>Х-Р</th>
                     <th>Сlick</th>
                     <th>Жами тўлови</th>
-                    <th></th>
+                    <th>Квитанция</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody id="tab1">';
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $tulovlar = tulovlar1::where('status', 'Актив')->where('tulovturi', 'Шартнома')->where('xis_oyi', $xis_oyi)->orderBy('id', 'desc')->get();
+
+            $tulovlar = tulovlar::where('filial_id', Auth::user()->filial_id)
+                ->where('status', 'Актив')
+                ->where('tulovturi', 'Шартнома')
+                ->where('xis_oyi', $xis_oyi)
+                ->orderBy('id', 'desc')
+                ->get();
+
             foreach ($tulovlar as $tulovla){
                 echo'
                 <tr class="align-middle text-center">
                     <td>' . $tulovla->id .'</td>
                     <td>' . date("d.m.Y", strtotime($tulovla->kun)) .'</td>
-                    <td>' . $tulovla->shartnomaid .'</td>
-                    <td>' . $tulovla->shartnoma1->mijozlar->last_name . ' ' . $tulovla->shartnoma1->mijozlar->first_name . ' ' . $tulovla->shartnoma1->mijozlar->middle_name .'
+                    <td>' . $tulovla->shid .'</td>
+                    <td>' . $tulovla->shartnoma->mijozlar->last_name . ' ' . $tulovla->shartnoma->mijozlar->first_name . ' ' . $tulovla->shartnoma->mijozlar->middle_name .'
                     </td>
-                    <td>' . $tulovla->shartnoma1->mijozlar->phone .'</td>
+                    <td>' . $tulovla->shartnoma->mijozlar->phone .'</td>
                     <td>' . number_format($tulovla->naqd, 2, ',', ' ') .'</td>
                     <td>' . number_format($tulovla->pastik, 2, ',', ' ') .'</td>
                     <td>' . number_format($tulovla->hr, 2, ',', ' ') .'</td>
@@ -75,12 +88,17 @@ class ShartnomaTulovController extends Controller
                     <td>' . number_format($tulovla->naqd + $tulovla->pastik + $tulovla->hr + $tulovla->click, 2, ',', ' ') .'
                     </td>
                     <td>
-                        <button id="kivitpechat" data-id="' . $tulovla->id .'" data-fio="' . $tulovla->shartnoma1->mijozlar->last_name . ' ' . $tulovla->shartnoma1->mijozlar->first_name . ' ' . $tulovla->shartnoma1->mijozlar->middle_name .'"
+                        <button id="kivitpechat" data-id="' . $tulovla->id .'" data-fio="' . $tulovla->shartnoma->mijozlar->last_name . ' ' . $tulovla->shartnoma->mijozlar->first_name . ' ' . $tulovla->shartnoma->mijozlar->middle_name .'"
                             class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal"
                             data-bs-target="#pechat"><i class="flaticon-381-search-1"></i></button>
-
-                        <button id="tovarudalit" data-id="' . $tulovla->id .'" data-fio="' . $tulovla->shartnoma1->mijozlar->last_name . ' ' . $tulovla->shartnoma1->mijozlar->first_name . ' ' . $tulovla->shartnoma1->mijozlar->middle_name .'"
-                            class="btn btn-outline-danger btn-sm me-2"><i class="flaticon-381-trash-1"></i></button>
+                    </td>
+                    <td>';
+                        if (Auth::user()->lavozim_id == 2){
+                            echo'
+                            <button id="tovarudalit" data-id="' . $tulovla->id .'" data-fio="' . $tulovla->shartnoma->mijozlar->last_name . ' ' . $tulovla->shartnoma->mijozlar->first_name . ' ' . $tulovla->shartnoma->mijozlar->middle_name .'"
+                            class="btn btn-outline-danger btn-sm me-2"><i class="flaticon-381-trash-1"></i></button>';
+                        }
+                        echo'
                     </td>
                 </tr>
                 ';
@@ -130,10 +148,14 @@ class ShartnomaTulovController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $tulovlar1 = new tulovlar1;
+                $shartnoma = shartnoma::find($request->mijoz);
+
+                $tulovlar1 = new tulovlar;
                 $tulovlar1->kun = $request->yangikun;
                 $tulovlar1->tulovturi = 'Шартнома';
-                $tulovlar1->shartnomaid = $request->mijoz;
+                $tulovlar1->filial_id = Auth::user()->filial_id;
+                $tulovlar1->shartnoma_id = $request->mijoz;
+                $tulovlar1->shid = $shartnoma->shid;
                 $tulovlar1->xis_oyi = $xis_oyi;
                 $tulovlar1->naqd =  $naqd;
                 $tulovlar1->pastik =  $plastik;
@@ -146,56 +168,62 @@ class ShartnomaTulovController extends Controller
                 $tulovlar1->save();
 
 
-                $id = $request->mijoz;
-                $shartnoma = shartnoma1::where('id', $id)->get();
-                foreach ($shartnoma as $shartnom) {
+                $foiz = xissobotoy::where('xis_oy', $shartnoma->xis_oyi)->value('foiz');
 
-                    $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
+                if($shartnoma->fstatus == 0){
+                    $foiz = 0;
+                }
 
-                    if($shartnom->fstatus == 0){
-                        $foiz = 0;
-                    }
+                $tulovlar = tulovlar::where('filial_id', Auth::user()->filial_id)
+                    ->where('status', 'Актив')
+                    ->where('shartnoma_id', $shartnoma->id)
+                    ->selectRaw("
+                        SUM(CASE WHEN tulovturi = 'Олдиндан тўлов' THEN umumiysumma ELSE 0 END) as oldindan_summa,
+                        SUM(CASE WHEN tulovturi = 'Олдиндан тўлов' THEN chegirma ELSE 0 END) as oldindan_chegirma,
+                        SUM(CASE WHEN tulovturi = 'Шартнома' THEN umumiysumma ELSE 0 END) as shartnoma_summa
+                    ")
+                    ->first();
 
-                    $oldindantulov = tulovlar1::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-                    $chegirma = tulovlar1::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $id)->sum('chegirma');
-                    $tulov = tulovlar1::where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $id)->sum('umumiysumma');
-                    $savdosumma = savdo1::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                $oldindantulov = $tulovlar->oldindan_summa;
+                $chegirma      = $tulovlar->oldindan_chegirma;
+                $tulov         = $tulovlar->shartnoma_summa;
 
-                    //йиллик фойиз
-                    $foiz = (($foiz / 12) * $shartnom->muddat);
-                    $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
+                $savdosumma = savdo::where('filial_id', Auth::user()->filial_id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->sum('msumma');
 
-                    $umumiySumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
+                //йиллик фойиз
+                $foiz = (($foiz / 12) * $shartnoma->muddat);
+                $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
-                    $date1 = new DateTime($shartnom->kun);
-                    $date2 = new DateTime($shartnom->tug_sana);
-                    $interval = $date1->diff($date2);
-                    $dukun = $interval->days;
-                    $birkunlikfoiz = $xis_foiz / $dukun;
+                $umumiySumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
 
-                    $krxiob22 = 0;
-                    $joqarz = $umumiySumma - $tulov;
+                $date1 = new DateTime($shartnoma->kun);
+                $date2 = new DateTime($shartnoma->tug_sana);
+                $interval = $date1->diff($date2);
+                $dukun = $interval->days;
+                $birkunlikfoiz = $xis_foiz / $dukun;
 
-                    if ( date("Y-m-d") <= $shartnom->tug_sana) {
-                        $date22 = new DateTime(date("Y-m-d"));
-                        $interval1 = $date1->diff($date22);
-                        $dukun22 = $interval1->days;
-                        $krxiob22 = $xis_foiz - ($birkunlikfoiz * $dukun22);
-                        $joqarz = ($umumiySumma - $tulov - $krxiob22);
-                    }
+                $krxiob22 = 0;
+                $joqarz = $umumiySumma - $tulov;
 
-                    $skidka = $umumiySumma - $tulov;
+                if ( date("Y-m-d") <= $shartnoma->tug_sana) {
+                    $date22 = new DateTime(date("Y-m-d"));
+                    $interval1 = $date1->diff($date22);
+                    $dukun22 = $interval1->days;
+                    $krxiob22 = $xis_foiz - ($birkunlikfoiz * $dukun22);
+                    $joqarz = ($umumiySumma - $tulov - $krxiob22);
+                }
 
-                    if ($joqarz <= 0) {
-                        $fond = shartnoma1::where('id', $id)->where('status', 'Актив')->update([
-                            'status' => 'Ёпилган',
-                            'izox' => 'Тўлик тўланганлиги учун',
-                            'yo_user_id' => Auth::user()->id,
-                            'yo_sana' => now(),
-                            'yo_xis_oyi' => $xis_oyi,
-                            'skidka' => $skidka,
-                        ]);
-                    }
+                $skidka = $umumiySumma - $tulov;
+
+                if ($joqarz <= 0) {
+                    $shartnoma->update([
+                        'status' => 'Ёпилган',
+                        'izox' => 'Тўлик тўланганлиги учун',
+                        'yo_user_id' => Auth::user()->id,
+                        'yo_sana' => now(),
+                        'yo_xis_oyi' => $xis_oyi,
+                        'skidka' => $skidka,
+                    ]);
                 }
 
                 return response()->json(['message' => 'Тўлов сақланди.'], 200);
@@ -214,7 +242,6 @@ class ShartnomaTulovController extends Controller
      */
     public function show(string $id)
     {
-
         function num2str($num)
         {
             $nul = '00';
@@ -268,14 +295,9 @@ class ShartnomaTulovController extends Controller
 
 
         $filial = filial::where('id', Auth::user()->filial_id)->first();
-        $ytt = $filial->ytt;
         $manzil = $filial->manzil;
-        $xr = $filial->xr;
-        $inn = $filial->inn;
-        $bankname = $filial->bankname;
-        $mfo = $filial->mfo;
 
-        $tulovlar = tulovlar1::where('status', 'Актив')->where('id', $id)->get();
+        $tulovlar = tulovlar::where('filial_id', Auth::user()->filial_id)->where('status', 'Актив')->where('id', $id)->get();
         foreach($tulovlar as $tulovla){
             echo'
             <div class="d-flex gap-1">
@@ -297,12 +319,12 @@ class ShartnomaTulovController extends Controller
 
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px;">Тўловчи:</td>
-                                <td colspan="5"><b>'.$tulovla->shartnoma1->mijozlar->last_name.' '.$tulovla->shartnoma1->mijozlar->first_name.' '.$tulovla->shartnoma1->mijozlar->middle_name.'</b></td>
+                                <td colspan="5"><b>'.$tulovla->shartnoma->mijozlar->last_name.' '.$tulovla->shartnoma->mijozlar->first_name.' '.$tulovla->shartnoma->mijozlar->middle_name.'</b></td>
                             </tr>
 
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px; text-align: center; font-size: 7pt; text-align: center;" colspan="6">
-                                    <b>'.date('d.m.Y', strtotime($tulovla->shartnoma1->kun)). ' кунги № ' .$tulovla->shartnomaid.' - сонли шартномага асосан</b>
+                                    <b>'.date('d.m.Y', strtotime($tulovla->shartnoma->kun)). ' кунги № ' .$tulovla->shid.' - сонли шартномага асосан</b>
                                 </td>
                             </tr>
                             <tr class="align-middle text-muted">
@@ -354,12 +376,12 @@ class ShartnomaTulovController extends Controller
 
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px;">Тўловчи:</td>
-                                <td colspan="5"><b>'.$tulovla->shartnoma1->mijozlar->last_name.' '.$tulovla->shartnoma1->mijozlar->first_name.' '.$tulovla->shartnoma1->mijozlar->middle_name.'</b></td>
+                                <td colspan="5"><b>'.$tulovla->shartnoma->mijozlar->last_name.' '.$tulovla->shartnoma->mijozlar->first_name.' '.$tulovla->shartnoma->mijozlar->middle_name.'</b></td>
                             </tr>
 
                             <tr class="align-middle text-muted">
                                 <td style="border: 1px solid black; border-collapse: collapse; padding: 1px; text-align: center; font-size: 7pt; text-align: center;" colspan="6">
-                                    <b>'.date('d.m.Y', strtotime($tulovla->shartnoma1->kun)). ' кунги № ' .$tulovla->shartnomaid.' - сонли шартномага асосан</b>
+                                    <b>'.date('d.m.Y', strtotime($tulovla->shartnoma->kun)). ' кунги № ' .$tulovla->shid.' - сонли шартномага асосан</b>
                                 </td>
                             </tr>
                             <tr class="align-middle text-muted">
@@ -414,34 +436,7 @@ class ShartnomaTulovController extends Controller
 
      public function update(Request $request, string $id)
      {
-         $shid=0;
-         $tulovlar = tulovlar1::where('id', $id)->where('tulovturi', 'Шартнома')->first();
-         $shid = $tulovlar->shartnomaid;
-         $TulovKun=date("d-m-Y", strtotime($tulovlar->created_at));
-         $BugungiKun = date("d-m-Y");
-         if($shid>0){
-             if($TulovKun==$BugungiKun){
-                 $shart = shartnoma1::where('id', $shid)
-                 ->where('status', 'Ёпилган')
-                 ->update([
-                     'status' => 'Актив',
-                     'izox' => 'Тўлов ўчирилганлиги учун қайта ёкилди.',
-                     'yo_user_id' => Auth::user()->id,
-                     'skidka' => 0,
-                 ]);
-                 $fond = tulovlar1::where('id', $id)->where('status', 'Актив')
-                 ->update([
-                     'status' => 'Удалит',
-                     'del_user_id' => Auth::user()->id,
-                     'del_kun' => date("Y-m-d"),
-                 ]);
-                 return response()->json(['message' => 'Тўлов ўчирилди.'], 200);
-             }else{
-                 return response()->json(['message' => 'Хатолик: '.$id.' ИД даги тўлов учириш учун админга мурожат қилинг.'], 200);
-             }
-         }else{
-             return response()->json(['message' => 'Хатолик: '.$id.' ИД даги тўлов топилмади.'], 200);
-         }
+         //
      }
 
     /**
@@ -449,6 +444,39 @@ class ShartnomaTulovController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $tulovlar = tulovlar::where('id', $id)
+            ->where('filial_id', Auth::user()->filial_id)
+            ->where('tulovturi', 'Шартнома')
+            ->first();
+
+        $shid = $tulovlar->shartnoma_id;
+
+        if($shid > 0){
+
+            if($tulovlar->kun == date('Y-m-d')){
+
+                $shart = shartnoma::where('id', $shid)
+                    ->where('filial_id', Auth::user()->filial_id)
+                    ->where('status', 'Ёпилган')
+                    ->update([
+                        'status' => 'Актив',
+                        'izox' => 'Тўлов ўчирилганлиги учун қайта ёкилди.',
+                        'yo_user_id' => Auth::user()->id,
+                        'skidka' => 0,
+                    ]);
+
+                $tulovlar->update([
+                    'status' => 'Удалит',
+                    'del_user_id' => Auth::user()->id,
+                    'del_kun' => date("Y-m-d"),
+                ]);
+
+                return response()->json(['message' => 'Тўлов ўчирилди.'], 200);
+            }else{
+                return response()->json(['message' => 'Хатолик: '.$id.' ИД даги тўлов учириш учун админга мурожат қилинг.'], 200);
+            }
+        }else{
+            return response()->json(['message' => 'Хатолик: '.$id.' ИД даги тўлов топилмади.'], 200);
+        }
     }
 }

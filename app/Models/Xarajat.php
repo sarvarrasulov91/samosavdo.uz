@@ -11,17 +11,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
 
-class boshqaharajat1 extends Model
+class xarajat extends Model
 {
     use HasFactory;
 
-    protected $table=[];
+    protected $table = 'xarajat';
 
-    function __construct($filialid=null, array $attributes = [] )
-    {
-        parent::__construct($attributes);
-        $this->setTable('boshqaharajat' . ($filialid==null ? Auth::user()->filial_id : $filialid));
-    }
+//    function __construct($filialid=null, array $attributes = [] )
+//    {
+//        parent::__construct($attributes);
+//        $this->setTable('boshqaharajat' . ($filialid==null ? Auth::user()->filial_id : $filialid));
+//    }
 
     public function valyuta(): BelongsTo
     {
@@ -31,6 +31,11 @@ class boshqaharajat1 extends Model
     public function turharajat(): BelongsTo
     {
         return $this->belongsTo(turharajat::class);
+    }
+
+    public function filial(): BelongsTo
+    {
+        return $this->belongsTo(filial::class);
     }
 
 

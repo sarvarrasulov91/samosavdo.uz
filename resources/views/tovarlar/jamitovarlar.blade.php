@@ -70,6 +70,7 @@
                                             <th>Сотув нархи</th>
                                             <th>Шарт. ID</th>
                                             <th>Холати</th>
+                                            <th>Филиал</th>
                                             <th>Таъминотчи</th>
                                         </tr>
                                     </thead>
@@ -98,6 +99,7 @@
                                                 <td> {{ round($kirim_narxi * $valyuta * (100 + $natsenka + $trans_xarajat) / 100, -3)}}</td>
                                                 <td> {{ $mode->shatnomaid }}</td>
                                                 <td> {{ $mode->status }}</td>
+                                                <td> {{ $mode->filial->fil_name }}</td>
                                                 <td> {{ $mode->pastavshik->pastav_name }}</td>
                                                 </tr>
                                         @endforeach
@@ -139,30 +141,30 @@
                     } else {
                         $(this).closest('tr').removeClass('removeRow');
                     }
-                    
+
                     toggleBarkodButton(); // Check button state after checkbox interaction
                 });
 
                 /* Хаммасини буяш ёки учириш */
                 $('body').on('click', '#selectall', function() {
                     $('.tanlash_checkbox').prop('checked', this.checked);
-                    
+
                     toggleBarkodButton(); // Check button state after checkbox interaction
 
                 });
-                
+
                 $('body').on('click', '.tanlash_checkbox', function() {
                     if ($('.tanlash_checkbox').length == $('.tanlash_checkbox:checked').length) {
                         $('#selectall').prop('checked', true);
                     } else {
                         $("#selectall").prop('checked', false);
                     }
-                    
+
                     toggleBarkodButton(); // Check button state after checkbox interaction
 
                 });
-                
-                
+
+
                 /* Function to enable/disable the #barkod button */
                 function toggleBarkodButton() {
                     if ($('.tanlash_checkbox:checked').length === 0) {

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\xissobotoy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\asosiyvositalar;
 
 use Illuminate\Support\Facades\DB;
@@ -16,8 +17,8 @@ class AsosiyVositaController extends Controller
      */
     public function index()
     {
-
-        if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
+        $userRole = Auth::user()->lavozim_id;
+        if (in_array($userRole, [1, 2]) && Auth::user()->status == 'Актив') {
 
             return view('tovarlar.AsosiyVosita');
         }else{
@@ -33,7 +34,8 @@ class AsosiyVositaController extends Controller
      */
     public function create()
     {
-        if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
+        $userRole = Auth::user()->lavozim_id;
+        if (in_array($userRole, [1, 2]) && Auth::user()->status == 'Актив') {
             echo'
                 <table class="table table-bordered table-responsive-sm text-center align-middle ">
                     <thead>
@@ -48,6 +50,7 @@ class AsosiyVositaController extends Controller
                             <th>Холати</th>
                             <th>Филиал</th>
                             <th>Таъминотчи</th>
+                            <th>-</th>
                         </tr>
                     </thead>
                     <tbody id="tab1">';
@@ -60,20 +63,29 @@ class AsosiyVositaController extends Controller
 
                     }
                         foreach ($model as $mode){
-                            echo'
+                            echo"
                             <tr>
-                                <td>' . $mode->id . '</td>
-                                <td>' . date('d.m.Y', strtotime($mode->kun)) . '</td>
-                                <td>' . $mode->tmodel_id . '</td>
-                                <td>' . $mode->tur->tur_name . '</td>
-                                <td>' . $mode->brend->brend_name . '</td>
-                                <td>' . $mode->tmodel->model_name . '</td>
-                                <td>' . $mode->shtrix_kod . '</td>
-                                <td>' . $mode->status . '</td>
-                                <td>' . $mode->filial->fil_name . '</td>
-                                <td>' . $mode->pastavshik->pastav_name . '</td>
+                                <td>{$mode->id}</td>
+                                <td>{$mode->kun}</td>
+                                <td>{$mode->tmodel_id}</td>
+                                <td>{$mode->tur->tur_name}</td>
+                                <td>{$mode->brend->brend_name}</td>
+                                <td>{$mode->tmodel->model_name}</td>
+                                <td>{$mode->shtrix_kod}</td>
+                                <td>{$mode->status}</td>
+                                <td>{$mode->filial->fil_name}</td>
+                                <td>{$mode->pastavshik->pastav_name}</td>
+                                <td>
+                                    <button
+                                        type='button'
+                                        data-id={$mode->id}
+                                        class='btn btn-outline-danger btn-sm me-2 delete-btn'>
+                                        <i class='flaticon-381-trash-1'></i>
+                                    </button>
+
+                                </td>
                             </tr>
-                            ';
+                            ";
                         }
                         echo'
                     </tbody>
@@ -92,58 +104,70 @@ class AsosiyVositaController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            $krimt = $request->krimt;
-            $model = ktovar1::where('shtrix_kod', $krimt)->where('status', 'Сотилмаган')->count();
-            if ($model == 1) {
-                $modelread = ktovar1::where('shtrix_kod', $krimt)->where('status', 'Сотилмаган')->first();
-                try {
-                    DB::beginTransaction();
+        if (Auth::user()->lavozim_id != 2 && Auth::user()->status != 'Актив') {
+            return response()->json(['message' => "Sizda dostup yo'q" ], 200);
+        }
 
-                    $zaqista = new asosiyvositalar();
-                    $zaqista->kun = $modelread->kun;
-                    $zaqista->tur_id = $modelread->tur_id;
-                    $zaqista->brend_id = $modelread->brend_id;
-                    $zaqista->tmodel_id = $modelread->tmodel_id;
-                    $zaqista->shtrix_kod = $modelread->shtrix_kod;
-                    $zaqista->valyuta_id = $modelread->valyuta_id;
-                    $zaqista->narhi = $modelread->narhi;
-                    $zaqista->snarhi = $modelread->snarhi;
-                    $zaqista->valyuta_narhi = $modelread->valyuta_narhi;
-                    $zaqista->tannarhi = $modelread->tannarhi;
-                    $zaqista->pastavshik_id = $modelread->pastavshik_id;
-                    $zaqista->xis_oyi = $modelread->xis_oyi;
-                    $zaqista->user_id = Auth::user()->id;
-                    $zaqista->filial_id = Auth::user()->filial_id;
-                    $zaqista->kirim_id = $modelread->id;
-                    $zaqista->save();
+        $krimt = $request->krimt;
 
-                    $ktovar1Updated =  ktovar1::where('shtrix_kod', $krimt)->limit(1)
-                    ->update([
-                        'status' => 'Асосий восита'
+        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+
+        $model = kirimTovar::where('filial_id', Auth::user()->filial_id)
+            ->where('shtrix_kod', $krimt)
+            ->where('status', 'Сотилмаган')
+            ->count();
+
+        if ($model == 1) {
+
+            $modelread = kirimTovar::where('shtrix_kod', $krimt)
+                ->where('status', 'Сотилмаган')
+                ->where('filial_id', Auth::user()->filial_id)
+                ->first();
+
+            try {
+                DB::beginTransaction();
+
+                $zaqista = new asosiyvositalar();
+                $zaqista->kun = $modelread->kun;
+                $zaqista->filial_id = Auth::user()->filial_id;
+                $zaqista->tur_id = $modelread->tur_id;
+                $zaqista->brend_id = $modelread->brend_id;
+                $zaqista->tmodel_id = $modelread->tmodel_id;
+                $zaqista->shtrix_kod = $modelread->shtrix_kod;
+                $zaqista->valyuta_id = $modelread->valyuta_id;
+                $zaqista->narhi = $modelread->narhi;
+                $zaqista->snarhi = $modelread->snarhi;
+                $zaqista->valyuta_narhi = $modelread->valyuta_narhi;
+                $zaqista->tannarhi = $modelread->tannarhi;
+                $zaqista->pastavshik_id = $modelread->pastavshik_id;
+                $zaqista->xis_oyi = $xis_oyi;
+                $zaqista->user_id = Auth::user()->id;
+                $zaqista->kirim_id = $modelread->id;
+                $zaqista->save();
+
+                $modelread->update([
+                        'status' => 'Асосий восита',
+                        'ch_kun' => now(),
+                        'ch_xis_oyi' => $xis_oyi,
+                        'ch_user_id' => Auth::id(),
                     ]);
 
-                    DB::commit();
-                    $message = $krimt . "<br> Товар асосий воситага олинди.";
+                DB::commit();
 
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    $message = $krimt . "<br> Товар асосий воситага олишда хатолик2";
-                    // throw $e;
-                }
+                return response()->json(['message' => "Tovar asosiy vositaga olindi" ], 200);
 
-                return response()->json(['message' => $message ], 200);
+            } catch (\Exception $e) {
 
-            } elseif ($model != 1) {
-                return response()->json(['message' =>  $krimt . "<br> Хатолик!!! Товар топилмади ёки илгари асосий воситага олинган булиши мумкин."], 200);
+                DB::rollBack();
+
+                return response()->json(['message' => "Asosiy vositaga olishda xatolik" ], 200);
+                // throw $e;
             }
-            return;
-        }else{
-            Auth::guard('web')->logout();
-            session()->invalidate();
-            session()->regenerateToken();
-            return redirect('/');
+
         }
+
+        return response()->json(['message' =>  $krimt . "<br> Хатолик!!! Товар топилмади ёки илгари асосий воситага олинган булиши мумкин."], 200);
+
     }
 
     /**
@@ -167,18 +191,7 @@ class AsosiyVositaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 12) && ($request->id>0 && $request->filial>0)) {
-        //     $model = new ktovar1($request->filial);
-        //     $data=$model->where('id', $request->id)->update([
-        //         'status' => "Удалит",
-        //     ]);
-        //     return response()->json(['message' => 'Маълумот ўчирилди.'], 200);
-        // }else{
-        //     Auth::guard('web')->logout();
-        //     session()->invalidate();
-        //     session()->regenerateToken();
-        //     return redirect('/');
-        // }
+        //
     }
 
     /**
@@ -186,6 +199,48 @@ class AsosiyVositaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $AsosiyVosita = asosiyvositalar::find($id);
+
+        $tovar = kirimTovar::where('shtrix_kod', $AsosiyVosita->shtrix_kod)
+            ->where('filial_id', $AsosiyVosita->filial_id)
+            ->where('id', $AsosiyVosita->kirim_id)
+            ->first();
+
+        if (!$tovar){
+            return response()->json([
+                'success' => false,
+                'message' => "Tovar topilmadi."
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $AsosiyVosita->update([
+                'status' => 'Удалит'
+            ]);
+
+            $tovar->update([
+                'status' => 'Сотилмаган',
+                'ch_kun' => null,
+                'ch_xis_oyi' => null,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Tovar o'chirildi."
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => "Asosiy vositaga olishda xatolik"
+            ]);
+        }
+
+
     }
 }

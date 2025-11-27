@@ -21,7 +21,10 @@ class OfficeKassaValyutaAlmashishController extends Controller
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $valyuta = valyuta::where('id', '1')->get();
 
-        $kirim_dollar = kirim_dollar::where('status', 'Актив')->where('xis_oyi', $xis_oyi)->orderBy('id', 'desc')->get();
+        $kirim_dollar = kirim_dollar::where('status', 'Актив')
+            ->where('xis_oyi', $xis_oyi)
+            ->orderBy('id', 'desc')
+            ->get();
 
         return view('kassa.ValyutaAlmashish', [
             'kirim_dollar' => $kirim_dollar,
@@ -56,8 +59,8 @@ class OfficeKassaValyutaAlmashishController extends Controller
         ';
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $kirim = kirim_dollar::where('status', 'Актив')->orderBy('id', 'desc')->get();
-        foreach ($kirim as $kirim) {
+        $kirims = kirim_dollar::where('status', 'Актив')->orderBy('id', 'desc')->get();
+        foreach ($kirims as $kirim) {
             echo '
             <tr>
                 <td>' . $kirim->id . '</td>
@@ -180,7 +183,7 @@ class OfficeKassaValyutaAlmashishController extends Controller
     {
         if (Auth::user()->lavozim_id == 1) {
             $kirim = kirim_dollar::where('id', $id)->update([
-                'status' => "Удалит",
+                'status' => 'Удалит',
                 'user_id' => Auth::id(),
             ]);
 

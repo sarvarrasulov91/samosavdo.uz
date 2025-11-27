@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\filial;
 
 
@@ -68,14 +68,19 @@ class TovarlarJamiOfficeController extends Controller
                             <th>Сотув нархи</th>
                             <th>Шарт. ID</th>
                             <th>Холати</th>
+                            <th>Филиал</th>
                             <th>Таъминотчи</th>
                             <th>Қайтариш</th>
                         </tr>
                     </thead>
                     <tbody id="tab1">
                     ';
-                        $ktovar = new ktovar1($id);
-                        $model=$ktovar->where('status', '!=', 'Актив')->where('status', '!=', 'Удалит')->orderBy('id', 'desc')->get();
+
+                        $model = kirimTovar::whereNotIn('status', ['Актив', 'Удалит'])
+                            ->where('filial_id', $id)
+                            ->orderBy('id', 'desc')
+                            ->get();
+
                         foreach ($model as $mode){
 
                             $valyuta = $mode->valyuta->valyuta_narhi;
@@ -99,6 +104,7 @@ class TovarlarJamiOfficeController extends Controller
                                 <td>' . round($kirim_narxi * $valyuta * (100 + $natsenka + $trans_xarajat) / 100, -3)  . '</td>
                                 <td>' . $mode->shatnomaid . '</td>
                                 <td>' . $mode->status . '</td>
+                                <td>' . $mode->filial->fil_name . '</td>
                                 <td>' . $mode->pastavshik->pastav_name . '</td>
                                 <td>
                                         <a onclick="tovarudalit(' . $mode->id . ')"
@@ -124,23 +130,36 @@ class TovarlarJamiOfficeController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $id = $request->id;
+        $filial = $request->filial;
 
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $id = $request->id;
-            $ktovar = new ktovar1($request->filial);
-            $fond =$ktovar->where('id', $id)->where('status', 'Сотилмаган')
-            ->update([
-                'status' => 'Удалит',
-                'u_user_id' => Auth::user()->id,
-                'u_kun' => now(),
-            ]);
-            return response()->json(['message' => 'Товар учирилди.'], 200);
-        }else{
+        if (Auth::user()->lavozim_id != 1 || Auth::user()->status != 'Актив') {
+
             Auth::guard('web')->logout();
             session()->invalidate();
             session()->regenerateToken();
             return redirect('/');
+
         }
+
+        $tovar = kirimTovar::where('filial_id', $filial)
+            ->where('id', $id)
+            ->where('status', 'Сотилмаган')
+            ->first();
+
+        // update() qaytargan qiymat — nechta qator o‘zgarganligi
+        if (!$tovar) {
+            return response()->json(['message' => 'Товар топилмади'], 404);
+        }
+
+        $tovar->update([
+            'status' => 'Удалит',
+            'del_user_id' => Auth::user()->id,
+            'del_kun' => now(),
+        ]);
+
+        return response()->json(['message' => 'Товар учирилди.'], 200);
+
     }
 
     /**

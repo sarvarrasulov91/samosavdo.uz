@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\savdo1;
+use App\Models\savdo;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 class SavdolarTahliliController extends Controller
@@ -18,11 +17,8 @@ class SavdolarTahliliController extends Controller
     {
 
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-            $filial = filial::where('id','!=',10)->get();
-            return view('xisobotlar.SavdolarTahlili', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial]);
+            $filial = filial::where('id', '!=', 10)->get();
+            return view('xisobotlar.SavdolarTahlili', ['filial' => $filial]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -86,64 +82,62 @@ class SavdolarTahliliController extends Controller
                 <tbody id="tab1">';
 
                     $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                    $i=1;
-                    $uksoni=0;
-                    $uksumma=0;
-                    $ussoni=0;
-                    $ussumma=0;
-                    $usotsoni=0;
-                    $usotsumma=0;
-                    $uqsoni=0;
-                    $uqsumma=0;
-                    $uchsoni=0;
-                    $uchsumma=0;
-                    $ubsoni=0;
-                    $ubsumma=0;
+                    $i = 1;
+                    $uksoni = 0;
+                    $uksumma = 0;
+                    $ussoni = 0;
+                    $ussumma = 0;
+                    $usotsoni = 0;
+                    $usotsumma = 0;
+                    $uqsoni = 0;
+                    $uqsumma = 0;
+                    $uchsoni = 0;
+                    $uchsumma = 0;
+                    $ubsoni = 0;
+                    $ubsumma = 0;
 
                     $filial = filial::where('status', 'Актив')->get();
                     foreach ($filial as $filialinfo){
 
-                        $ksoni=0;
-                        $ksumma=0;
-                        $ssoni=0;
-                        $ssumma=0;
-                        $sotsoni=0;
-                        $sotsumma=0;
-                        $qsoni=0;
-                        $qsumma=0;
-                        $chsoni=0;
-                        $chsumma=0;
-                        $bsoni=0;
-                        $bsumma=0;
+                        $ksoni = 0;
+                        $ksumma = 0;
+                        $ssoni = 0;
+                        $ssumma = 0;
+                        $sotsoni = 0;
+                        $sotsumma = 0;
+                        $qsoni = 0;
+                        $qsumma = 0;
+                        $chsoni = 0;
+                        $chsumma = 0;
+                        $bsoni = 0;
+                        $bsumma = 0;
 
-                        $savdo = new savdo1($filialinfo->id);
-                        $savdosvod=$savdo->where('status','!=','Удалит')->where('xis_oyi',$xis_oyi)->get();
+                        $savdosvod = savdo::where('filial_id', $filialinfo->id)->where('status', '!=', 'Удалит')->where('xis_oyi', $xis_oyi)->get();
                         foreach ($savdosvod as $savdosvodname) {
-                            $ksoni+=1;
-                            $ksumma+=$savdosvodname->kirimnarhi;
-                            if($savdosvodname->sotuvnarhi>0){
-                                $ssoni+=1;
-                                $ssumma+=$savdosvodname->sotuvnarhi;
+                            $ksoni += 1;
+                            $ksumma += $savdosvodname->kirimnarhi;
+                            if($savdosvodname->sotuvnarhi > 0){
+                                $ssoni += 1;
+                                $ssumma += $savdosvodname->sotuvnarhi;
                             }
-                            if($savdosvodname->msumma>0){
-                                $sotsoni+=1;
-                                $sotsumma+=$savdosvodname->msumma;
+                            if($savdosvodname->msumma > 0){
+                                $sotsoni += 1;
+                                $sotsumma += $savdosvodname->msumma;
                             }
-                            if($savdosvodname->qushimch>0){
-                                $qsoni+=1;
-                                $qsumma+=$savdosvodname->qushimch;
+                            if($savdosvodname->qushimch > 0){
+                                $qsoni += 1;
+                                $qsumma += $savdosvodname->qushimch;
                             }
-                            if($savdosvodname->chegirma>0){
-                                $chsoni+=1;
-                                $chsumma+=$savdosvodname->chegirma;
+                            if($savdosvodname->chegirma > 0){
+                                $chsoni += 1;
+                                $chsumma += $savdosvodname->chegirma;
                             }
-                            if($savdosvodname->bonus>0){
-                                $bsoni+=1;
-                                $bsumma+=$savdosvodname->bonus;
+                            if($savdosvodname->bonus > 0){
+                                $bsoni += 1;
+                                $bsumma += $savdosvodname->bonus;
                             }
 
                         }
-
 
                         echo'
                             <tr>
@@ -164,18 +158,18 @@ class SavdolarTahliliController extends Controller
 
                             </tr>
                         ';
-                        $uksoni+=$ksoni;
-                        $uksumma+=$ksumma;
-                        $ussoni+=$ssoni;
-                        $ussumma+=$ssumma;
-                        $usotsoni+=$sotsoni;
-                        $usotsumma+=$sotsumma;
-                        $uqsoni+=$qsoni;
-                        $uqsumma+=$qsumma;
-                        $uchsoni+=$chsoni;
-                        $uchsumma+=$chsumma;
-                        $ubsoni+=$bsoni;
-                        $ubsumma+=$bsumma;
+                        $uksoni += $ksoni;
+                        $uksumma += $ksumma;
+                        $ussoni += $ssoni;
+                        $ussumma += $ssumma;
+                        $usotsoni += $sotsoni;
+                        $usotsumma += $sotsumma;
+                        $uqsoni += $qsoni;
+                        $uqsumma += $qsumma;
+                        $uchsoni += $chsoni;
+                        $uchsumma += $chsumma;
+                        $ubsoni += $bsoni;
+                        $ubsumma += $bsumma;
 
                     }
 
@@ -229,19 +223,13 @@ class SavdolarTahliliController extends Controller
                 <tbody id="tab1">';
 
                     $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                    $i=1;
-                    $uksumma=0;
-                    $ussumma=0;
-                    $usotsumma=0;
-                    $uqsumma=0;
-                    $uchsumma=0;
-                    $ubsumma=0;
+                    $i = 1;
+                    $uksumma = $ussumma = $usotsumma = $uqsumma = $uchsumma = $ubsumma = 0;
 
                     $filial = filial::where('status', 'Актив')->where('id', $id)->get();
                     foreach ($filial as $filialinfo){
 
-                        $savdo = new savdo1($filialinfo->id);
-                        $savdosvod=$savdo->where('status','!=','Удалит')->where('xis_oyi',$xis_oyi)->get();
+                        $savdosvod = savdo::where('filial_id', $filialinfo->id)->where('status','!=','Удалит')->where('xis_oyi',$xis_oyi)->get();
                         foreach ($savdosvod as $savdosvodname) {
                             echo'
                                 <tr>
@@ -259,15 +247,14 @@ class SavdolarTahliliController extends Controller
                                     <td>' . number_format($savdosvodname->msumma-$savdosvodname->kirimnarhi, 0, ",", " ") . '</td>
                                 </tr>
                             ';
-                            $uksumma+=$savdosvodname->kirimnarhi;
-                            $ussumma+=$savdosvodname->sotuvnarhi;
-                            $usotsumma+=$savdosvodname->msumma;
-                            $uqsumma+=$savdosvodname->qushimch;
-                            $uchsumma+=$savdosvodname->chegirma;
-                            $ubsumma+=$savdosvodname->bonus;
+                            $uksumma += $savdosvodname->kirimnarhi;
+                            $ussumma += $savdosvodname->sotuvnarhi;
+                            $usotsumma += $savdosvodname->msumma;
+                            $uqsumma += $savdosvodname->qushimch;
+                            $uchsumma += $savdosvodname->chegirma;
+                            $ubsumma += $savdosvodname->bonus;
 
                         }
-
 
                     }
 

@@ -23,7 +23,7 @@ class filial extends Model
 
     public function ktovar1(): HasOne
     {
-        return $this->hasOne(ktovar1::class);
+        return $this->hasOne(kirimTovar::class);
     }
 
     public function tqaytarish(): HasOne
@@ -35,7 +35,7 @@ class filial extends Model
     {
         return $this->hasOne(tmqaytarish::class);
     }
-    
+
     public function mijozlar(): HasOne
     {
         return $this->hasOne(mijozlar::class);

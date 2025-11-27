@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
-
 
 
 
@@ -21,12 +18,13 @@ class KirimTovarOmborController extends Controller
     {
 
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
+
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $model = ktovar1::
-            whereNotIn('status', ['Актив', 'Удалит'])
-            ->where('xis_oyi', $xis_oyi)
-            ->orderBy('id', 'desc')->get();
+            $model = kirimTovar::whereNotIn('status', ['Актив', 'Удалит'])
+                ->where('xis_oyi', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')->get();
 
             return view('tovarlar.omborkirim', [
                 'xis_oyi' => $xis_oyi,
@@ -55,17 +53,25 @@ class KirimTovarOmborController extends Controller
     public function store(Request $request)
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
-            $message='';
+
+            $message = '';
+
             $krimt = $request->krimt;
-            $model = ktovar1::where('shtrix_kod', $krimt)->where('status', 'Актив')->count();
+
+            $model = kirimTovar::where('filial_id', Auth::user()->filial_id)
+                ->where('shtrix_kod', $krimt)
+                ->where('status', 'Актив')
+                ->count();
+
             if ($model == 1) {
-                $result = ktovar1::where('shtrix_kod', $krimt)
-                ->limit(1)
-                ->update([
-                    'status' => 'Сотилмаган',
-                    'k_kun' => now(),
-                    'k_user_id' => Auth::user()->id
-                ]);
+                $result = kirimTovar::where('filial_id', Auth::user()->filial_id)
+                    ->where('shtrix_kod', $krimt)
+                    ->limit(1)
+                    ->update([
+                        'status' => 'Сотилмаган',
+                        'k_kun' => now(),
+                        'k_user_id' => Auth::id()
+                    ]);
 
                 if ($result) {
                     $message = $krimt . "<br> Товар омборга кирим қилиб олинди.";
@@ -79,7 +85,7 @@ class KirimTovarOmborController extends Controller
 
             $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $model = ktovar1::
+            $model = kirimTovar::
             with(['tur'=>function ($query) {
                 $query->select('id','tur_name');
             }])->
@@ -96,8 +102,13 @@ class KirimTovarOmborController extends Controller
                 $query->select('id','fil_name');
             }])->
             select('id','kun','narhi','tur_id','brend_id','tmodel_id','shtrix_kod','status','pastavshik_id','filial_id')
-            ->whereNotIn('status', ['Актив', 'Удалит'])->where('xis_oyi', $xis_oyi)->orderBy('id', 'desc')->get();
-            return response()->json(['message'=>$message, 'model'=>$model], 200);
+                ->whereNotIn('status', ['Актив', 'Удалит'])
+                ->where('xis_oyi', $xis_oyi)
+                ->where('filial_id', Auth::user()->filial_id)
+                ->orderBy('id', 'desc')
+                ->get();
+
+            return response()->json(['message' => $message, 'model' => $model], 200);
 
         }else{
             Auth::guard('web')->logout();

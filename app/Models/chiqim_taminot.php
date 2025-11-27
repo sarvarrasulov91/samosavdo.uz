@@ -10,6 +10,7 @@ class chiqim_taminot extends Model
 {
     use HasFactory;
     protected $table = 'chiqim_taminot';
+    protected $guarded = [];
 
     public function valyuta(): BelongsTo
     {

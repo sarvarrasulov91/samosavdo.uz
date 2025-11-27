@@ -11,7 +11,7 @@ use App\Models\tmodel;
 use App\Models\brend;
 use App\Models\user;
 use App\Models\mijozlar;
-use App\Models\shartnoma1;
+use App\Models\shartnoma;
 
 class dashboardController extends Controller
 {
@@ -25,7 +25,7 @@ class dashboardController extends Controller
         $brend = brend::count('id');
         $userlar = user::count('id');
         $mijozsoni = Mijozlar::where('filial_id', Auth::user()->filial_id)->count('id');
-        $shartnomasoni = shartnoma1::count('id');
+        $shartnomasoni = shartnoma::where('filial_id', Auth::user()->filial_id)->whereIn('status', ['Актив', 'Ёпилган'])->count('id');
         $mijozlaroy = mijozlar::whereMonth('t_sana',date('m'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
         $mijozlarkun = mijozlar::whereMonth('t_sana',date('m'))->whereDay('t_sana',date('d'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
 
@@ -39,13 +39,15 @@ class dashboardController extends Controller
         ->groupBy('mfy_id')
         ->get();
 
-        $mtashrif = shartnoma1::
+        $mtashrif = shartnoma::
         with(['tashrif'=>function ($query) {
             $query->select('id','tashrif_name');
         }])->
-        select('tashrif_id', DB::raw('COUNT(tashrif_id) as soni'))
-        ->groupBy('tashrif_id')
-        ->get();
+            select('tashrif_id', DB::raw('COUNT(tashrif_id) as soni'))
+            ->where('filial_id', Auth::user()->filial_id)
+            ->whereIn('status', ['Актив', 'Ёпилган'])
+            ->groupBy('tashrif_id')
+            ->get();
 
         return view('dashboard',[
             'valyuta' => $valyuta,

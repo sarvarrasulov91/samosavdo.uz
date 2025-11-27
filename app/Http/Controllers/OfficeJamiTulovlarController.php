@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar1;
+use App\Models\tulovlar;
 use App\Models\filial;
 use App\Models\lavozim;
 
@@ -17,15 +17,12 @@ class OfficeJamiTulovlarController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
         if (Auth::user()->filial_id == 10 && Auth::user()->status == 'Актив') {
             $filial = filial::where('status', 'Актив')->where('id', '!=', '10')->get();
         } else {
             $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
         }
-        return view('kassa.OfficeJamiTulovlar', ['filial' => $filial, 'xis_oyi' => $xis_oyi, 'filial_name' => $filial_name, 'lavozim_name' => $lavozim_name]);
+        return view('kassa.OfficeJamiTulovlar', ['filial' => $filial]);
     }
 
     /**
@@ -62,32 +59,32 @@ class OfficeJamiTulovlarController extends Controller
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-            $naqd = 0;
+
             $unaqd = 0;
-            $plastik = 0;
             $uplastik = 0;
-            $click = 0;
             $uclick = 0;
-            $hr = 0;
             $uhr = 0;
-            $avtot = 0;
             $uavtot = 0;
-            $chegirma = 0;
             $uchegirma = 0;
-            $jami = 0;
             $ujami = 0;
 
             $filialbase = filial::where('status', 'Актив')->where('id','!=','10')->get();
+
             foreach ($filialbase as $filia) {
-                $tulovlar = new tulovlar1($filia->id); 
-                $naqd = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('naqd');
-                $plastik = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('pastik');
-                $hr = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('hr');
-                $click = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('click');
-                $avtot = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('avtot');
-                $chegirma = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('chegirma');
-                $jami = $tulovlar->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->sum('umumiysumma');
-                
+
+                $tulovlar = tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('status', 'Актив')
+                    ->where('filial_id', $filia->id)
+                    ->get();
+
+                $naqd = $tulovlar->sum('naqd');
+                $plastik = $tulovlar->sum('pastik');
+                $hr = $tulovlar->sum('hr');
+                $click = $tulovlar->sum('click');
+                $avtot = $tulovlar->sum('avtot');
+                $chegirma = $tulovlar->sum('chegirma');
+                $jami = $tulovlar->sum('umumiysumma');
+
                 echo '
                     <tr class="text-center align-middle">
                         <td>' . $filia->id . '</td>
@@ -125,9 +122,9 @@ class OfficeJamiTulovlarController extends Controller
         </tbody>
                 </table>
             </div>
-            </div>'; 
+            </div>';
 
-    return;  
+    return;
     }
 
     /**

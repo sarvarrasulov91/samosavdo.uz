@@ -68,11 +68,11 @@
                             <label>Штрих кодни киритинг
                                 <span class="text-danger">*</span>
                             </label>
-                            <input type="text" id="shid" name="shid" class="form-control text-center" readonly
-                                hidden />
+                            <input type="hidden" id="id">
+                            <input type="hidden" id="shid">
 
                             <input type="text" id="krimt" name="krimt" class="form-control text-center"
-                                maxlength="17" />
+                                maxlength="19" />
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -110,13 +110,15 @@
             $(document).on('click', '#modalbonusshow', function() {
                 $('#bonus_show').modal('show');
                 var id = $(this).data('id');
+                var shid = $(this).data('shid');
                 var fio = $(this).data('fio');
-                $('.modal-title').html(id + ' -> ' + fio);
+                $('.modal-title').html(shid + ' -> ' + fio);
                 $.ajax({
                     url: "{{ route('bonus.index') }}/" + id,
                     method: "GET",
                     data: {
-                        id: id
+                        id: id,
+                        shid: shid,
                     },
                     success: function(data) {
                         $("#modalshow").html(data);
@@ -124,49 +126,58 @@
                 })
             });
 
-
-
             $(document).on('click', '#tovar_qushish', function() {
                 $('#add_tovar').modal('show');
-                var id = $(this).data('shid');
-                $('#shid').val(id);
+
+                $('#id').val($(this).data('id'));
+                $('#shid').val($(this).data('shid'));
             });
+
 
             $('#krimt').on('keypress', function(e) {
                 if (e.which === 13) {
+
                     var krimt = $('#krimt').val();
-                    var id = $('#shid').val();
-                    var status = 'tqushish';
-                    if (krimt.length != 17) {
-                        toastr.success("Хатолик!!! Маълумотларни тўлиқ киритмадингиз.");
-                    } else {
-                        $.ajax({
-                            url: "{{ route('bonus.store') }}",
-                            method: "POST",
-                            data: {
-                                _token: "{{ csrf_token() }}",
-                                krimt: krimt,
-                                id: id,
-                                status: status
-                            },
-                            success: function(response) {
-                                toastr.success(response.message);
-                                var id = $('#shid').val();
-                                $.ajax({
-                                    url: "{{ route('bonus.index') }}/" + id,
-                                    method: "GET",
-                                    data: {
-                                        id: id,
-                                    },
-                                    success: function(data) {
-                                        $("#modalshow").html(data);
-                                    }
-                                })
-                                $('#krimt').val("");
-                                tabyuklash();
-                            }
-                        });
+                    var id = $('#id').val();
+                    var shid = $('#shid').val();
+                    var status = 't_qushish';
+
+                    if (krimt.length != 17 && krimt.length != 19) {
+
+                        toastr.error("Хатолик!!! Маълумотларни тўлиқ киритмадингиз.");
+                        return;
                     }
+
+                    $.ajax({
+                        url: "{{ route('bonus.store') }}",
+                        method: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            krimt: krimt,
+                            id: id,
+                            shid: shid,
+                            status: status
+                        },
+                        success: function(response) {
+                            toastr.success(response.message);
+                            var id = $('#id').val();
+                            var shid = $('#shid').val();
+                            $.ajax({
+                                url: "{{ route('bonus.index') }}/" + id,
+                                method: "GET",
+                                data: {
+                                    id: id,
+                                    shid: shid,
+                                },
+                                success: function(data) {
+                                    $("#modalshow").html(data);
+                                }
+                            })
+                            $('#krimt').val("");
+                            tabyuklash();
+                        }
+                    });
+
                 }
             })
 

@@ -25,14 +25,9 @@ class tmodel extends Model
         return $this->belongsTo(brend::class);
     }
 
-    public function ktovar1(): HasOne
+    public function savdo(): HasOne
     {
-        return $this->hasOne(ktovar1::class);
-    }
-
-    public function savdo1(): HasOne
-    {
-        return $this->hasOne(savdo1::class);
+        return $this->hasOne(savdo::class);
     }
 
     public function talmashish(): HasOne

@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
-use App\Models\tulovlar1;
-use App\Models\shartnoma1;
-use App\Models\naqdsavdo1;
+use App\Models\tulovlar;
+use App\Models\shartnoma;
+use App\Models\naqdSavdo;
 use App\Models\mijozlar;
 use App\Models\valyuta;
 use App\Models\lavozim;
@@ -42,15 +42,18 @@ class OfficeIzmenitTulovController extends Controller
         $boshkun = $request->boshkun;
         $yakunkun = $request->yakunkun;
 
-        $tulovlar = new tulovlar1($request->filial);
-        $tulovlar1 = $tulovlar->where('status', 'Актив')->whereBetween('kun', [$boshkun, $yakunkun])->orderBy('id', 'desc')->get();
+        $tulovlar1 = tulovlar::where('status', 'Актив')
+            ->whereBetween('kun', [$boshkun, $yakunkun])
+            ->where('filial_id', $request->filial)
+            ->orderBy('id', 'desc')
+            ->get();
+
         echo '
         <table class="table table-bordered table-hover">
             <thead>
                 <tr class="text-center text-bold text-primary align-middle">
                     <th>№</th>
                     <th>Сана</th>
-                    <th>Мижоз ФИО</th>
                     <th>Тулов тури</th>
                     <th>Шартнома №</th>
                     <th>Накд</th>
@@ -76,29 +79,13 @@ class OfficeIzmenitTulovController extends Controller
         $filial = $request->filial;
 
         foreach ($tulovlar1 as $tulov) {
-            $shartnoma1 = new shartnoma1($request->filial);
-
-            if ($tulov->tulovturi == 'Нақд'){
-                $shartnoma1 = new naqdsavdo1($request->filial);
-            }
-
-            if ($tulov->tulovturi != 'Брон'){
-
-                $shartnoma = $shartnoma1->where('id', $tulov->shartnomaid)->first();
-                $mijozlar = mijozlar::where('id', $shartnoma->mijozlar_id)->first();
-                $mijozName = $mijozlar->last_name . ' ' . $mijozlar->first_name . ' ' . $mijozlar->middle_name;
-
-            }else{
-                $mijozName = "";
-            }
 
             echo '
                 <tr class="text-center align-middle">
                     <td>' . $tulov->id . '</td>
                     <td style="white-space: pre-wrap">' . date('d.m.Y H:i:s', strtotime($tulov->created_at)) . '</td>
-                    <td style="white-space: pre-wrap">' . $mijozName . '</td>
                     <td>' . $tulov->tulovturi . '</td>
-                    <td class="text-primary">' . $tulov->shartnomaid . '</td>
+                    <td class="text-primary">' . $tulov->shartnoma_id . '</td>
                     <td>' . number_format($tulov->naqd, 0, ',', ' ') . '</td>
                     <td>' . number_format($tulov->pastik, 0, ',', ' ') . '</td>
                     <td>' . number_format($tulov->hr, 0, ',', ' ') . '</td>
@@ -112,7 +99,7 @@ class OfficeIzmenitTulovController extends Controller
                         data-id="' . $tulov->id . '"
                         data-kun="' . $tulov->kun . '"
                         data-tulov_turi="' . $tulov->tulovturi . '"
-                        data-shartnoma_id="' . $tulov->shartnomaid . '"
+                        data-shartnoma_id="' . $tulov->shartnoma_id . '"
                         data-naqd="' . $tulov->naqd . '"
                         data-pastik="' . $tulov->pastik . '"
                         data-hr="' . $tulov->hr . '"
@@ -182,24 +169,28 @@ class OfficeIzmenitTulovController extends Controller
     public function update(Request $request, string $id)
     {
         if ($request->status == 'tulovdelete' && Auth::user()->lavozim_id == 1){
-            $tulov = new tulovlar1($request->filial2);
-            $tulovkun = $tulov->where('id', $request->id)->where('status', 'Актив')->limit(1)->value('kun');
 
-            if ($tulovkun == date('Y-m-d')) {
-                $tulovlar = $tulov->where('id', $request->id)->where('status', 'Актив')
-                    ->update([
+            $tulov = tulovlar::where('id', $request->id)
+                ->where('status', 'Актив')
+                ->where('filial_id', $request->filial2)
+                ->first();
+
+            if ($tulov->kun == date('Y-m-d')) {
+                $tulov->update([
                         'status' => 'Удалит',
                         'del_kun' => date('Y-m-d'),
                         'del_user_id' => Auth::user()->id,
                     ]);
+
                 return response()->json(['message' => "To'lov o'chirildi."], 200);
+
             } else {
-                $tulovlar = $tulov->where('id', $request->id)->where('status', 'Актив')
-                    ->update([
+                $tulov->update([
                         'tulovturi' => 'Брон',
                         'del_kun' => date('Y-m-d'),
                         'del_user_id' => Auth::user()->id,
                     ]);
+
                 return response()->json(['message' => "To'lov bronga olindi."], 200);
             }
 
@@ -237,13 +228,15 @@ class OfficeIzmenitTulovController extends Controller
             }
 
             if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-                $tulovlar = new tulovlar1($request->filial2);
-                $tulovlar1 = $tulovlar->where('id', $id)->where('status', 'Актив')->first();
-                if ($tulovlar1){
-                    $tulovlar1 = $tulovlar->where('id', $id)->where('status', 'Актив')->first()->update([
+
+                $tulov = tulovlar::where('id', $id)->where('status', 'Актив')->where('filial_id', $request->filial2)->first();
+
+                if ($tulov){
+
+                    $tulov->update([
                         'kun' => $request->yangikun,
                         'tulovturi' => $request->tulovturi,
-                        'shartnomaid' => $request->shartnomaid,
+                        'shartnoma_id' => $request->shartnomaid,
                         'naqd' => $request->naqd,
                         'pastik' => $request->pastik,
                         'hr' => $request->hr,
@@ -253,7 +246,9 @@ class OfficeIzmenitTulovController extends Controller
                         'umumiysumma' => $request->naqd + $request->pastik + $request->hr + $request->click + $request->avtot,
                         'user_id' => Auth::user()->id,
                     ]);
+
                     return response()->json(['message' => 'Маълумот ўзгартирилди.'], 200);
+
                 }else{
                     return response()->json(['message' => 'Хато малумот киритилди.'], 200);
                 }

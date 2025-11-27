@@ -68,8 +68,13 @@ class TovarModelController extends Controller
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $sql = tmodel::where('status', 'Актив')->where('tur_id', $request->tur)->where('brend_id', $request->brend)->where('model_name', $request->model)->count();
-            if ($sql>0) {
+            $sql = tmodel::where('status', 'Актив')
+                ->where('tur_id', $request->tur)
+                ->where('brend_id', $request->brend)
+                ->where('model_name', $request->model)
+                ->count();
+
+            if ($sql > 0) {
                 return response()->json(['message' => 'Модел базада мвжуд.'], 200);
             }else{
                 $brend = new tmodel;

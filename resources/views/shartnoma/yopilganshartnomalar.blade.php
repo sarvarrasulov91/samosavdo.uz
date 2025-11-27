@@ -19,7 +19,7 @@
                         <div class="page-titles">
                             <li id="select_div" class="nav-item" role="presentation">
                                 <select id="filial" name="filial" class="multi-select form-control">
-                                    <option value="10">Филиал...</option>
+                                    <option value="0">Филиал...</option>
                                     @foreach ($filial as $filia)
                                         <option value="{{ $filia->id }}">{{ $filia->fil_name }}
                                         </option>
@@ -55,9 +55,15 @@
         <script src="/vendor/global/global.min.js"></script>
         <script>
             function tabyuklash() {
+
                 var id = $('#filial').val();
+
                 var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
                 if (id > 0) {
+
+                    $('#tabprosfil').html("<div style='margin: 100px 0; 'class='text-center d-block'><div style='color: #007bff !important;' class='mx-auto spinner-border text-primary'></div></div>");
+
                     $.ajax({
                         url: "{{ route('yopilganshartnomalar.index') }}/" + id,
                         method: "GET",

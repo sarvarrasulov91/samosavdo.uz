@@ -4,13 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\shartnoma1;
-use App\Models\tulovlar1;
-use App\Models\savdo1;
+use App\Models\shartnoma;
+use App\Models\tulovlar;
+use App\Models\savdo;
 use App\Models\xodimlar;
-use App\Models\mijozlar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 use DateTime;
@@ -25,26 +23,20 @@ class PortfelExpiredController extends Controller
     public function index()
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
-            
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
-            
+
             return view('shartnoma.PortfelExpired', [
-                'filial_name' => $filial_name, 
-                'lavozim_name' => $lavozim_name, 
-                'xis_oyi' => $xis_oyi, 
-                'filial' => $filial 
+                'filial' => $filial
                 ]);
-            
+
         }else{
-            
+
             Auth::guard('web')->logout();
             session()->invalidate();
             session()->regenerateToken();
             return redirect('/');
-            
+
         }
     }
 
@@ -72,7 +64,7 @@ class PortfelExpiredController extends Controller
 
         echo'
         <h5 class="bc-title text-primary"></h5>
-        
+
         <table class="table table-bordered text-center align-middle table-hover"
             style="font-size: 14px;">
             <thead>
@@ -108,15 +100,18 @@ class PortfelExpiredController extends Controller
                     <th>Просрочка</th>
                     <th>Изох</th>
                     <th>Товар <br>куриш</th>
-                    
+
                 </tr>
             </thead>
             <tbody id="tab1">';
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $model = new shartnoma1($id);
-                $shartnoma = $model->where('status', 'Актив')->where('tug_sana', '<', date('Y-m-d'))->orderBy('id', 'desc')->get();
+                $shartnoma = shartnoma::where('filial_id', $id)
+                    ->where('status', 'Актив')
+                    ->where('tug_sana', '<', date('Y-m-d'))
+                    ->orderBy('id', 'desc')
+                    ->get();
 
                 $shsumma = 0;
                 $shotulov = 0;
@@ -130,21 +125,15 @@ class PortfelExpiredController extends Controller
                 $uProsrochka = 0;
 
                 foreach ($shartnoma as $shartnom){
-                    $savdosumma = 0;
-                    $oldindantulov = 0;
-                    $chegirma = 0;
-                    $tulov = 0;
-                    $shJamiSumma = 0;
+
                     $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
-                    $savdo = new savdo1($id);
-                    $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                    $savdosumma = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                    $oldindantulovinfo = new tulovlar1($id);
-                    $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                    $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-                    $tulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
-                    $tulovinfo = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
+                    $oldindantulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
+                    $chegirma = tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
+                    $tulov = tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
+                    $tulovinfo = tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
                     $tsumma = 0;
                     $tsumma = $tulovinfo->umumiysumma ?? 0;
@@ -160,12 +149,12 @@ class PortfelExpiredController extends Controller
 
                     //йиллик фойиз
                     $foiz = (($foiz / 12) * $shartnom->muddat);
-                    
+
                     //$xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
                     $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
                     $shJamiSumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
-                    
+
                     $shkun = $shartnom->kun;
                     $shtug_sana = $shartnom->tug_sana;
 
@@ -184,12 +173,12 @@ class PortfelExpiredController extends Controller
                         $months = ($jointerval->y * 12) + $jointerval->m;
 
                         $joqarz = ($birkunlikfoiz + $birkunliktani) * $jokun - $tulov;
-                        
+
                         $joqarzm = ($shJamiSumma / $shartnom->muddat) * $months - $tulov;
                         $prSumma = $joqarzm - ($shJamiSumma / $shartnom->muddat);
-                        
+
                         $tkun = date('Y-m', strtotime($xis_oyi)) . '-' . date('d', strtotime($shartnom->kun));
-                        
+
                         if ($tkun >= date("Y-m-d")) {
                             $joqarzm = $prSumma;
                         }
@@ -197,7 +186,7 @@ class PortfelExpiredController extends Controller
                     }else{
                         $joqarz = $joqarzm = $shJamiSumma - $tulov;
                     }
-                    
+
                     if ($joqarzm < 1000) {
                         $joqarzm = 0;
                     }
@@ -211,7 +200,7 @@ class PortfelExpiredController extends Controller
                     foreach ($hodimlar as $hodimla) {
                         $hodimlar_fio = $hodimla->fio;
                     }
-                    
+
                     $trrang = "";
                     if (date("Y-m-d") > $shtug_sana) {
                         $trrang = "align-middle text-danger";
@@ -339,8 +328,12 @@ class PortfelExpiredController extends Controller
                 </thead>
 
                 <tbody id="tab1">';
-                $savdo = new savdo1($request->filial);
-                $savdomodel = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
+
+                $savdomodel = savdo::where('filial_id', $request->filial)
+                    ->where('status', 'Шартнома')
+                    ->where('shartnoma_id', $id)
+                    ->get();
+
                 $i = 1;
                 $jami = 0;
                 foreach ($savdomodel as $savdomode) {

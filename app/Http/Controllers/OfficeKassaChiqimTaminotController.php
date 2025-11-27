@@ -3,14 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\chiqim_taminot;
 use App\Models\valyuta;
 use App\Models\pastavshik;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -22,12 +19,11 @@ class OfficeKassaChiqimTaminotController extends Controller
     public function index()
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $valyuta = valyuta::get();
-            $pastavshik=pastavshik::where('status', 'Актив')->get();
-            return view('kassa.OfficeKassaCHiqTamin', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'valyuta' => $valyuta, 'pastavshik'=>$pastavshik]);
+            $pastavshik = pastavshik::where('status', 'Актив')->get();
+
+            return view('kassa.OfficeKassaCHiqTamin', ['valyuta' => $valyuta, 'pastavshik' => $pastavshik]);
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();
@@ -188,7 +184,7 @@ class OfficeKassaChiqimTaminotController extends Controller
     {
        if (Auth::user()->lavozim_id == 1) {
             $kirim = chiqim_taminot::where('id', $id)->update([
-                'status' => "Удалит",
+                'status' => 'Удалит',
                 'user_id' => Auth::user()->filial_id,
             ]);
             return response()->json(['message' => 'Маълумот ўчирилди.'], 200);

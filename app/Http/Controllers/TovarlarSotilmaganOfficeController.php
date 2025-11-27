@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ktovar1;
+use App\Models\kirimTovar;
 use App\Models\filial;
-use App\Models\NarxChange;
 
 class TovarlarSotilmaganOfficeController extends Controller
 {
@@ -15,17 +14,15 @@ class TovarlarSotilmaganOfficeController extends Controller
      */
     public function index()
     {
-        if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
 
+        if (Auth::user()->filial_id == 10){
             $filial = filial::where('status', 'Актив')->get();
-
-            return view('tovarlar.OfficeSotilmaganTovarlar', ['filial' => $filial]);
         }else{
-            Auth::guard('web')->logout();
-            session()->invalidate();
-            session()->regenerateToken();
-            return redirect('/');
+            $filial = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
         }
+
+        return view('tovarlar.OfficeSotilmaganTovarlar', ['filial' => $filial]);
+
     }
 
     /**
@@ -41,7 +38,7 @@ class TovarlarSotilmaganOfficeController extends Controller
      */
     public function store(Request $request)
     {
-
+        $filial = $request->filial;
         echo'
         <table class="table table-bordered table-responsive-sm text-center align-middle ">
             <thead>
@@ -58,23 +55,24 @@ class TovarlarSotilmaganOfficeController extends Controller
                     <th>Натсенка</th>
                     <th>Транспорт</th>
                     <th>Сотув нархи</th>
-                    <th>Шарт. ID</th>
                     <th>Холати</th>
-                    <th>Чиким сана</th>
                     <th>Таъминотчи</th>
                     <th>Қайтариш</th>
                 </tr>
             </thead>
             <tbody id="tab1">';
 
-                $ktovar = new ktovar1($request->filial);
-                $model=$ktovar->where('status', 'Сотилмаган')->orderBy('id', 'desc')->get();
+                $model = kirimTovar::where('filial_id', $filial)
+                    ->where('status', 'Сотилмаган')
+                    ->orderBy('id', 'desc')
+                    ->get();
+
                 foreach ($model as $mode){
                     $valyuta = $mode->valyuta->valyuta_narhi;
                     $kirim_narxi = $mode->snarhi;
                     $natsenka = $mode->tur->natsenka_id;
                     $trans_xarajat = $mode->tur->transport_id;
-
+                    $sotuvNarx = $kirim_narxi * $valyuta * (100 + $natsenka + $trans_xarajat)/100;
                     echo'
                     <tr>
                         <td>' . $mode->id . '</td>
@@ -88,10 +86,8 @@ class TovarlarSotilmaganOfficeController extends Controller
                         <td>' . $mode->valyuta->valyuta__nomi . '</td>
                         <td>' . $natsenka . '</td>
                         <td>' . $trans_xarajat . '</td>
-                        <td>' . round($kirim_narxi * $valyuta * (100 + $natsenka + $trans_xarajat) / 100, -3)  . '</td>
-                        <td>' . $mode->shatnomaid . '</td>
+                        <td>' . number_format(round($sotuvNarx, -3), 0, ",", " ")  . '</td>
                         <td>' . $mode->status . '</td>
-                        <td>' . $mode->ch_kun . '</td>
                         <td>' . $mode->pastavshik->pastav_name . '</td>
                         <td>';
                         if (Auth::user()->lavozim_id == 1 && $mode->status == "Сотилмаган" ){
@@ -131,14 +127,28 @@ class TovarlarSotilmaganOfficeController extends Controller
     public function update(Request $request, string $id)
     {
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+
             $id = $request->id;
-            $ktovar = new ktovar1($request->filial);
-            $ktovar->where('id', $id)->where('status', 'Сотилмаган')->update([
+            $filial = $request->filial;
+
+            $tovar = kirimTovar::where('id', $id)
+                ->where('filial_id', $filial)
+                ->where('status', 'Сотилмаган')
+                ->first();
+
+            // update() qaytargan qiymat — nechta qator o‘zgarganligi
+            if (!$tovar) {
+                return response()->json(['message' => 'Товар топилмади'], 404);
+            }
+
+            $tovar->update([
                 'status' => 'Удалит',
-                'u_user_id' => Auth::user()->id,
-                'u_kun' => now(),
+                'del_user_id' => Auth::user()->id,
+                'del_kun' => now(),
             ]);
+
             return response()->json(['message' => 'Товар омбордан қайтарилди.'], 200);
+
         }else{
             Auth::guard('web')->logout();
             session()->invalidate();

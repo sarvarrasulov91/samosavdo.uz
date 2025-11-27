@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\kirim;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\xissobotoy;
 use App\Models\filial;
 use App\Models\pastavshik;
-use App\Models\ktovar1;
-use App\Models\tur;
+use App\Models\kirimTovar;
 use App\Models\valyuta;
 use App\Models\tmodel;
-use App\Models\lavozim;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -25,6 +24,7 @@ class KirimTovarController extends Controller
      public function index()
     {
        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+
             $filial = filial::where('status', 'Актив')->get();
             $pastavshik = pastavshik::where('status', 'Актив')->get();
             $valyuta = valyuta::get();
@@ -58,107 +58,113 @@ class KirimTovarController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $rules = [
-                'yangikun' => 'required',
-                'filial' => 'required',
-                'pastavshik' => 'required',
-                'tovarmodeli' => 'required',
-                'valyuta' => 'required',
-                'tsoni' => 'required',
-                'tsumma' => 'required',
-            ];
-
-            $messages = [
-                'yangikun.required' => 'Кунини киритилмади.',
-                'filial.required' => 'Филиални танланг.',
-                'pastavshik.required' => 'Таъминотчини танланг.',
-                'tovarmodeli.required' => 'Товарни танланг.',
-                'valyuta.required' => 'Валютани танланг.',
-                'tsoni.required' => 'Товар сонини киритилмади.',
-                'tsumma.required' => 'Товар суммасини киритилмади.',
-            ];
-
-            $validator = Validator::make($request->all(), $rules, $messages);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }else{
-
-                $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                $valyuta_narhi = valyuta::where('id', $request->valyuta)->value('valyuta_narhi');
-
-                $tsoni = floatval(preg_replace('/[^\d.]/', '', $request->tsoni));
-                $tsumma = floatval(preg_replace('/[^\d.]/', '', $request->tsumma));
-
-                $tovarmodel = tmodel::where('id', $request->tovarmodeli)->first();
-                if ($tovarmodel) {
-
-                    $soninar = 0;
-                    $model = new ktovar1($request->filial);
-                    // $soninar = ktovar1::where('tmodel_id', $tovarmodel->id)->max('soni');
-                     $soninar = $model->where('tmodel_id', $tovarmodel->id)->orderBy('soni', 'desc')->value('soni');
-
-                    $i = 1;
-                    while ($i <= $tsoni) {
-                        $soninar++;
-
-                        $turid2 = str_pad($tovarmodel->tur_id, 4, "0", STR_PAD_LEFT);
-                        $brendid2 = str_pad($tovarmodel->brend_id, 4, "0", STR_PAD_LEFT);
-                        $model2 = str_pad($tovarmodel->id, 5, "0", STR_PAD_LEFT);
-                        $soninar2 = str_pad($soninar, 4, "0", STR_PAD_LEFT);
-
-                        $shtr_kod = $turid2 . $brendid2 . $model2 . $soninar2;
-
-                        $zaqis = new ktovar1($request->filial);
-                        $zaqis->kun = $request->yangikun;
-                        $zaqis->tur_id = $tovarmodel->tur_id;
-                        $zaqis->brend_id = $tovarmodel->brend_id;
-                        $zaqis->tmodel_id = $request->tovarmodeli;
-                        $zaqis->shtrix_kod = $shtr_kod;
-                        $zaqis->soni = $soninar;
-                        $zaqis->valyuta_id = $request->valyuta;
-                        $zaqis->narhi = $tsumma;
-                        $zaqis->snarhi = $tsumma;
-                        $zaqis->valyuta_narhi = $valyuta_narhi;
-                        $zaqis->tannarhi = ($tsumma*$valyuta_narhi);
-                        $zaqis->pastavshik_id = $request->pastavshik;
-                        $zaqis->pastavshik2_id = $request->pastavshik;
-                        $zaqis->filial_id = $request->filial;
-                        $zaqis->xis_oyi = $xis_oyi;
-                        $zaqis->user_id = Auth::user()->id;
-                        $zaqis->save();
-                        $i++;
-                    }
-
-                    $message = 'Маълумот сақланди.';
-
-                } else {
-                    $message = 'Товарни киритишда хатолик.';
-                }
-
-                $model = new ktovar1($request->filial);
-                $modelsoni = $model->where('valyuta_id', $request->valyuta)
-                ->where('tmodel_id', $request->tovarmodeli)
-                ->where('status','Сотилмаган')
-                ->update([
-                    'snarhi' => $tsumma,
-                ]);
-            }
-
-            $model = new ktovar1($request->filial);
-            $datamodel = $model->select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
-            ->where('status', 'Актив')->orderBy('id', 'desc')->get();
-            $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name',]);
-
-            return response()->json(['message' => $message, 'datamodel'=>$datamodel], 200);
-
-        }else{
+        if (Auth::user()->lavozim_id != 1 && Auth::user()->status != 'Актив') {
             Auth::guard('web')->logout();
             session()->invalidate();
             session()->regenerateToken();
             return redirect('/');
         }
+
+        $validator = Validator::make($request->all(), [
+            'yangikun' => 'required',
+            'filial' => 'required|integer',
+            'pastavshik' => 'required|integer',
+            'tovarmodeli' => 'required|integer',
+            'valyuta' => 'required|integer',
+            'tsoni' => 'required|integer|min:1|max:100',
+            'tsumma' => 'required|numeric|min:0|max:15000000',
+        ], [
+            'yangikun.required' => 'Кунини киритилмади.',
+            'filial.required' => 'Филиални танланг.',
+            'pastavshik.required' => 'Таъминотчини танланг.',
+            'tovarmodeli.required' => 'Товарни танланг.',
+            'valyuta.required' => 'Валютани танланг.',
+            'tsoni.required' => 'Товар сонини киритилмади.',
+            'tsumma.required' => 'Товар суммасини киритилмади.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // === MAIN VALUES ===
+        $tmodel = tmodel::find($request->tovarmodeli);
+        if (!$tmodel) {
+            return response()->json(['message' => 'Товар топилмади.'], 422);
+        }
+
+        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+        $valyuta_narhi = valyuta::find($request->valyuta)->valyuta_narhi;
+
+        $tsoni = $request->tsoni;
+        $tsumma = $request->tsumma;
+
+        // ❗ Max soni olish - tez ishlaydi
+        $lastNumber = kirimTovar::where('tmodel_id', $tmodel->id)
+            ->where('filial_id', $request->filial)
+            ->max('soni') ?? 0;
+
+        $data = [];
+
+        for ($i = 1; $i <= $tsoni; $i++) {
+
+            $lastNumber++;
+
+            // ✔ Shtrix kod generatsiyasi (eng optimal)
+            $shtr_kod = $this->makeBarcode(
+                $request->filial,
+                $tmodel->tur_id,
+                $tmodel->brend_id,
+                $tmodel->id,
+                $lastNumber
+            );
+
+            $data[] = [
+                'kun' => $request->yangikun,
+                'filial_id' => $request->filial,
+                'tur_id' => $tmodel->tur_id,
+                'brend_id' => $tmodel->brend_id,
+                'tmodel_id' => $tmodel->id,
+                'shtrix_kod' => $shtr_kod,
+                'soni' => $lastNumber,
+                'valyuta_id' => $request->valyuta,
+                'narhi' => $tsumma,
+                'snarhi' => $tsumma,
+                'valyuta_narhi' => $valyuta_narhi,
+                'tannarhi' => $tsumma * $valyuta_narhi,
+                'pastavshik_id' => $request->pastavshik,
+                'pastavshik2_id' => $request->pastavshik,
+                'xis_oyi' => $xis_oyi,
+                'user_id' => Auth::id(),
+                'status' => 'Актив',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        // Bulk insert (super fast)
+        kirimTovar::insert($data);
+
+        //$model = new kirimTovar($request->filial);
+        kirimTovar::where('filial_id', $request->filial)
+            ->where('valyuta_id', $request->valyuta)
+            ->where('tmodel_id', $tmodel->id)
+            ->whereIn('status', ['Сотилмаган', 'Актив'])
+            ->where('snarhi', '<', $tsumma)
+            ->update(['snarhi' => $tsumma]);
+
+        $datamodel = kirimTovar::select('id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id')
+            ->where('status', 'Актив')
+            ->where('filial_id', $request->filial)
+            ->latest()
+            ->get()
+            ->load(['tur:id,tur_name', 'brend:id,brend_name', 'tmodel:id,model_name', 'valyuta:id,valyuta__nomi', 'pastavshik:id,pastav_name']);
+
+        return response()->json([
+            'message' => 'Маълумот сақланди.',
+            'datamodel' => $datamodel
+        ], 200);
+
     }
 
     /**
@@ -182,25 +188,34 @@ class KirimTovarController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        //
+    }
 
-       if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив' && $request->id>0 && $request->filial>0 ) {
-            $model = new ktovar1($request->filial);
-            $data=$model->where('id', $request->id)->
-            update([
-                'status' => "Удалит",
-                'u_kun' => date('Y-m-d H:i:s'),
-                'u_user_id' => Auth::user()->id
-            ]);
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, string $id)
+    {
+        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив'
+            && $request->id > 0 && $request->filial > 0 ) {
 
-            if ($request->filial > 0) {
-                $model = new ktovar1($request->filial);
-                $datamodel = $model->select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
-                ->where('status', 'Актив')->orderBy('id', 'desc')->get();
-                $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name',]);
-                return response()->json(['message' => 'Маълумот ўчирилди.', 'datamodel'=>$datamodel], 200);
-            }else{
-                return response()->json(['datamodel'=>''], 200);
-            }
+            kirimTovar::where('id', $request->id)
+                ->where('filial_id', $request->filial)
+                ->update([
+                    'status' => "Удалит",
+                    'del_kun' => now(),
+                    'del_user_id' => Auth::id()
+                ]);
+
+            $datamodel = kirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id'])
+                ->where('status', 'Актив')
+                ->where('filial_id', $request->filial)
+                ->orderBy('id', 'desc')
+                ->get();
+
+            $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name']);
+
+            return response()->json(['message' => 'Маълумот ўчирилди.', 'datamodel' => $datamodel], 200);
 
         }else{
             Auth::guard('web')->logout();
@@ -210,53 +225,55 @@ class KirimTovarController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
     public function filbaza(Request $request)
     {
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            if ($request->filial > 0) {
-                $model = new ktovar1($request->filial);
-                $datamodel = $model->select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
-                ->where('status', 'Актив')->orderBy('id', 'desc')->get();
-                $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name',]);
-                return response()->json(['datamodel'=>$datamodel], 200);
-            }else{
-                return response()->json(['datamodel'=>''], 200);
-            }
+        if ($request->filial > 0) {
+
+            $datamodel = kirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
+                ->where('status', 'Актив')
+                ->where('filial_id', $request->filial)
+                ->orderBy('id', 'desc')
+                ->get();
+
+            $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name',]);
+
+            return response()->json(['datamodel' => $datamodel], 200);
+
         }else{
-            Auth::guard('web')->logout();
-            session()->invalidate();
-            session()->regenerateToken();
-            return redirect('/');
+            return response()->json(['datamodel'=>''], 200);
         }
 
     }
 
     public function sungimodel(Request $request)
     {
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $tovarmodeli = $request->tovarmodeli;
-            if ($request->filial > 0 && $tovarmodeli > 0) {
-                $model = new ktovar1($request->filial);
-                $datamodel = $model->select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
-                ->where('tmodel_id', $tovarmodeli)->orderBy('id', 'desc')->limit(1)->get();
-                $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name',]);
-                return response()->json(['data'=>$datamodel], 200);
-            }else{
-                return response()->json(['data'=>''], 200);
-            }
+        $tovarmodeli = $request->tovarmodeli;
+
+        if ($request->filial > 0 && $tovarmodeli > 0) {
+
+            $datamodel = kirimTovar::select(['id','kun','narhi','tur_id','brend_id','tmodel_id','valyuta_id','soni','shtrix_kod','pastavshik_id',])
+                ->where('tmodel_id', $tovarmodeli)
+                ->where('filial_id', $request->filial)
+                ->orderBy('id', 'desc')
+                ->limit(1)->get();
+
+            $datamodel->load(['tur:id,tur_name','brend:id,brend_name','tmodel:id,model_name','valyuta:id,valyuta__nomi','pastavshik:id,pastav_name',]);
+
+            return response()->json(['data' => $datamodel], 200);
+
         }else{
-            Auth::guard('web')->logout();
-            session()->invalidate();
-            session()->regenerateToken();
-            return redirect('/');
+            return response()->json(['data'=>''], 200);
         }
+
+    }
+
+    private function makeBarcode($filial, $tur, $brend, $model, $number)
+    {
+        return
+            str_pad($filial, 2, "0", STR_PAD_LEFT) .
+            str_pad($tur, 4, "0", STR_PAD_LEFT) .
+            str_pad($brend, 4, "0", STR_PAD_LEFT) .
+            str_pad($model, 5, "0", STR_PAD_LEFT) .
+            str_pad($number, 4, "0", STR_PAD_LEFT);
     }
 }

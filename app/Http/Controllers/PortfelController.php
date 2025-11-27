@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\shartnoma1;
-use App\Models\tulovlar1;
-use App\Models\savdo1;
-use App\Models\mijozlar;
+use App\Models\shartnoma;
+use App\Models\tulovlar;
+use App\Models\savdo;
 use App\Models\xodimlar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
-use App\Models\filial;
 
 use DateTime;
 
@@ -23,11 +20,8 @@ class PortfelController extends Controller
      */
     public function index()
     {
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
 
-    return view('shartnoma.Portfel', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi]);
+    return view('shartnoma.Portfel');
     }
     /**
      * Show the form for creating a new resource.
@@ -81,7 +75,7 @@ class PortfelController extends Controller
 
                     $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                    $shartnoma = shartnoma1::where('status', 'Актив')->orderBy('id', 'desc')->get();
+                    $shartnoma = shartnoma::where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->orderBy('id', 'desc')->get();
                     $shsumma = 0;
                     $shotulov = 0;
                     $shchegirma = 0;
@@ -96,17 +90,14 @@ class PortfelController extends Controller
                     $uProsrochka = 0;
 
                     foreach ($shartnoma as $shartnom){
-                        $shJamiSumma = 0;
-                        $joqarz = 0;
-                        $joqarzm = 0;
-                        
+
                         $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
-                        
-                        $savdosumma = savdo1::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
-                        $oldindantulov = tulovlar1::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                        $chegirma = tulovlar1::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-                        $tulov = tulovlar1::where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
-                        $tulovinfo = tulovlar1::where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
+
+                        $savdosumma = savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $oldindantulov = tulovlar::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
+                        $chegirma = tulovlar::where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('chegirma');
+                        $tulov = tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
+                        $tulovinfo = tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
                         $tsumma = 0;
                         $tsumma = $tulovinfo->umumiysumma ?? 0;
@@ -125,7 +116,7 @@ class PortfelController extends Controller
                         $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
                         $shJamiSumma = $savdosumma + $xis_foiz - $oldindantulov - $chegirma;
-                        
+
                         $shkun = $shartnom->kun;
                         $shtug_sana = $shartnom->tug_sana;
 
@@ -135,7 +126,7 @@ class PortfelController extends Controller
                         $dukun = $interval->days;
                         $birkunlikfoiz = $xis_foiz / $dukun;
                         $birkunliktani = ($savdosumma - $oldindantulov - $chegirma) / $dukun;
-                        
+
                         if(($tulov - $xis_foiz) >= 0){
                             $jofoizqarz =  0;
                             $jotaniqarz = ($savdosumma - $oldindantulov - $chegirma) - ($tulov - $xis_foiz);
@@ -149,18 +140,18 @@ class PortfelController extends Controller
                             $jodate2 = new DateTime($shkun);
                             $jointerval = $jodate1->diff($jodate2);
                             $jokun = $jointerval->days;
-                            
-                            $currentMonth = date('m'); 
+
+                            $currentMonth = date('m');
                             $yearDiff = date('Y') - date('Y', strtotime($shkun));
                             $contractMonth = date('m', strtotime($shkun));
-                            $months = $currentMonth + ($yearDiff * 12) - $contractMonth;
-                            
+                            $months = +$currentMonth + ($yearDiff * 12) - $contractMonth;
+
                             //$months = ($jointerval->y * 12) + $jointerval->m;
 
                             $joqarz = ($birkunlikfoiz + $birkunliktani) * $jokun - $tulov;
-                            
+
                             $joqarzm = ($shJamiSumma / $shartnom->muddat) * $months - $tulov;
-                            
+
                             $tkun = date('Y-m', strtotime($xis_oyi)) . '-' . date('d', strtotime($shartnom->kun));
                             if ($tkun >= date("Y-m-d")) {
                                 $joqarzm -= ($shJamiSumma / $shartnom->muddat);
@@ -177,7 +168,7 @@ class PortfelController extends Controller
                         }else{
                             $joqarz = $joqarzm = $shJamiSumma - $tulov;
                         }
-                        
+
                         if ($joqarzm < 1000) {
                             $joqarzm = 0;
                         }
@@ -191,7 +182,7 @@ class PortfelController extends Controller
                         foreach ($hodimlar as $hodimla) {
                             $hodimlar_fio = $hodimla->fio;
                         }
-                        
+
                         $trrang = "";
                         if (date("Y-m-d") > $shtug_sana) {
                             $trrang = "align-middle text-danger";
@@ -202,7 +193,7 @@ class PortfelController extends Controller
                             <tr class="' . $trrang . '">
                                 <td>' . $shartnom->mijozlar_id . '</td>
                                 <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                                <td>' . $shartnom->id . '</td>
+                                <td>' . $shartnom->shid . '</td>
                                 <td>' . $shartnom->mijozlar->passport_sn . '</td>
                                 <td>' . $shartnom->mijozlar->pinfl . '</td>
                                 <td>' . $shartnom->mijozlar->tuman->name_uz . '</td>
@@ -325,7 +316,7 @@ class PortfelController extends Controller
 
                 <tbody id="tab1">';
 
-                    $savdomodel = savdo1::where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
+                    $savdomodel = savdo::where('status', 'Шартнома')->where('shartnoma_id', $id)->get();
                     $i = 1;
                     $jami = 0;
                     foreach ($savdomodel as $savdomode) {

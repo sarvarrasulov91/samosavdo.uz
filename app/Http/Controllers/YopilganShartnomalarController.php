@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\shartnoma1;
-use App\Models\savdo1;
-use App\Models\tulovlar1;
+use App\Models\shartnoma;
+use App\Models\savdo;
+use App\Models\tulovlar;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 use Illuminate\Support\Facades\Auth;
 use DateTime;
@@ -21,11 +20,10 @@ class YopilganShartnomalarController extends Controller
     public function index()
     {
         if ((Auth::user()->lavozim_id == 1 || Auth::user()->lavozim_id == 2) && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
-            return view('shartnoma.yopilganshartnomalar', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial ]);
+
+            return view('shartnoma.yopilganshartnomalar', ['filial' => $filial ]);
         }else{
                 Auth::guard('web')->logout();
                 session()->invalidate();
@@ -82,30 +80,39 @@ class YopilganShartnomalarController extends Controller
 
                     $jamifarq = 0;
                     $chjami = 0;
-                    $model = new shartnoma1($id);
-                    $shartnoma = $model->where('status', 'Ёпилган')->orWhere('status', 'Удалит')->orderBy('id', 'desc')->get();
+
+                    $shartnoma = shartnoma::where('filial_id', $id)
+                        ->whereIn('status', ['Ёпилган', 'Удалит'])
+                        ->orderBy('id', 'desc')->get();
+
                     foreach ($shartnoma as $shartnom){
 
-                        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
                         $foiz = xissobotoy::where('xis_oy', $shartnom->xis_oyi)->value('foiz');
 
                         if($shartnom->fstatus == 0){
                             $foiz = 0;
                         }
 
-                        $savdo = new savdo1($id);
-                        $savdosumma = $savdo->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
+                        $savdosumma = savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                        $oldindantulovinfo = new tulovlar1($id);
-                        $oldindantulov = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                        $chegirma = $oldindantulovinfo->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-                        $tulov = $oldindantulovinfo->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
+                        $tulovInfo = tulovlar::where('filial_id', $id)
+                            ->where('tulovturi', 'Олдиндан тўлов')
+                            ->where('status', 'Актив')
+                            ->where('shartnomaid', $shartnom->id)
+                            ->first();
+
+                        $oldindantulov = $tulovInfo->umumiysumma ?? 0;
+                        $chegirma = $tulovInfo->chegirma ?? 0;
+
+                        $tulov = tulovlar::where('filial_id', $id)
+                            ->where('tulovturi', 'Шартнома')
+                            ->where('status', 'Актив')
+                            ->where('shartnomaid', $shartnom->id)
+                            ->sum('umumiysumma');
 
                         //йиллик фойиз
                         $foiz = (($foiz / 12) * $shartnom->muddat);
                         $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-                        // $xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
-
 
                         $date111 = new DateTime($shartnom->kun);
                         $date222 = new DateTime($shartnom->tug_sana);

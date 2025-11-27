@@ -86,24 +86,24 @@
             //     tab1.empty();
             //     if (model.length > 0) {
             //         model.forEach(item => {
-            //             const { id, har_name, boshqaharajat1 } = item;
-            //             naqd+=boshqaharajat1 ? parseFloat(boshqaharajat1.total_naqd) : 0;
-            //             pastik+=boshqaharajat1 ? parseFloat(boshqaharajat1.total_pastik) : 0;
-            //             hr+=boshqaharajat1 ? parseFloat(boshqaharajat1.total_hr) : 0;
-            //             click+=boshqaharajat1 ? parseFloat(boshqaharajat1.total_click) : 0;
-            //             avtot+=boshqaharajat1 ? parseFloat(boshqaharajat1.total_avtot) : 0;
-            //             jsummasi+=boshqaharajat1 ? parseFloat(boshqaharajat1.total_summasi) : 0;
+            //             const { id, har_name, xarajat } = item;
+            //             naqd+=xarajat ? parseFloat(xarajat.total_naqd) : 0;
+            //             pastik+=xarajat ? parseFloat(xarajat.total_pastik) : 0;
+            //             hr+=xarajat ? parseFloat(xarajat.total_hr) : 0;
+            //             click+=xarajat ? parseFloat(xarajat.total_click) : 0;
+            //             avtot+=xarajat ? parseFloat(xarajat.total_avtot) : 0;
+            //             jsummasi+=xarajat ? parseFloat(xarajat.total_summasi) : 0;
 
             //             const tr = `
             //                 <tr>
             //                     <td>${id}</td>
             //                     <td>${har_name}</td>
-            //                     <td>${boshqaharajat1 ? boshqaharajat1.total_naqd : 0}</td>
-            //                     <td>${boshqaharajat1 ? boshqaharajat1.total_pastik : 0}</td>
-            //                     <td>${boshqaharajat1 ? boshqaharajat1.total_hr : 0}</td>
-            //                     <td>${boshqaharajat1 ? boshqaharajat1.total_click : 0}</td>
-            //                     <td>${boshqaharajat1 ? boshqaharajat1.total_avtot : 0}</td>
-            //                     <td>${boshqaharajat1 ? boshqaharajat1.total_summasi : 0}</td>
+            //                     <td>${xarajat ? xarajat.total_naqd : 0}</td>
+            //                     <td>${xarajat ? xarajat.total_pastik : 0}</td>
+            //                     <td>${xarajat ? xarajat.total_hr : 0}</td>
+            //                     <td>${xarajat ? xarajat.total_click : 0}</td>
+            //                     <td>${xarajat ? xarajat.total_avtot : 0}</td>
+            //                     <td>${xarajat ? xarajat.total_summasi : 0}</td>
             //                 </tr>
             //             `;
             //             tab1.append(tr);

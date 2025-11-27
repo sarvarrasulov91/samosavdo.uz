@@ -71,7 +71,7 @@
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="krimt" name="krimt" class="form-control text-center"
-                                maxlength="17" />
+                                maxlength="19" />
                             <h4 class="border p-2 text-center border-0" id="pros" style="color: RoyalBlue;"></h4>
                         </div>
                     </div>
@@ -131,7 +131,7 @@
                     if (e.which === 13) {
                         var krimt = $('#krimt').val();
                         var filial = $('#filial').val();
-                        if (krimt.length != 17) {
+                        if (krimt.length != 17 && krimt.length != 19) {
                             toastr.success("Хатолик!!! Маълумотларни тўлиқ киритмадингиз.");
                         } else {
                             $.ajax({

@@ -240,6 +240,7 @@
         <script src="/vendor/global/global.min.js"></script>
         <script>
             function tabyuklash() {
+                $('#tabpros').html("<div style='margin: 100px 0; 'class='text-center d-block'><div style='color: #007bff !important;' class='mx-auto spinner-border text-primary'></div></div>");
                 $.ajax({
                     url: "{{ route('shartnomalar.create') }}",
                     type: 'GET',
@@ -348,19 +349,23 @@
 
             })
 
-
-
             $(document).on('click', '#modalshartshow', function() {
+
                 $('#shartnoma_show').modal('show');
+
                 var id = $(this).data('id');
+                var shid = $(this).data('shid');
+                var filialId = $(this).data('filialid');
                 var fio = $(this).data('fio');
-                $('.modal-title').html(id + ' -> ' + fio);
+
+                $('.modal-title').html(shid + ' -> ' + fio);
+
                 $.ajax({
                     url: "{{ route('shartnomalar.index') }}/" + id,
                     method: "GET",
                     data: {
-                        id: id,
-                        fio: fio
+                        shid: shid,
+                        filialId: filialId,
                     },
                     success: function(data) {
                         $("#modalshow").html(data);

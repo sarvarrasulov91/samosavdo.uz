@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\fond1;
-use App\Models\tulovlar1;
-use App\Models\savdo1;
-use App\Models\ktovar1;
+use App\Models\fondSavdo;
+use App\Models\tulovlar;
+use App\Models\savdo;
+use App\Models\kirimTovar;
 use App\Models\tmqaytarish;
 use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\filial;
 
 
@@ -24,11 +23,10 @@ class FondSavdoOfficeController extends Controller
     {
 
         if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-            $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-            $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
-            return view('fond.FondSavdoOffice', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'filial' => $filial ]);
+
+            return view('fond.FondSavdoOffice', ['filial' => $filial ]);
             }else{
                 Auth::guard('web')->logout();
                 session()->invalidate();
@@ -50,9 +48,15 @@ class FondSavdoOfficeController extends Controller
      */
     public function store(Request $request)
     {
-        $savdo = new savdo1($request->filial);
-        $savdomodel = $savdo->where('status', 'Фонд')->where('unix_id', $request->savdoid)->get();
-        echo '<h3 class=" text-center text-primary ">' . $request->id . '</h3>
+        $filial = $request->filial;
+
+        $savdomodel = savdo::where('filial_id', $filial)
+            ->where('status', 'Фонд')
+            ->where('unix_id', $request->savdoid)
+            ->get();
+
+        echo '
+        <h3 class=" text-center text-primary ">' . $request->id . '</h3>
         <table class="table table-bordered table-hover">
             <thead>
                 <tr class="text-center text-bold text-primary align-middle">
@@ -96,7 +100,7 @@ class FondSavdoOfficeController extends Controller
      */
     public function show(string $id)
     {
-        $filial=$id;
+        $filial = $id;
         echo '
             <table class="table table-bordered text-center align-middle ">
                 <thead>
@@ -118,22 +122,17 @@ class FondSavdoOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $naqdsavdo = new fond1($filial);
-                $naqdsavdojami = $naqdsavdo->where('status', 'Актив')->orderBy('id', 'desc')->get();
+                $naqdsavdojami = fondSavdo::where('filial_id', $filial)->where('status', 'Актив')->orderBy('id', 'desc')->get();
                 foreach ($naqdsavdojami as $naqdsavdojam){
 
-                    $id=$naqdsavdojam->id;
-                    $savdoid=$naqdsavdojam->savdoraqami_id;
-                    $savdo = new savdo1($filial);
-                    $savdosumma = $savdo->where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->sum('msumma');
+                    $id = $naqdsavdojam->id;
+                    $savdoid = $naqdsavdojam->savdoraqami_id;
 
-                    $jnaqd = 0;
-                    $jplastik =0;
-                    $jhr = 0;
-                    $jClick = 0;
-                    $jchegirma = 0;
-                    $tulovlar = new tulovlar1($filial);
-                    $tulovlar = $tulovlar->where('tulovturi', 'Фонд')->where('shartnomaid', $id)->where('status', 'Актив')->get();
+                    $savdosumma = savdo::where('filial_id', $filial)->where('status', 'Фонд')->where('unix_id', $savdoid)->where('shartnoma_id', $id)->sum('msumma');
+
+                    $jnaqd = $jplastik = $jhr = $jClick = $jchegirma = 0;
+
+                    $tulovlar = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Фонд')->where('shartnomaid', $id)->where('status', 'Актив')->get();
                     foreach ($tulovlar as $tulovla) {
                         $jnaqd += $tulovla->naqd;
                         $jplastik += $tulovla->pastik;
@@ -185,212 +184,200 @@ class FondSavdoOfficeController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $filial = $request->filial;
 
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-            if ($request->savdoid>0 && $request->id &&  $request->filial){
-                $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-                $Counttovar = new ktovar1($request->filial);
-                $Counttovar1 = $Counttovar->where('status', 'Фонд')->where('shatnomaid', $request->id)->count();
-                if ($Counttovar1 > 0) {
+        if (Auth::user()->lavozim_id != 1 && Auth::user()->status != 'Актив') {
 
-                    $ReadK = new ktovar1($request->filial);
-                    $ReadKt = $ReadK->where('status', 'Фонд')->where('shatnomaid', $request->id)->get();
+            Auth::guard('web')->logout();
+            session()->invalidate();
+            session()->regenerateToken();
+            return redirect('/');
 
-                    foreach ($ReadKt as $ReadKtovar) {
+        }
 
-                        if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
+        if ($request->savdoid > 0 && $request->id && $request->filial) {
 
-                            $ktovar = new ktovar1($request->filial);
-                            $ktovarUpdated = $ktovar->where('status', 'Фонд')
-                                ->where('shatnomaid', $request->id)
-                                ->where('ch_xis_oyi', $xis_oyi)
-                                ->limit(1)
-                                ->update([
-                                    'status' => "Сотилмаган",
-                                    'ch_kun' => null,
-                                    'ch_user_id' => 0,
-                                    'ch_xis_oyi' => null,
-                                    'shatnomaid' => 0,
-                                ]);
+            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                        } else {
+            $Counttovar1 = kirimTovar::where('filial_id', $filial)
+                ->where('status', 'Фонд')
+                ->where('shartnoma_id', $request->id)
+                ->count();
 
-                            $soninar = 0;
-                            $KtovarBarkod = new ktovar1($request->filial);
-                            $ktovarbarkods = $KtovarBarkod->where('tmodel_id', $ReadKtovar->tmodel_id)->orderBy('soni', 'desc')->limit(1)->get();
+            if ($Counttovar1 > 0) {
 
-                            foreach ($ktovarbarkods as $ktovarbarkodsoni) {
-                                $soninar = $ktovarbarkodsoni->soni;
-                            }
+                $ReadKt = kirimTovar::where('filial_id', $filial)->where('status', 'Фонд')->where('shartnoma_id', $request->id)->get();
 
-                            $soninar++;
+                foreach ($ReadKt as $ReadKtovar) {
 
-                            // O'zgaruvchilarni qisqartirish uchun switchCaseFormat ni ishlatish mumkin.
-                            $turid2 = str_pad($ReadKtovar->tur_id, 4, "0", STR_PAD_LEFT);
-                            $brendid2 = str_pad($ReadKtovar->brend_id, 4, "0", STR_PAD_LEFT);
-                            $model2 = str_pad($ReadKtovar->tmodel_id, 5, "0", STR_PAD_LEFT);
-                            $soninar2 = str_pad($soninar, 4, "0", STR_PAD_LEFT);
+                    if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
 
-                            $shtr_kod = $turid2 . $brendid2 . $model2 . $soninar2;
+                        $ktovarUpdated = KirimTovar::where('filial_id', $filial)
+                            ->where('status', 'Фонд')
+                            ->where('shartnoma_id', $request->id)
+                            ->where('ch_xis_oyi', $xis_oyi)
+                            ->limit(1)
+                            ->update([
+                                'status' => "Сотилмаган",
+                                'ch_kun' => null,
+                                'ch_user_id' => 0,
+                                'ch_xis_oyi' => null,
+                                'shartnoma_id' => 0,
+                            ]);
 
-                            try {
-                                DB::beginTransaction();
+                    } else {
 
-                                $ktovarzapis = new ktovar1($request->filial);
-                                $ktovarzapis->kun = date('Y-m-d');
-                                $ktovarzapis->tur_id = $ReadKtovar->tur_id;
-                                $ktovarzapis->brend_id = $ReadKtovar->brend_id;
-                                $ktovarzapis->tmodel_id = $ReadKtovar->tmodel_id;
-                                $ktovarzapis->shtrix_kod = $shtr_kod;
-                                $ktovarzapis->soni = $soninar;
-                                $ktovarzapis->valyuta_id = $ReadKtovar->valyuta_id;
-                                $ktovarzapis->narhi = $ReadKtovar->narhi;
-                                $ktovarzapis->snarhi = $ReadKtovar->snarhi;
-                                $ktovarzapis->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                                $ktovarzapis->tannarhi = $ReadKtovar->tannarhi;
-                                $ktovarzapis->pastavshik_id = 10;
-                                $ktovarzapis->pastavshik2_id = $ReadKtovar->pastavshik2_id;
-                                $ktovarzapis->filial_id = $request->filial;
-                                $ktovarzapis->xis_oyi = $xis_oyi;
-                                $ktovarzapis->user_id = Auth::user()->id;
-                                $ktovarzapis->save();
-                                $insid = $ktovarzapis->id;
+                        $ktovarbarkods = kirimTovar::where('filial_id', $filial)
+                            ->where('tmodel_id', $ReadKtovar->tmodel_id)
+                            ->orderBy('soni', 'desc')
+                            ->limit(1)->first();
 
-                                $CreateTqaytarish = new tmqaytarish;
-                                $CreateTqaytarish->savdo_turi = $ReadKtovar->status;
-                                $CreateTqaytarish->shartnoma_id = $ReadKtovar->shatnomaid;
-                                $CreateTqaytarish->kun = $ReadKtovar->kun;
-                                $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
-                                $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
-                                $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
-                                $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
-                                $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
-                                $CreateTqaytarish->narhi = $ReadKtovar->narhi;
-                                $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
-                                $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                                $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
-                                $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
-                                $CreateTqaytarish->xis_oyi = $xis_oyi;
-                                $CreateTqaytarish->filial_id = $request->filial;
-                                $CreateTqaytarish->user_id = Auth::user()->id;
-                                $CreateTqaytarish->kirim_id = $insid;
-                                $CreateTqaytarish->shtrix_kod_yangi = $shtr_kod;
-                                $CreateTqaytarish->save();
+                        $soninar = $ktovarbarkods->soni;
 
-                                if ($ktovarzapis && $CreateTqaytarish) {
-                                    DB::commit();
-                                } else {
-                                    DB::rollBack();
-                                }
-                            } catch (\Exception $e) {
-                                DB::rollBack();
-                            }
-                        }
+                        $soninar++;
+
+                        // O'zgaruvchilarni qisqartirish uchun switchCaseFormat ni ishlatish mumkin.
+                        $filialId = str_pad($filial, 2, "0", STR_PAD_LEFT);
+                        $turid2 = str_pad($ReadKtovar->tur_id, 4, "0", STR_PAD_LEFT);
+                        $brendid2 = str_pad($ReadKtovar->brend_id, 4, "0", STR_PAD_LEFT);
+                        $model2 = str_pad($ReadKtovar->tmodel_id, 5, "0", STR_PAD_LEFT);
+                        $soninar2 = str_pad($soninar, 4, "0", STR_PAD_LEFT);
+
+                        $new_shtr_kod = $filialId . $turid2 . $brendid2 . $model2 . $soninar2;
 
                         try {
                             DB::beginTransaction();
 
-                            $savdorem = new savdo1($request->filial);
-                            $savdoUpdated = $savdorem->where('unix_id', $request->savdoid)
-                            ->where('status','Фонд')
-                            ->update([
-                                'status' => "Удалит",
-                                'del_user_id' => Auth::user()->id,
-                                'del_kun' => date('Y-m-d H:i:s'),
-                                'del_xis_oyi' => $xis_oyi,
-                            ]);
+                            $ktovarzapis = new kirimTovar;
+                            $ktovarzapis->kun = date('Y-m-d');
+                            $ktovarzapis->filial_id = $filial;
+                            $ktovarzapis->tur_id = $ReadKtovar->tur_id;
+                            $ktovarzapis->brend_id = $ReadKtovar->brend_id;
+                            $ktovarzapis->tmodel_id = $ReadKtovar->tmodel_id;
+                            $ktovarzapis->shtrix_kod = $new_shtr_kod;
+                            $ktovarzapis->soni = $soninar;
+                            $ktovarzapis->valyuta_id = $ReadKtovar->valyuta_id;
+                            $ktovarzapis->narhi = $ReadKtovar->narhi;
+                            $ktovarzapis->snarhi = $ReadKtovar->snarhi;
+                            $ktovarzapis->valyuta_narhi = $ReadKtovar->valyuta_narhi;
+                            $ktovarzapis->tannarhi = $ReadKtovar->tannarhi;
+                            $ktovarzapis->pastavshik_id = 10;
+                            $ktovarzapis->pastavshik2_id = $ReadKtovar->pastavshik2_id;
+                            $ktovarzapis->xis_oyi = $xis_oyi;
+                            $ktovarzapis->user_id = Auth::user()->id;
+                            $ktovarzapis->save();
+                            $insid = $ktovarzapis->id;
 
-                            $tulov = new tulovlar1($request->filial);
-                            $tulovlarUpdated = $tulov->where('tulovturi','Фонд')
-                            ->where('shartnomaid',$id)->limit(1)
-                            ->update([
-                                'tulovturi' => "Брон",
-                                'bron_user_id' => Auth::user()->id,
-                                'bron_kun' => date('Y-m-d H:i:s'),
-                                'bron_xis_oyi' => $xis_oyi,
-                            ]);
+                            $CreateTqaytarish = new tmqaytarish;
+                            $CreateTqaytarish->savdo_turi = $ReadKtovar->status;
+                            $CreateTqaytarish->shartnoma_id = $ReadKtovar->shartnoma_id;
+                            $CreateTqaytarish->kun = $ReadKtovar->kun;
+                            $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
+                            $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
+                            $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
+                            $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
+                            $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
+                            $CreateTqaytarish->narhi = $ReadKtovar->narhi;
+                            $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
+                            $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
+                            $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
+                            $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
+                            $CreateTqaytarish->xis_oyi = $xis_oyi;
+                            $CreateTqaytarish->filial_id = $request->filial;
+                            $CreateTqaytarish->user_id = Auth::user()->id;
+                            $CreateTqaytarish->kirim_id = $insid;
+                            $CreateTqaytarish->shtrix_kod_yangi = $new_shtr_kod;
+                            $CreateTqaytarish->save();
 
-                            $naqdsavdo = new fond1($request->filial);
-                            $naqdsavdoUpdated = $naqdsavdo->where('id', $id)
-                            ->limit(1)
-                            ->update([
-                                'status' => 'Удалит',
-                                'user_id' => Auth::user()->id,
-                            ]);
 
-                            if ($savdoUpdated && $tulovlarUpdated && $naqdsavdoUpdated ) {
-                                DB::commit();
-                                return response()->json(['message' => "Фонд савдо ўчирилди. Тўлов суммаси бронга олинди. Товарлари омборга қайтарилди."]);
-                            } else {
-                                DB::rollBack();
-                                return response()->json(['message' => "Фонд савдони ўчиришда хатолик.2"]);
-                            }
+                            $savdoUpdated = savdo::where('filial_id', $filial)->where('unix_id', $request->savdoid)
+                                ->where('status', 'Фонд')
+                                ->update([
+                                    'status' => "Удалит",
+                                    'del_user_id' => Auth::user()->id,
+                                    'del_kun' => now(),
+                                    'del_xis_oyi' => $xis_oyi,
+                                ]);
+
+                            $tulovlarUpdated = tulovlar::where('filial_id', $filial)
+                                ->where('tulovturi', 'Фонд')
+                                ->where('shartnoma_id', $id)->limit(1)
+                                ->update([
+                                    'tulovturi' => "Брон",
+                                    'bron_user_id' => Auth::user()->id,
+                                    'bron_kun' => now(),
+                                    'bron_xis_oyi' => $xis_oyi,
+                                ]);
+
+                            $naqdsavdoUpdated = fondSavdo::where('filial_id', $filial)
+                                ->where('id', $id)
+                                ->limit(1)
+                                ->update([
+                                    'status' => 'Удалит',
+                                    'user_id' => Auth::user()->id,
+                                ]);
+
+                            DB::commit();
+
+                            return response()->json(['message' => "Фонд савдо ўчирилди. Тўлов суммаси бронга олинди. Товарлари омборга қайтарилди."]);
+
                         } catch (\Exception $e) {
                             DB::rollBack();
                             return response()->json(['message' => "Фонд савдони ўчиришда хатолик.2"]);
                             // throw $e;
                         }
+
                     }
+                }
 
-                }else{
+            } else {
 
-                    try {
-                        DB::beginTransaction();
+                try {
+                    DB::beginTransaction();
 
-                        $savdorem = new savdo1($request->filial);
-                        $savdoUpdated = $savdorem->where('unix_id', $request->savdoid)
-                        ->where('status','Фонд')
+                    $savdoUpdated = savdo::where('filial_id', $filial)->where('unix_id', $request->savdoid)
+                        ->where('status', 'Фонд')
                         ->update([
                             'status' => "Удалит",
                             'del_user_id' => Auth::user()->id,
-                            'del_kun' => date('Y-m-d H:i:s'),
+                            'del_kun' => now(),
                             'del_xis_oyi' => $xis_oyi,
                         ]);
 
-                        $tulov = new tulovlar1($request->filial);
-                        $tulovlarUpdated = $tulov->where('tulovturi','Фонд')
-                        ->where('shartnomaid',$id)->limit(1)
+
+                    $tulovlarUpdated = tulovlar::where('filial_id', $filial)->where('tulovturi', 'Фонд')
+                        ->where('shartnomaid', $id)->limit(1)
                         ->update([
                             'tulovturi' => "Брон",
                             'bron_user_id' => Auth::user()->id,
-                            'bron_kun' => date('Y-m-d H:i:s'),
+                            'bron_kun' => now(),
                             'bron_xis_oyi' => $xis_oyi,
                         ]);
 
-                        $naqdsavdo = new fond1($request->filial);
-                        $naqdsavdoUpdated = $naqdsavdo->where('id', $id)
+
+                    $naqdsavdoUpdated = fondSavdo::where('filial_id', $filial)->where('id', $id)
                         ->limit(1)
                         ->update([
                             'status' => 'Удалит',
                             'user_id' => Auth::user()->id,
                         ]);
 
-                        if ($savdoUpdated && $tulovlarUpdated && $naqdsavdoUpdated ) {
-                            DB::commit();
-                            return response()->json(['message' => "Фонд савдо ўчирилди. Тўлов суммаси бронга олинди."]);
-                        } else {
-                            DB::rollBack();
-                            return response()->json(['message' => "Фонд савдони ўчиришда хатолик.2"]);
-                        }
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        return response()->json(['message' => "Фонд савдони ўчиришда хатолик.2"]);
-                        // throw $e;
-                    }
+                    DB::commit();
 
+                    return response()->json(['message' => "Фонд савдо ўчирилди. Тўлов суммаси бронга олинди."]);
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+
+                    return response()->json(['message' => "Фонд савдони ўчиришда хатолик.2"]);
+                    // throw $e;
                 }
 
-            } else {
-                return response()->json(['message' => "Маълумот етарли эмас."]);
             }
 
-        }else{
-            Auth::guard('web')->logout();
-            session()->invalidate();
-            session()->regenerateToken();
-            return redirect('/');
         }
 
+        return response()->json(['message' => "Маълумот етарли эмас."]);
 
     }
 

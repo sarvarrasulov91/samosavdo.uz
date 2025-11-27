@@ -165,19 +165,12 @@
                                             class="form-control form-control-sm text-center" placeholder="Пластик...">
                                         <span id="oldintulovplastik_error" class="text-danger error-text"></span>
                                     </div>
-                                    <div class="p-2">
-                                        <label>Чегирма суммаси киритинг
-                                            <span class="text-danger">*</span>
-                                        </label>
-                                        <input type="text" name="chegirma" id="chegirma"
-                                            class="form-control form-control-sm text-center" placeholder="Чегирма...">
-                                        <span id="chegirma_error" class="text-danger error-text"></span>
-                                    </div>
+
                                     <div class="p-1">
                                         <label>Изохини киритинг
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <textarea name="izox" class="form-control" class="form-control" placeholder=""></textarea>
+                                        <input type="text" name="izox" class="form-control" class="form-control" placeholder="">
                                         <span id="izox_error" class="text-danger error-text"></span>
                                     </div>
                                     <div class="text-center mt-4">
@@ -237,6 +230,7 @@
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
+
             function tabyuklash() {
                 $.ajax({
                     url: "{{ route('ShartnomaNew.create') }}",
@@ -313,6 +307,7 @@
                             })
                             toastr.success(response.message);
                             tabyuklash();
+                            $('#shart_add').modal('hide');
                         },
                         error: function(response) {
                             if (response.status === 422) {
@@ -346,19 +341,23 @@
 
             })
 
-
-
             $(document).on('click', '#modalshartshow', function() {
+
                 $('#shartnoma_show').modal('show');
+
                 var id = $(this).data('id');
+                var shid = $(this).data('shid');
+                var filialId = $(this).data('filialid');
                 var fio = $(this).data('fio');
-                $('.modal-title').html(id + ' -> ' + fio);
+
+                $('.modal-title').html(shid + ' -> ' + fio);
+
                 $.ajax({
                     url: "{{ route('shartnomalar.index') }}/" + id,
                     method: "GET",
                     data: {
-                        id: id,
-                        fio: fio
+                        shid: shid,
+                        filialId: filialId,
                     },
                     success: function(data) {
                         $("#modalshow").html(data);
@@ -420,9 +419,6 @@
                 })
             }
 
-
-
-
             function shariza(id) {
                 $('#shartnomapechat').modal('show');
                 $.ajax({
@@ -436,8 +432,6 @@
                     }
                 })
             }
-
-
 
             function printCertificate() {
                 var mode = 'iframe';

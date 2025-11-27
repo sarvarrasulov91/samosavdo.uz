@@ -159,10 +159,12 @@
             });
 
             $(document).on('click', '#tovar_qushish', function() {
-                var id = $(this).data('shid');
+                var id = $(this).data('id');
+                var shid = $(this).data('shid');
                 var status = 'tqushish';
                 var savdo_id = prompt("Савдо ракмини киритинг.!!!");
                 var filial = $('#filial').val();
+
                 if (savdo_id) {
                     $.ajaxSetup({
                         headers: {
@@ -174,6 +176,7 @@
                         method: "PUT",
                         data: {
                             id: id,
+                            shid: shid,
                             savdo_id: savdo_id,
                             status: status,
                             filial: filial

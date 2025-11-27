@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\xissobotoy;
-use App\Models\lavozim;
 use App\Models\mijozlar;
-use App\Models\filial;
 use Illuminate\Support\Facades\Auth;
 
 class TugilganKunController extends Controller
@@ -18,10 +15,8 @@ class TugilganKunController extends Controller
     {
         $mijozlaroy = mijozlar::whereMonth('t_sana',date('m'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
         $mijozlarkun = mijozlar::whereMonth('t_sana',date('m'))->whereDay('t_sana',date('d'))->where('status', 1)->where('filial_id', Auth::user()->filial_id)->orderBy('t_sana', 'asc')->get();
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
-        return view('mijoz.TugilganKun', ['filial_name' => $filial_name, 'lavozim_name' => $lavozim_name, 'xis_oyi' => $xis_oyi, 'mijozlaroy' => $mijozlaroy,'mijozlarkun'=>$mijozlarkun ]);
+
+        return view('mijoz.TugilganKun', ['mijozlaroy' => $mijozlaroy,'mijozlarkun'=>$mijozlarkun ]);
     }
 
     /**
