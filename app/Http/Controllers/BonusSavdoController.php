@@ -357,7 +357,17 @@ class BonusSavdoController extends Controller
                        <td>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
                        <td>" . number_format($savdomode->msumma, 0, ',', ' ') . "</td>
                        <td>" . $savdomode->shtrix_kod . "</td>
-                       <td> <button id='tovar_uchirish' data-id='".$id."' data-shid='".$shid."' data-shtrix_kod='".$savdomode->shtrix_kod."' type='button' class='btn btn-outline-danger btn-sm ms-2'><i class='flaticon-381-substract-1'></i></button> </td>
+                       <td>
+                        <button
+                            id='tovar_uchirish'
+                            data-id='".$id."'
+                            data-shid='".$shid."'
+                            data-shtrix_kod='".$savdomode->shtrix_kod."'
+                            type='button'
+                            class='btn btn-outline-danger btn-sm ms-2'>
+                            <i class='flaticon-381-substract-1'></i>
+                            </button>
+                        </td>
                     </tr>";
                 $jami += $savdomode->msumma;
                 $i++;
@@ -433,7 +443,17 @@ class BonusSavdoController extends Controller
                                             <td>" . number_format($tulovlarsh->naqd + $tulovlarsh->pastik+$tulovlarsh->hr+$tulovlarsh->click+$tulovlarsh->avtot, 0, ',', ' ') . "</td>
                                             <td>" . number_format($tulovlarsh->chegirma, 0, ',', ' ') . "</td>
                                             <td>" . $tulovlarsh->status . "</td>
-                                            <td> <button id='tulov_uchrish' data-tulovid='".$tulovlarsh->id."' data-id='".$shartnom->id."' type='button' class='btn btn-outline-danger btn-sm ms-2'><i class='flaticon-381-substract-1'></i></button> </td>
+                                            <td>
+                                                <button
+                                                    id='tulov_uchrish'
+                                                    data-tulovid='".$tulovlarsh->id."'
+                                                    data-id='".$shartnom->id."'
+                                                    data-shid='".$shartnom->shid."'
+                                                    type='button'
+                                                    class='btn btn-outline-danger btn-sm ms-2'>
+                                                    <i class='flaticon-381-substract-1'></i>
+                                                    </button>
+                                                </td>
                                         </tr>";
                             $i++;
                         }
@@ -457,6 +477,7 @@ class BonusSavdoController extends Controller
                     <h4 class=" text-center text-primary"><b> БОНУС ФАРҚИ УЧУН ЯНГИ ТЎЛОВ ҚЎШИШ </b></h4>
                     <form method="POST" id="add_tulov">
                             <input type="text" name="id" id="id" class="form-control form-control-sm text-center" value="'.$shartnom->id.'" readonly hidden required>
+                            <input type="text" name="shid" id="shid" class="form-control form-control-sm text-center" value="'.$shartnom->shid.'" readonly hidden required>
                             <table class="table table-hover text-center text-muted">
                                 <tr class="text-center align-middle fw-bold">
                                     <td>
@@ -504,9 +525,8 @@ class BonusSavdoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $xis_oyi = xissobotoy::value('xis_oy');
 
-        if(!empty($request->id) && !empty($request->status && $request->status=="tuchirish") ){
+        if(!empty($request->id) && !empty($request->status && $request->status == "tovar-delete") ){
 
             $bor_tovar_exists = KirimTovar::where('shtrix_kod', $request->krimt)
                 ->where('status', 'Бонус')
@@ -543,7 +563,7 @@ class BonusSavdoController extends Controller
 
                     DB::commit();
 
-                    $message=$request->krimt . "<br> Товар ўчирилди.";
+                    $message = $request->krimt . "<br> Товар ўчирилди.";
 
 
                 } catch (\Exception $e) {
@@ -559,39 +579,49 @@ class BonusSavdoController extends Controller
             return response()->json(['message' => $message]);
         }
 
-        if(!empty($request->id) && !empty($request->tulovid) ){
+        return response()->json(['message' => 'Xatolik yuz berdi.'], 200);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, string $id)
+    {
+        if(!empty($request->id) && !empty($request->tulovid && $request->status == 'tulov_delete') ){
 
             $tulovlarFind = Tulovlar::where('id', $request->tulovid)
                 ->where('filial_id', Auth::user()->filial_id)
+                ->where('shid', $request->shid)
+                ->where('shartnoma_id', $request->id)
                 ->where('tulovturi', 'Бонус')
                 ->first();
 
-            $shid = $tulovlarFind->shartnoma_id;
+            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
             $TulovKun = date("d-m-Y", strtotime($tulovlarFind->created_at));
 
             $BugungiKun = date("d-m-Y");
 
-            if($shid > 0){
+            if($tulovlarFind){
 
                 if($TulovKun == $BugungiKun){
 
                     $tulovlarFind->update([
-                            'status' => 'Удалит',
-                            'del_user_id' => Auth::user()->id,
-                            'del_kun' => date("Y-m-d"),
-                        ]);
+                        'status' => 'Удалит',
+                        'del_user_id' => Auth::user()->id,
+                        'del_kun' => date("Y-m-d"),
+                    ]);
 
                     return response()->json(['message' => 'Тўлов ўчирилди.'], 200);
 
                 }else{
 
                     $tulovlarFind->update([
-                            'tulovturi' => 'Брон',
-                            'bron_kun' => date('Y-m-d H:i:s'),
-                            'bron_xis_oyi' => $xis_oyi,
-                            'bron_user_id' => Auth::user()->id,
-                        ]);
+                        'tulovturi' => 'Брон',
+                        'bron_kun' => now(),
+                        'bron_xis_oyi' => $xis_oyi,
+                        'bron_user_id' => Auth::user()->id,
+                    ]);
 
                     return response()->json(['message' => 'Тўлов бронга олинди.'], 200);
                 }
@@ -602,13 +632,5 @@ class BonusSavdoController extends Controller
 
         }
         return response()->json(['message' => 'Xatolik yuz berdi.'], 200);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

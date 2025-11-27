@@ -184,8 +184,9 @@
 
             $(document).on('click', '#tovar_uchirish', function() {
                 var id = $(this).data('id');
+                var shid = $(this).data('shid');
                 var shtrix_kod = $(this).data('shtrix_kod');
-                var status = 'tuchirish';
+                var status = 'tovar-delete';
                 var uzid = confirm(id + ' - шартномадан ' + shtrix_kod + ' товар ўчирилмокда. ТАСДИҚЛАНГ !!!')
                 if (uzid == true) {
                     $.ajax({
@@ -195,6 +196,7 @@
                             _token: "{{ csrf_token() }}",
                             krimt: shtrix_kod,
                             id: id,
+                            shid: shid,
                             status: status
                         },
                         success: function(response) {
@@ -204,6 +206,7 @@
                                 method: "GET",
                                 data: {
                                     id: id,
+                                    shid: shid,
                                 },
                                 success: function(data) {
                                     $("#modalshow").html(data);
@@ -219,6 +222,7 @@
             $(document).on('click', '#addtulov', function() {
                 var status = 'bonustulov';
                 var id = $('#id').val();
+                var shid = $('#shid').val();
                 var naqd = $('#naqd').val();
                 var plastik = $('#plastik').val();
                 var hr = $('#hr').val();
@@ -233,6 +237,7 @@
                         data: {
                             _token: "{{ csrf_token() }}",
                             id: id,
+                            shid: shid,
                             naqd: naqd,
                             plastik: plastik,
                             hr: hr,
@@ -247,6 +252,7 @@
                                 method: "GET",
                                 data: {
                                     id: id,
+                                    shid: shid,
                                 },
                                 success: function(data) {
                                     $("#modalshow").html(data);
@@ -260,17 +266,21 @@
 
             $(document).on('click', '#tulov_uchrish', function() {
                 var id = $(this).data('id');
+                var shid = $(this).data('shid');
                 var tulovid = $(this).data('tulovid');
+                var status = 'tulov_delete';
                 var uzid = confirm(id +
                     ' - шартномани бонус фарқи учун тўланган тулови бронга олинмақда. ТАСДИҚЛАНГ !!!')
                 if (uzid == true) {
                     $.ajax({
                         url: "{{ route('bonus.index') }}/" + id,
-                        method: "PUT",
+                        method: "DELETE",
                         data: {
                             _token: "{{ csrf_token() }}",
                             id: id,
-                            tulovid: tulovid
+                            shid: shid,
+                            tulovid: tulovid,
+                            status: status
                         },
                         success: function(response) {
                             toastr.success(response.message);
@@ -279,6 +289,7 @@
                                 method: "GET",
                                 data: {
                                     id: id,
+                                    shid: shid,
                                 },
                                 success: function(data) {
                                     $("#modalshow").html(data);
