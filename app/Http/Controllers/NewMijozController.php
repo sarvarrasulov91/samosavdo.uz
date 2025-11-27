@@ -11,7 +11,7 @@ use App\Models\Mijozlar;
 use App\Models\mfy;
 use App\Models\tuman;
 use App\Models\filial;
-use App\Models\fondSavdo;
+use App\Models\FondSavdo;
 use App\Models\NaqdSavdo;
 use App\Models\Shartnoma;
 use App\Models\Savdo;

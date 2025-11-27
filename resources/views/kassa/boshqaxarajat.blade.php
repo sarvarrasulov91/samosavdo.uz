@@ -97,7 +97,7 @@
                                 <label>Куни
                                     <span class="text-danger">*</span>
                                 </label>
-                                <input type="date" name="kun" id="kun"
+                                <input type="date" name="kun" id="kun" readonly
                                     class="form-control form-control-sm text-center">
                                 <span id="kun_error" class="text-danger error-text"></span>
                             </div>

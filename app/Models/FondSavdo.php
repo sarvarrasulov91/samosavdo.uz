@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class fondSavdo extends Model
+class FondSavdo extends Model
 {
     use HasFactory;
     protected $table = 'fond_savdo';

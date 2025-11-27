@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Savdo;
 use App\Models\KirimTovar;
-use App\Models\fondSavdo;
+use App\Models\FondSavdo;
 use App\Models\Shartnoma;
 use App\Models\NaqdSavdo;
 use Illuminate\Support\Facades\DB;
@@ -94,7 +94,7 @@ class TovarQarzController extends Controller
                                     </tr>';
                                 }
                             }elseif($savdoidall->status == 'Фонд'){
-                            $fondsavdojami = fondSavdo::where('id', $savdoidall->shartnoma_id)->get();
+                            $fondsavdojami = FondSavdo::where('id', $savdoidall->shartnoma_id)->get();
                                 foreach ($fondsavdojami as $fondsavdojam){
                                     echo '
                                     <tr class="align-middle" data-bs-toggle="modal" data-bs-target="#shartnoma_add"
@@ -152,7 +152,7 @@ class TovarQarzController extends Controller
         }elseif ($status == 'Нақд'){
             $shartnoma = NaqdSavdo::find($id);
         }else{
-            $shartnoma = fondSavdo::find($id);
+            $shartnoma = FondSavdo::find($id);
         }
 
         $shid = $shartnoma->shid;

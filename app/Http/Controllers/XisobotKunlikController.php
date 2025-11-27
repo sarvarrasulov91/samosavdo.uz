@@ -8,7 +8,7 @@ use App\Models\Savdo;
 use App\Models\Tulovlar;
 use App\Models\Xarajat;
 use App\Models\kirim;
-use App\Models\fondSavdo;
+use App\Models\FondSavdo;
 use App\Models\fond;
 use App\Models\Shartnoma;
 use App\Models\NaqdSavdo;
@@ -753,7 +753,11 @@ class XisobotKunlikController extends Controller
                     ->whereDate('created_at', '<=', $yakunkun)
                     ->sum('msumma');
 
-                $fond01 = fondSavdo::where('filial_id', $filial)->where('fond_id', $fid)->whereBetween('kun', [$boshkun, $yakunkun])->where('status', 'Актив')->get();
+                $fond01 = FondSavdo::where('filial_id', $filial)
+                    ->where('fond_id', $fid)
+                    ->whereBetween('kun', [$boshkun, $yakunkun])
+                    ->where('status', 'Актив')
+                    ->get();
 
                 foreach ($fond01 as $fond0){
                     $fsoni++;

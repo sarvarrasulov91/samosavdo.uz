@@ -59,7 +59,7 @@
                                 <label>Куни
                                     <span class="text-danger">*</span>
                                 </label>
-                                <input type="date" name="chkun" id="chkun"
+                                <input type="date" name="chkun" id="chkun" readonly
                                     class="form-control form-control-sm text-center">
                                 <span id="kun_error" class="text-danger error-text"></span>
                             </div>
@@ -143,7 +143,7 @@
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                 })
             })
-            
+
                 tabyuklash();
                 $("#chkun").val(new Date().toISOString().substring(0, 10));
 

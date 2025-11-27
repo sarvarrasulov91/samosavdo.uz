@@ -77,7 +77,7 @@
                                         <label>Куни
                                             <span class="text-danger">*</span>
                                         </label>
-                                        <input type="date" name="yangikun" id="yangikun"
+                                        <input type="date" name="yangikun" id="yangikun" readonly
                                             class="form-control form-control-sm text-center">
                                         <span id="yangikun_error" class="text-danger error-text"></span>
                                     </div>

@@ -58,7 +58,6 @@ class OfficeGrafikTulovController extends Controller
                         <th>Мижоз ФИО</th>
                         <th>Тулов тури</th>
                         <th>Шарт-№</th>
-                        <th>График</th>
                         <th>Накд</th>
                         <th>Пластик</th>
                         <th>ХР</th>
@@ -99,34 +98,6 @@ class OfficeGrafikTulovController extends Controller
                     foreach ($model as $mode){
 
                         $shartnoma = Shartnoma::where('id', $mode->shartnoma_id)->where('filial_id', $request->filial)->first();
-                        $savdosumma = Savdo::where('status', 'Шартнома')->where('shartnoma_id', $shartnoma->id)->where('filial_id', $request->filial)->sum('msumma');
-                        $oldindantulov = Tulovlar::where('tulovturi', 'Олдиндан тўлов')
-                            ->where('status', 'Актив')
-                            ->where('shartnoma_id', $shartnoma->id)
-                            ->where('filial_id', $request->filial)
-                            ->sum('umumiysumma');
-
-                        $chegirma = Tulovlar::where('tulovturi', 'Олдиндан тўлов')
-                            ->where('status', 'Актив')
-                            ->where('shartnoma_id', $shartnoma->id)
-                            ->where('filial_id', $request->filial)
-                            ->sum('chegirma');
-
-                        $foiz = xissobotoy::where('xis_oy', $shartnoma->xis_oyi)->value('foiz');
-                        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
-
-                        if($shartnoma->fstatus == 0){
-                            $foiz = 0;
-                        }
-
-                        //йиллик фойиз
-                        $foiz = (($foiz / 12) * $shartnoma->muddat);
-
-                        if ($shartnoma->kun < "2023-12-05"){
-                            $xis_foiz = ((($savdosumma - $oldindantulov - $chegirma) * $foiz) / 100);
-                        }else{
-                            $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
-                        }
 
                         echo'
                         <tr>
@@ -134,8 +105,7 @@ class OfficeGrafikTulovController extends Controller
                             <td style="white-space: pre-wrap">' . date('d.m.Y H:i:s', strtotime($mode->created_at)) . '</td>
                             <td style="white-space: pre-wrap">' .$shartnoma->mijozlar->last_name. ' ' .$shartnoma->mijozlar->first_name. ' ' .$shartnoma->mijozlar->middle_name . '</td>
                             <td>' . $mode->tulovturi . '</td>
-                            <td>' . $mode->shartnoma_id . '</td>
-                            <td class="text-primary">' . number_format(($savdosumma-$oldindantulov-$chegirma+$xis_foiz)/$shartnoma->muddat, 0, ',', ' ') . '</td>
+                            <td>' . $mode->shid . '</td>
                             <td>' . number_format($mode->naqd, 0, ',', ' ') . '</td>
                             <td>' . number_format($mode->pastik, 0, ',', ' ') . '</td>
                             <td>' . number_format($mode->hr, 0, ',', ' ') . '</td>
@@ -170,7 +140,6 @@ class OfficeGrafikTulovController extends Controller
 
                     echo'
                         <tr class="fw-bold">
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
