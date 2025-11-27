@@ -192,7 +192,7 @@ class ShartnomaNewController extends Controller
         }
 
          // foizlarni hisoblash
-        $foiz_stavka = ($request->fstatus == 1) ? $xisobotoy->foiz_stavka : 0;
+        $foiz_stavka = ($request->fstatus == 1) ? $xisobotoy->foiz : 0;
 
         //йиллик фойиз
         $foiz = (($foiz_stavka / 12) * $request->muddat);
@@ -255,6 +255,12 @@ class ShartnomaNewController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
+
+            // Xatoni logga yozish
+            \Log::error('Xatolik yuz berdi: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
 
             return response()->json(['message' => 'Маълумот сақлашда хатолик.'], 200);
             // throw $e;
