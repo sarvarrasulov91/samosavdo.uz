@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\fondSavdo;
+use App\Models\FondSavdo;
 use App\Models\Tulovlar;
 use App\Models\Savdo;
 use App\Models\KirimTovar;
@@ -122,7 +122,7 @@ class FondSavdoOfficeController extends Controller
 
                 $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                $naqdsavdojami = fondSavdo::where('filial_id', $filial)->where('status', 'Актив')->orderBy('id', 'desc')->get();
+                $naqdsavdojami = FondSavdo::where('filial_id', $filial)->where('status', 'Актив')->orderBy('id', 'desc')->get();
                 foreach ($naqdsavdojami as $naqdsavdojam){
 
                     $id = $naqdsavdojam->id;
@@ -309,7 +309,7 @@ class FondSavdoOfficeController extends Controller
                                     'bron_xis_oyi' => $xis_oyi,
                                 ]);
 
-                            $naqdsavdoUpdated = fondSavdo::where('filial_id', $filial)
+                            $naqdsavdoUpdated = FondSavdo::where('filial_id', $filial)
                                 ->where('id', $id)
                                 ->limit(1)
                                 ->update([
@@ -355,7 +355,7 @@ class FondSavdoOfficeController extends Controller
                         ]);
 
 
-                    $naqdsavdoUpdated = fondSavdo::where('filial_id', $filial)->where('id', $id)
+                    $naqdsavdoUpdated = FondSavdo::where('filial_id', $filial)->where('id', $id)
                         ->limit(1)
                         ->update([
                             'status' => 'Удалит',

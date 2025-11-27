@@ -12,6 +12,6 @@ class fond extends Model
     protected $table = 'fond';
     public function fond1(): HasOne
     {
-        return $this->hasOne(fondSavdo::class);
+        return $this->hasOne(FondSavdo::class);
     }
 }

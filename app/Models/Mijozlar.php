@@ -26,7 +26,7 @@ class Mijozlar extends Model
 
     public function fond1(): HasOne
     {
-        return $this->hasOne(fondSavdo::class);
+        return $this->hasOne(FondSavdo::class);
     }
 
     public function viloyat(): BelongsTo

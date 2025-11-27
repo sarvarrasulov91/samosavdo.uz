@@ -68,13 +68,17 @@ class OfficeJamiTulovlarController extends Controller
             $uchegirma = 0;
             $ujami = 0;
 
-            $filialbase = filial::where('status', 'Актив')->where('id','!=','10')->get();
+            if (Auth::user()->filial_id == 10) {
+                $filialbase = filial::where('status', 'Актив')->where('id','!=','10')->get();
+            }else{
+                $filialbase = filial::where('status', 'Актив')->where('id', Auth::user()->filial_id)->get();
+            }
 
-            foreach ($filialbase as $filia) {
+            foreach ($filialbase as $filial) {
 
                 $tulovlar = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('status', 'Актив')
-                    ->where('filial_id', $filia->id)
+                    ->where('filial_id', $filial->id)
                     ->get();
 
                 $naqd = $tulovlar->sum('naqd');
@@ -87,8 +91,8 @@ class OfficeJamiTulovlarController extends Controller
 
                 echo '
                     <tr class="text-center align-middle">
-                        <td>' . $filia->id . '</td>
-                        <td>' . $filia->fil_name . '</td>
+                        <td>' . $filial->id . '</td>
+                        <td>' . $filial->fil_name . '</td>
                         <td>' . number_format($naqd, 0, ',', ' ') . '</td>
                         <td>' . number_format($plastik, 0, ',', ' ') . '</td>
                         <td>' . number_format($hr, 0, ',', ' ') . '</td>

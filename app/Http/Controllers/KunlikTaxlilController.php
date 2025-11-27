@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\filial;
 use App\Models\Savdo;
 use App\Models\NaqdSavdo;
-use App\Models\fondSavdo;
+use App\Models\FondSavdo;
 use App\Models\BonusSavdo;
 use App\Models\Tulovlar;
 use App\Models\Shartnoma;
@@ -148,7 +148,7 @@ class KunlikTaxlilController extends Controller
                 // fond savdo taxlilini aniqlash
                 $fssoni = $fssumma = $fchegirmasumma = 0;
 
-                $fondsavdo1 = fondSavdo::whereBetween('kun', [$boshkun, $yakunkun])
+                $fondsavdo1 = FondSavdo::whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('filial_id', $filial->id)
                     ->where('status','Актив')
                     ->get();

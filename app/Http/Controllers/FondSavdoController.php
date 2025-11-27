@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Mijozlar;
 use App\Models\fond;
-use App\Models\fondSavdo;
+use App\Models\FondSavdo;
 use App\Models\Savdo;
 use App\Models\Tulovlar;
 use App\Models\KirimTovar;
@@ -80,7 +80,7 @@ class FondSavdoController extends Controller
 
                     $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                    $fondsavdojami = fondSavdo::where('status', 'Актив')
+                    $fondsavdojami = FondSavdo::where('status', 'Актив')
                         ->where('xis_oyi', $xis_oyi)
                         ->where('filial_id', Auth::user()->filial_id)
                         ->orderBy('id', 'desc')
@@ -213,7 +213,7 @@ class FondSavdoController extends Controller
                 try {
                     DB::beginTransaction();
 
-                    $fond1 = new fondSavdo;
+                    $fond1 = new FondSavdo;
                     $fond1->filial_id = Auth::user()->filial_id;
                     $fond1->mijozlar_id = $request->mijoz;
                     $fond1->kun = $request->yangikun;
@@ -354,7 +354,7 @@ class FondSavdoController extends Controller
         $bankname=$filia->bankname;
         $mfo=$filia->mfo;
 
-        $naqdsavdojami = fondSavdo::where('id', $id)
+        $naqdsavdojami = FondSavdo::where('id', $id)
             ->where('filial_id', Auth::user()->filial_id)
             ->where('status', 'Актив')
             ->get();
@@ -497,7 +497,7 @@ class FondSavdoController extends Controller
             ->count();
 
         if ($tekshirktovar1 == 0 && $tekshirsavdo1 == 0){
-            $Readfond1 = fondSavdo::where('id', $id)->where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->first();
+            $Readfond1 = FondSavdo::where('id', $id)->where('status', 'Актив')->where('filial_id', Auth::user()->filial_id)->first();
             $FondKun = $Readfond1->kun;
             $BugungiKun = date("Y-m-d");
             if($Readfond1->id > 0){
@@ -524,7 +524,7 @@ class FondSavdoController extends Controller
                                 'del_user_id' => Auth::user()->id,
                             ]);
 
-                        $fondUpdated = fondSavdo::where('id', $id)
+                        $fondUpdated = FondSavdo::where('id', $id)
                             ->where('filial_id', Auth::user()->filial_id)
                             ->limit(1)
                             ->update([

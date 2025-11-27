@@ -58,7 +58,7 @@
                                 <label>Куни
                                     <span class="text-danger">*</span>
                                 </label>
-                                <input type="date" name="bochkun" id="boshchkun"
+                                <input type="date" name="bochkun" id="boshchkun" readonly
                                     class="form-control form-control-sm text-center">
                                 <span id="bochkun_error" class="text-danger error-text"></span>
                             </div>
