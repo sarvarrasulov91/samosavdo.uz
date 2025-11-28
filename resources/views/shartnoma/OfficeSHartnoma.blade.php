@@ -161,9 +161,10 @@
             $(document).on('click', '#tovar_qushish', function() {
                 var id = $(this).data('id');
                 var shid = $(this).data('shid');
-                var status = 'tqushish';
-                var savdo_id = prompt("Савдо ракмини киритинг.!!!");
+                var status = 'tovarqushish';
                 var filial = $('#filial').val();
+
+                var savdo_id = prompt("Савдо ракмини киритинг.!!!");
 
                 if (savdo_id) {
                     $.ajaxSetup({
@@ -202,10 +203,10 @@
                 }
             });
 
-            $(document).on('click', '#tovar_uchrish', function() {
+            $(document).on('click', '#tovar_delete', function() {
                 var id = $(this).data('shid');
                 var stid = $(this).data('stid');
-                var status = 'tuchirish';
+                var status = 'tovaruchirish';
                 var filial = $('#filial').val();
                 var uzid = confirm(stid + ' ИД даги товар ўчирилмокда. ТАСДИҚЛАНГ !!!');
                 if (uzid == true) {
@@ -245,7 +246,7 @@
             });
 
 
-            $(document).on('click', '#tulov_uchrish', function() {
+            $(document).on('click', '#tulov_delete', function() {
 
                 var id = $(this).data('shid');
                 var tulovid = $(this).data('tulovid');

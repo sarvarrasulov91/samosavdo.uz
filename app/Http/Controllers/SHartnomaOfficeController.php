@@ -440,7 +440,7 @@ class SHartnomaOfficeController extends Controller
                             <td>{$t->status}</td>
                             <td>
                                 <button
-                                    id='tulov_uchrish'
+                                    id='tulov_delete'
                                     data-tulovid='{$t->id}'
                                     data-filial='{$filial}'
                                     data-shid='{$shartnom->id}'
@@ -509,7 +509,7 @@ class SHartnomaOfficeController extends Controller
                        <td>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
                        <td>" . number_format($savdomode->msumma, 0, ',', ' ') . "</td>
                        <td>" . $savdomode->shtrix_kod . "</td>
-                       <td> <button id='tovar_uchrish' data-stid='".$savdomode->id."' data-shid='".$shartnom->id."' type='button' class='btn btn-outline-danger btn-sm ms-2'><i class='flaticon-381-substract-1'></i></button> </td>
+                       <td> <button id='tovar_delete' data-stid='".$savdomode->id."' data-shid='".$shartnom->id."' type='button' class='btn btn-outline-danger btn-sm ms-2'><i class='flaticon-381-substract-1'></i></button> </td>
                     </tr>";
                 $jami += $savdomode->msumma;
             }
@@ -575,7 +575,7 @@ class SHartnomaOfficeController extends Controller
                         $otulovchegirmasummasi = $oldindantulov->sum('chegirma');
 
                         echo'
-                        <tr id="modalshartshow" data-id="'.$shartnom->id.'" data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"  class="'.$trClass.'">
+                        <tr id="modalshartshow" data-id="'.$shartnom->id.'" data-shid="'.$shartnom->shid.'" data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"  class="'.$trClass.'">
                             <td>' . $shartnom->shid . '</td>
                             <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
                             </td>
@@ -724,13 +724,13 @@ class SHartnomaOfficeController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+        if (Auth::user()->lavozim_id != 1 && Auth::user()->status != 'Актив') {
             return response()->json(['message' => "Хатолик!!! <br> Админга мурожат қилинг."], 200);
         }
 
         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-        if($request->status == 'tqushish'){
+        if($request->status == 'tovarqushish'){
 
             $savdounix_id = Savdo::where('filial_id', $request->filial)->where('status', 'Актив')->where('unix_id', $request->savdo_id)->count();
             if ($savdounix_id >= 1) {
@@ -750,33 +750,34 @@ class SHartnomaOfficeController extends Controller
                 return response()->json(['message' => $request->savdo_id . "<br> Хатолик!!! Савдо рақами топилмади."], 200);
             }
 
-        }elseif($request->status == 'tuchirish'){
+        }elseif($request->status == 'tovaruchirish'){
 
             if (!empty($request->stid)) {
 
-                $shtrix_kod = 0;
+                $savdosumma = Savdo::where('filial_id', $request->filial)
+                    ->where('status', 'Шартнома')
+                    ->where('id', $request->stid)
+                    ->where('shartnoma_id', $request->id)
+                    ->first();
 
-                $savdosumma = Savdo::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('id', $request->stid)->first();
-
-                if ($savdosumma) {
-                    $shtrix_kod = $savdosumma->shtrix_kod;
-                } else {
-                    // Handle the case where no record is found
-                    $shtrix_kod = 0;
-                }
+                $shtrix_kod = $savdosumma->shtrix_kod ?? 0;
 
                 if($shtrix_kod > 0){
 
-                    $Counttovar1 = KirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->count();
+                    $Counttovar1 = KirimTovar::where('filial_id', $request->filial)
+                        ->where('status', 'Шартнома')
+                        ->where('shtrix_kod', $shtrix_kod)
+                        ->where('shartnoma_id', $request->id)
+                        ->count();
 
                     if ($Counttovar1 > 0) {
 
                         $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-                        $ReadKt = KirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->get();
+                        $ReadKtovars = KirimTovar::where('filial_id', $request->filial)->where('status', 'Шартнома')->where('shtrix_kod', $shtrix_kod)->get();
 
-                        foreach ($ReadKt as $ReadKtovar) {
-                            if ($xis_oyi == $ReadKtovar->ch_xis_oyi) {
+                        foreach ($ReadKtovars as $tovar) {
+                            if ($xis_oyi == $tovar->ch_xis_oyi) {
                                 try {
                                     DB::beginTransaction();
 
@@ -802,13 +803,10 @@ class SHartnomaOfficeController extends Controller
                                             'del_xis_oyi' => $xis_oyi,
                                         ]);
 
-                                    if ($savdUpdated && $ktovarUpdated) {
-                                        DB::commit();
-                                        return response()->json(['message' => "Шартномага бириктирилган товар омборга қайтарилди."], 200);
-                                    } else {
-                                        DB::rollBack();
-                                        return response()->json(['message' => "Маълумот ўчиришда хатолик."], 200);
-                                    }
+                                    DB::commit();
+
+                                    return response()->json(['message' => "Шартномага бириктирилган товар омборга қайтарилди."], 200);
+
                                 } catch (\Exception $e) {
                                     DB::rollBack();
                                     return response()->json(['message' => "Маълумот ўчиришда хатолик2."], 200);
@@ -819,16 +817,16 @@ class SHartnomaOfficeController extends Controller
                                 $soninar = 0;
 
                                 $soninar = KirimTovar::where('filial_id', $request->filial)
-                                    ->where('tmodel_id', $ReadKtovar->tmodel_id)
-                                    ->where('tur_id', $ReadKtovar->tur_id)
-                                    ->where('brend_id', $ReadKtovar->brend_id)
+                                    ->where('tmodel_id', $tovar->tmodel_id)
+                                    ->where('tur_id', $tovar->tur_id)
+                                    ->where('brend_id', $tovar->brend_id)
                                     ->max('soni');
 
                                 $soninar++;
                                 $filialId = str_pad($request->filial, 2, "0", STR_PAD_LEFT);
-                                $turid2 = str_pad($ReadKtovar->tur_id, 4, "0", STR_PAD_LEFT);
-                                $brendid2 = str_pad($ReadKtovar->brend_id, 4, "0", STR_PAD_LEFT);
-                                $model2 = str_pad($ReadKtovar->tmodel_id, 5, "0", STR_PAD_LEFT);
+                                $turid2 = str_pad($tovar->tur_id, 4, "0", STR_PAD_LEFT);
+                                $brendid2 = str_pad($tovar->brend_id, 4, "0", STR_PAD_LEFT);
+                                $model2 = str_pad($tovar->tmodel_id, 5, "0", STR_PAD_LEFT);
                                 $soninar2 = str_pad($soninar, 4, "0", STR_PAD_LEFT);
 
                                 $new_shtr_kod = $filialId . $turid2 . $brendid2 . $model2 . $soninar2;
@@ -838,44 +836,43 @@ class SHartnomaOfficeController extends Controller
                                     $ktovarzapis = new KirimTovar;
                                     $ktovarzapis->kun = date('Y-m-d');
                                     $ktovarzapis->filial_id = $request->filial;
-                                    $ktovarzapis->tur_id = $ReadKtovar->tur_id;
-                                    $ktovarzapis->brend_id = $ReadKtovar->brend_id;
-                                    $ktovarzapis->tmodel_id = $ReadKtovar->tmodel_id;
+                                    $ktovarzapis->tur_id = $tovar->tur_id;
+                                    $ktovarzapis->brend_id = $tovar->brend_id;
+                                    $ktovarzapis->tmodel_id = $tovar->tmodel_id;
                                     $ktovarzapis->shtrix_kod = $new_shtr_kod;
                                     $ktovarzapis->soni = $soninar;
-                                    $ktovarzapis->valyuta_id = $ReadKtovar->valyuta_id;
-                                    $ktovarzapis->narhi = $ReadKtovar->narhi;
-                                    $ktovarzapis->snarhi = $ReadKtovar->snarhi;
-                                    $ktovarzapis->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                                    $ktovarzapis->tannarhi = $ReadKtovar->tannarhi;
+                                    $ktovarzapis->valyuta_id = $tovar->valyuta_id;
+                                    $ktovarzapis->narhi = $tovar->narhi;
+                                    $ktovarzapis->snarhi = $tovar->snarhi;
+                                    $ktovarzapis->valyuta_narhi = $tovar->valyuta_narhi;
+                                    $ktovarzapis->tannarhi = $tovar->tannarhi;
                                     $ktovarzapis->pastavshik_id = 10;
-                                    $ktovarzapis->pastavshik2_id = $ReadKtovar->pastavshik2_id;
+                                    $ktovarzapis->pastavshik2_id = $tovar->pastavshik2_id;
                                     $ktovarzapis->xis_oyi = $xis_oyi;
                                     $ktovarzapis->user_id = Auth::user()->id;
                                     $ktovarzapis->save();
                                     $insid = $ktovarzapis->id;
 
                                     $CreateTqaytarish = new tmqaytarish;
-                                    $CreateTqaytarish->savdo_turi = $ReadKtovar->status;
-                                    $CreateTqaytarish->shartnoma_id = $ReadKtovar->shartnoma_id;
-                                    $CreateTqaytarish->kun = $ReadKtovar->kun;
+                                    $CreateTqaytarish->savdo_turi = $tovar->status;
+                                    $CreateTqaytarish->shartnoma_id = $tovar->shartnoma_id;
+                                    $CreateTqaytarish->kun = $tovar->kun;
                                     $CreateTqaytarish->filial_id = $request->filial;
-                                    $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
-                                    $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
-                                    $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
-                                    $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
-                                    $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
-                                    $CreateTqaytarish->narhi = $ReadKtovar->narhi;
-                                    $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
-                                    $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                                    $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
-                                    $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
+                                    $CreateTqaytarish->tur_id = $tovar->tur_id;
+                                    $CreateTqaytarish->brend_id = $tovar->brend_id;
+                                    $CreateTqaytarish->tmodel_id = $tovar->tmodel_id;
+                                    $CreateTqaytarish->shtrix_kod = $tovar->shtrix_kod;
+                                    $CreateTqaytarish->valyuta_id = $tovar->valyuta_id;
+                                    $CreateTqaytarish->narhi = $tovar->narhi;
+                                    $CreateTqaytarish->snarhi = $tovar->snarhi;
+                                    $CreateTqaytarish->valyuta_narhi = $tovar->valyuta_narhi;
+                                    $CreateTqaytarish->tannarhi = $tovar->tannarhi;
+                                    $CreateTqaytarish->pastavshik_id = $tovar->pastavshik2_id;
                                     $CreateTqaytarish->xis_oyi = $xis_oyi;
                                     $CreateTqaytarish->user_id = Auth::user()->id;
                                     $CreateTqaytarish->kirim_id = $insid;
                                     $CreateTqaytarish->shtrix_kod_yangi = $new_shtr_kod;
                                     $CreateTqaytarish->save();
-
 
                                     $savdUpdated = Savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
                                     ->update([
@@ -885,13 +882,10 @@ class SHartnomaOfficeController extends Controller
                                         'del_xis_oyi' => $xis_oyi,
                                     ]);
 
-                                    if ($ktovarzapis && $CreateTqaytarish && $savdUpdated) {
-                                        DB::commit();
-                                        return response()->json(['message' => "Шартномага бириктирилган товар янги".$new_shtr_kod." рақами блан омборга қайтарилди."], 200);
-                                    } else {
-                                        DB::rollBack();
-                                        return response()->json(['message' => "Нақд савдони ўчиришда хатолик."]);
-                                    }
+                                    DB::commit();
+
+                                    return response()->json(['message' => "Шартномага бириктирилган товар янги".$new_shtr_kod." рақами блан омборга қайтарилди."], 200);
+
                                 } catch (\Exception $e) {
                                     DB::rollBack();
                                     return response()->json(['message' => "Нақд савдони ўчиришда хатолик.2"]);
@@ -902,7 +896,10 @@ class SHartnomaOfficeController extends Controller
 
                 }else{
 
-                    $savdUpdated = Savdo::where('filial_id', $request->filial)->where('id', $request->stid)->where('status', 'Шартнома')->limit(1)
+                    $savdUpdated = Savdo::where('filial_id', $request->filial)
+                        ->where('id', $request->stid)
+                        ->where('status', 'Шартнома')
+                        ->limit(1)
                         ->update([
                             'status' => "Удалит",
                             'del_user_id' => Auth::id(),

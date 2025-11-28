@@ -118,8 +118,8 @@ class ShartnomaIdController extends Controller
                 }
 
                 echo '
-                        <tr id="modalshartshow" data-id="' . $shartnoma->id . '" data-fio="' . addslashes($shartnoma->mijozlar->last_name) . ' ' . addslashes($shartnoma->mijozlar->first_name) . ' ' . addslashes($shartnoma->mijozlar->middle_name) . '"  class="'.$trrang.'">
-                            <td>' . $shartnoma->id . '</td>
+                        <tr id="modalshartshow" data-id="' . $shartnoma->id . '" data-shid="' . $shartnoma->shid . '" data-fio="' . addslashes($shartnoma->mijozlar->last_name) . ' ' . addslashes($shartnoma->mijozlar->first_name) . ' ' . addslashes($shartnoma->mijozlar->middle_name) . '"  class="'.$trrang.'">
+                            <td>' . $shartnoma->shid . '</td>
                             <td style="white-space: pre-wrap;">' . $shartnoma->mijozlar->last_name . ' ' . $shartnoma->mijozlar->first_name . ' ' . $shartnoma->mijozlar->middle_name . '</td>
                             <td style="white-space: pre-wrap">' . $shartnoma->mijozlar->tuman->name_uz . ' ' . $shartnoma->mijozlar->mfy->name_uz . ' ' . $shartnoma->mijozlar->manzil . '</td>
                             <td>' . $shartnoma->mijozlar->phone . '</td>

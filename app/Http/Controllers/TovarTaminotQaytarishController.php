@@ -55,63 +55,61 @@ class TovarTaminotQaytarishController extends Controller
                 ->where('status', 'Сотилмаган')
                 ->count();
 
-        if ($CountKtovar == 1) {
-            $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
+            if ($CountKtovar == 1) {
+                $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
 
-            $ReadKtovar = KirimTovar::where('shtrix_kod', $krimt)
-                ->where('filial_id', $filial)
-                ->where('status', 'Сотилмаган')
-                ->first();
-
-            try {
-                DB::beginTransaction();
-
-                $CreateTqaytarish = new tqaytarish;
-                $CreateTqaytarish->kun = $ReadKtovar->kun;
-                $CreateTqaytarish->filial_id = $request->filial;
-                $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
-                $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
-                $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
-                $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
-                $CreateTqaytarish->soni = 1;
-                $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
-                $CreateTqaytarish->narhi = $ReadKtovar->narhi;
-                $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
-                $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
-                $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
-                $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
-                $CreateTqaytarish->xis_oyi = $xis_oyi;
-                $CreateTqaytarish->user_id = Auth::user()->id;
-                $CreateTqaytarish->save();
-
-                $ktovar1Updated = KirimTovar::where('shtrix_kod', $krimt)
+                $ReadKtovar = KirimTovar::where('shtrix_kod', $krimt)
                     ->where('filial_id', $filial)
                     ->where('status', 'Сотилмаган')
-                    ->limit(1)
-                    ->update([
-                        'status' => 'Кайтган',
-                        'ch_kun' => now(), // Yoki date('Y-m-d H:i:s') ko'rsatilgan shakli
-                        'ch_xis_oyi' => $xis_oyi,
-                        'ch_user_id' => Auth::user()->id,
-                    ]);
+                    ->first();
 
-                if ($ktovar1Updated && $CreateTqaytarish) {
+                try {
+                    DB::beginTransaction();
+
+                    $CreateTqaytarish = new tqaytarish;
+                    $CreateTqaytarish->kun = $ReadKtovar->kun;
+                    $CreateTqaytarish->filial_id = $request->filial;
+                    $CreateTqaytarish->tur_id = $ReadKtovar->tur_id;
+                    $CreateTqaytarish->brend_id = $ReadKtovar->brend_id;
+                    $CreateTqaytarish->tmodel_id = $ReadKtovar->tmodel_id;
+                    $CreateTqaytarish->shtrix_kod = $ReadKtovar->shtrix_kod;
+                    $CreateTqaytarish->soni = 1;
+                    $CreateTqaytarish->valyuta_id = $ReadKtovar->valyuta_id;
+                    $CreateTqaytarish->narhi = $ReadKtovar->narhi;
+                    $CreateTqaytarish->snarhi = $ReadKtovar->snarhi;
+                    $CreateTqaytarish->valyuta_narhi = $ReadKtovar->valyuta_narhi;
+                    $CreateTqaytarish->tannarhi = $ReadKtovar->tannarhi;
+                    $CreateTqaytarish->pastavshik_id = $ReadKtovar->pastavshik2_id;
+                    $CreateTqaytarish->xis_oyi = $xis_oyi;
+                    $CreateTqaytarish->user_id = Auth::user()->id;
+                    $CreateTqaytarish->save();
+
+                    $ktovar1Updated = KirimTovar::where('shtrix_kod', $krimt)
+                        ->where('filial_id', $filial)
+                        ->where('status', 'Сотилмаган')
+                        ->limit(1)
+                        ->update([
+                            'status' => 'Кайтган',
+                            'ch_kun' => now(), // Yoki date('Y-m-d H:i:s') ko'rsatilgan shakli
+                            'ch_xis_oyi' => $xis_oyi,
+                            'ch_user_id' => Auth::user()->id,
+                        ]);
+
                     DB::commit();
-                    $message = $request->krimt . '<br> Товар таъминотчига қайтарилди.';
-                } else {
-                    DB::rollBack();
-                    $message=$request->krimt . '<br> Товар таъминотчига қайтаршда хатолик.';
-                }
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $message=$request->krimt . '<br> Товар таъминотчига қайтаршда хатолик.2';
-                // throw $e;
-            }
 
-            return response()->json(['message' => $message], 200);
-        } else {
-            return response()->json(['message' => $request->krimt."<br> Хатолик!!! Товар топилмади."], 200);
-        }
+                    return response()->json(['message' => "Товар таъминотчига қайтарилди"], 200);
+
+                } catch (\Exception $e) {
+
+                    DB::rollBack();
+
+                    return response()->json(['message' => "Товар таъминотчига қайтаршда хатолик"], 200);
+                    // throw $e;
+                }
+
+            } else {
+                return response()->json(['message' => $request->krimt."<br> Хатолик!!! Товар топилмади."], 200);
+            }
 
         }else{
             Auth::guard('web')->logout();

@@ -46,10 +46,7 @@
                                     </select>
                                 </div>
                                 <div class="col-xl-2">
-                                    <button id="saqlash" class="btn btn-primary btn-xs"> Тасдиқлаш </button>
-                                </div>
-                                <div class="col-xl-1" role="presentation">
-                                    <button id="btnExportexcel" class="btn btn-primary btn-xs ms-3"> Excel </button>
+                                    <button type="button" id="saqlash" class="btn btn-primary btn-xs"> Тасдиқлаш </button>
                                 </div>
                             </div>
                         </div>
@@ -225,11 +222,12 @@
                 $('#shartnoma_show').modal('show');
 
                 let id = $(this).data('id');
+                let shid = $(this).data('shid');
                 let fio = $(this).data('fio');
                 let filial = $('#filial').val();
                 let csrf = document.querySelector('meta[name="csrf-token"]').content;
 
-                $('#modal-title').html(id + ' -> ' + fio);
+                $('#modal-title').html(shid + ' -> ' + fio);
 
                 $.ajax({
 
@@ -247,10 +245,13 @@
             });
 
             $(document).on('click', '#tovar_qushish', function() {
-                var id = $(this).data('shid');
-                var status = 'tqushish';
-                var savdo_id = prompt("Савдо ракмини киритинг.!!!");
+                var id = $(this).data('id');
+                var shid = $(this).data('shid');
+                var status = 'tovarqushish';
                 var filial = $('#filial').val();
+
+                var savdo_id = prompt("Савдо ракмини киритинг.!!!");
+
                 if (savdo_id) {
                     $.ajaxSetup({
                         headers: {
@@ -262,6 +263,7 @@
                         method: "PUT",
                         data: {
                             id: id,
+                            shid: shid,
                             savdo_id: savdo_id,
                             status: status,
                             filial: filial
@@ -287,10 +289,10 @@
                 }
             });
 
-            $(document).on('click', '#tovar_uchrish', function() {
+            $(document).on('click', '#tovar_delete', function() {
                 var id = $(this).data('shid');
                 var stid = $(this).data('stid');
-                var status = 'tuchirish';
+                var status = 'tovaruchirish';
                 var filial = $('#filial').val();
                 var uzid = confirm(stid + ' ИД даги товар ўчирилмокда. ТАСДИҚЛАНГ !!!');
                 if (uzid == true) {
@@ -330,7 +332,9 @@
             });
 
 
-            $(document).on('click', '#tulov_uchrish', function() {
+
+
+            $(document).on('click', '#tulov_delete', function() {
 
                 var id = $(this).data('shid');
                 var tulovid = $(this).data('tulovid');
@@ -437,31 +441,6 @@
                     })
                 }
             })
-
-            function exportHTML() {
-                var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-                    "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-                    "xmlns='http://www.w3.org/TR/REC-html40'>" +
-                    "<head><meta charset='utf-8'><title>Export HTML to Word Document with JavaScript</title></head><body>";
-                var footer = "</body></html>";
-                var sourceHTML = header + document.getElementById("certificate").innerHTML + footer;
-
-                var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-                var fileDownload = document.createElement("a");
-                document.body.appendChild(fileDownload);
-                fileDownload.href = source;
-                fileDownload.download = 'Шартнома.doc';
-                fileDownload.click();
-                document.body.removeChild(fileDownload);
-            }
-
-            $(function() {
-                $("#btnExportexcel").click(function() {
-                    $("#tabprosfil").table2excel({
-                        filename: "Shartnomalar"
-                    });
-                })
-            });
 
         </script>
 @endsection
