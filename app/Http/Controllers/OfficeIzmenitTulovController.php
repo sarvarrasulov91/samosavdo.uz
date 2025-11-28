@@ -168,6 +168,82 @@ class OfficeIzmenitTulovController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        $rules = [
+            'filial2' => 'required',
+            'yangikun' => 'required',
+            'tulovturi' => 'required',
+            'shartnomaid' => 'required',
+            'naqd' => 'required',
+            'pastik' => 'required',
+            'hr' => 'required',
+            'click' => 'required',
+            'avtot' => 'required',
+            'chegirma' => 'required',
+        ];
+
+        $messages = [
+            'filial2.required' => 'Филиал танланмади.',
+            'yangikun.required' => 'Сана киритилмади.',
+            'tulovturi.required' => 'Харажат турини танланг .',
+            'shartnomaid.required' => 'Валюта танланмади.',
+            'naqd.required' => 'Сумма киритилмади.',
+            'pastik.required' => 'Сумма киритилмади.',
+            'hr.required' => 'Сумма киритилмади.',
+            'click.required' => 'Сумма киритилмади.',
+            'avtot.required' => 'Сумма киритилмади.',
+            'chegirma.required' => 'Сумма киритилмади.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
+
+            $tulov = Tulovlar::where('id', $id)->where('status', 'Актив')->where('filial_id', $request->filial2)->first();
+
+            if ($tulov){
+
+                $tulov->update([
+                    'kun' => $request->yangikun,
+                    'tulovturi' => $request->tulovturi,
+                    'shartnoma_id' => $request->shartnomaid,
+                    'naqd' => $request->naqd,
+                    'pastik' => $request->pastik,
+                    'hr' => $request->hr,
+                    'click' => $request->click,
+                    'avtot' => $request->avtot,
+                    'chegirma' => $request->chegirma,
+                    'umumiysumma' => $request->naqd + $request->pastik + $request->hr + $request->click + $request->avtot,
+                    'user_id' => Auth::user()->id,
+                ]);
+
+                return response()->json(['message' => 'Маълумот ўзгартирилди.'], 200);
+
+            }else{
+                return response()->json(['message' => 'Хато малумот киритилди.'], 200);
+            }
+
+
+        }else{
+            return response()->json(['message' => "Adminga murojaat qiling."], 200);
+
+            // Auth::guard('web')->logout();
+            // session()->invalidate();
+            // session()->regenerateToken();
+            // return redirect('/');
+        }
+
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, string $id)
+    {
         if ($request->status == 'tulovdelete' && Auth::user()->lavozim_id == 1){
 
             $tulov = Tulovlar::where('id', $request->id)
@@ -177,99 +253,25 @@ class OfficeIzmenitTulovController extends Controller
 
             if ($tulov->kun == date('Y-m-d')) {
                 $tulov->update([
-                        'status' => 'Удалит',
-                        'del_kun' => date('Y-m-d'),
-                        'del_user_id' => Auth::user()->id,
-                    ]);
+                    'status' => 'Удалит',
+                    'del_kun' => date('Y-m-d'),
+                    'del_user_id' => Auth::user()->id,
+                ]);
 
                 return response()->json(['message' => "To'lov o'chirildi."], 200);
 
             } else {
                 $tulov->update([
-                        'tulovturi' => 'Брон',
-                        'del_kun' => date('Y-m-d'),
-                        'del_user_id' => Auth::user()->id,
-                    ]);
+                    'tulovturi' => 'Брон',
+                    'del_kun' => date('Y-m-d'),
+                    'del_user_id' => Auth::user()->id,
+                ]);
 
                 return response()->json(['message' => "To'lov bronga olindi."], 200);
             }
 
         }else{
-            $rules = [
-                'filial2' => 'required',
-                'yangikun' => 'required',
-                'tulovturi' => 'required',
-                'shartnomaid' => 'required',
-                'naqd' => 'required',
-                'pastik' => 'required',
-                'hr' => 'required',
-                'click' => 'required',
-                'avtot' => 'required',
-                'chegirma' => 'required',
-            ];
-
-            $messages = [
-                'filial2.required' => 'Филиал танланмади.',
-                'yangikun.required' => 'Сана киритилмади.',
-                'tulovturi.required' => 'Харажат турини танланг .',
-                'shartnomaid.required' => 'Валюта танланмади.',
-                'naqd.required' => 'Сумма киритилмади.',
-                'pastik.required' => 'Сумма киритилмади.',
-                'hr.required' => 'Сумма киритилмади.',
-                'click.required' => 'Сумма киритилмади.',
-                'avtot.required' => 'Сумма киритилмади.',
-                'chegirma.required' => 'Сумма киритилмади.',
-            ];
-
-            $validator = Validator::make($request->all(), $rules, $messages);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            if (Auth::user()->lavozim_id == 1 && Auth::user()->status == 'Актив') {
-
-                $tulov = Tulovlar::where('id', $id)->where('status', 'Актив')->where('filial_id', $request->filial2)->first();
-
-                if ($tulov){
-
-                    $tulov->update([
-                        'kun' => $request->yangikun,
-                        'tulovturi' => $request->tulovturi,
-                        'shartnoma_id' => $request->shartnomaid,
-                        'naqd' => $request->naqd,
-                        'pastik' => $request->pastik,
-                        'hr' => $request->hr,
-                        'click' => $request->click,
-                        'avtot' => $request->avtot,
-                        'chegirma' => $request->chegirma,
-                        'umumiysumma' => $request->naqd + $request->pastik + $request->hr + $request->click + $request->avtot,
-                        'user_id' => Auth::user()->id,
-                    ]);
-
-                    return response()->json(['message' => 'Маълумот ўзгартирилди.'], 200);
-
-                }else{
-                    return response()->json(['message' => 'Хато малумот киритилди.'], 200);
-                }
-
-
-            }else{
-                return response()->json(['message' => "Xatolik. Adminga murojaat qiling."], 200);
-
-                // Auth::guard('web')->logout();
-                // session()->invalidate();
-                // session()->regenerateToken();
-                // return redirect('/');
-            }
+            return response()->json(['message' => "Malumot yetarli emas."], 200);
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }
