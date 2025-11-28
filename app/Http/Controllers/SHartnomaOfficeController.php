@@ -986,17 +986,14 @@ class SHartnomaOfficeController extends Controller
                         ]);
 
                     if ($shartnoma1) {
-                        $message = 'Shartnoma majburiy tarzda uchirildi';
+                        return response()->json(['message' => 'Shartnoma majburiy tarzda uchirildi'], 200);
                     } else {
-
-                        $message = "Xatolik yuz berdi";
+                        return response()->json(['message' => "Shartnomani o'chirishda Xatolik yuz berdi"], 200);
                     }
 
                 }else{
-                    $message = "Шартномани ёпишдан олдин товарларни ва туловларни кайтаринг.";
+                    return response()->json(['message' => "Шартномани ёпишдан олдин товарларни ва туловларни кайтаринг."], 200);
                 }
-
-                return response()->json(['message' => $message], 200);
 
             } elseif ($shStatus == 'shartnoma_yopish') {
 
@@ -1004,8 +1001,10 @@ class SHartnomaOfficeController extends Controller
 
                 $shartnom = Shartnoma::where('filial_id', $filial)->where('id', $id)->where('status', 'Актив')->first();
 
-                $oldindantulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
-                $chegirma = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('chegirma');
+                $tulovInfo = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $id)->first();
+                $oldindantulov = $tulovInfo->umumiysumma ?? 0;
+                $chegirma = $tulovInfo->chegirma ?? 0;
+
                 $tulov = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Шартнома')->where('status', 'Актив')->where('shartnoma_id', $id)->sum('umumiysumma');
 
                 $savdosumma = Savdo::where('filial_id', $filial)->where('status', 'Шартнома')->where('shartnoma_id', $id)->sum('msumma');
@@ -1033,13 +1032,11 @@ class SHartnomaOfficeController extends Controller
                 ]);
 
                 if ($shartnom) {
-                    $message = 'Shartnoma chegirma bilan yopildi';
+                    return response()->json(['message' => 'Shartnoma chegirma bilan yopildi'], 200);
                 } else {
-
-                    $message = "Shartnomani yopishda xatolik. $shartnom->shid";
+                    return response()->json(['message' => "Shartnomani yopishda xatolik. $shartnom->shid"], 200);
                 }
 
-                return response()->json(['message' => $message], 200);
             }
 
         }

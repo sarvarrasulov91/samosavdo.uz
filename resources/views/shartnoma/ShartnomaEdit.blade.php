@@ -200,7 +200,7 @@
                             filename: "Tulovlar"
                         });
                     })
-                }); 
+                });
 
                 $("#filial").select2({
                     placeholder: "Филиал...",
@@ -241,7 +241,7 @@
                     type: 'PUT',
                     data: formData,
                     filial: filial,
-                    
+
                     success: function(response) {
                         toastr.success(response.message);
                         $('#edit').modal('hide');
@@ -258,6 +258,7 @@
                     }
                 });
             });
+
             $(document).ready(function() {
                 $('#mijoz').select2({
                     dropdownParent: $('#edit'), // Keeps the dropdown within the modal

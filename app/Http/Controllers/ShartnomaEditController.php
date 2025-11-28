@@ -49,8 +49,7 @@ class ShartnomaEditController extends Controller
         $id = $request->id;
         $filial = $request->filial;
 
-        $shartnom = Shartnoma::where('filial_id', $filial)->where('id', $id)->first();
-
+        $shartnom = Shartnoma::where('filial_id', $filial)->where('shid', $id)->first();
 
         echo '
         <table class="table table-bordered table-hover">
@@ -73,7 +72,7 @@ class ShartnomaEditController extends Controller
 
             <tbody id="tab1">
                 <tr class="text-center align-middle">
-                    <td>' . $shartnom->id . '</td>
+                    <td>' . $shartnom->shid . '</td>
                     <td>' . $shartnom->mijozlar->last_name.' '.$shartnom->mijozlar->first_name.' '.$shartnom->mijozlar->middle_name . '</td>
                     <td>' . $shartnom->fstatus . '</td>
                     <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
@@ -132,7 +131,6 @@ class ShartnomaEditController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $rules = [
             'mijoz' => 'required',
             'tashrif' => 'required',
@@ -162,9 +160,10 @@ class ShartnomaEditController extends Controller
         }
 
         $branchId = $request->integer('filial2');
+        $shid = $request->shid;
 
         $user = Auth::user();
-        $contract = Shartnoma::where('filial_id', $branchId)->where('id', $id)->first();
+        $contract = Shartnoma::where('filial_id', $branchId)->where('shid', $id)->where('id', $shid)->first();
 
         if (!$contract) {
             return response()->json(['message' => "Shartnoma topilmadi!"]);

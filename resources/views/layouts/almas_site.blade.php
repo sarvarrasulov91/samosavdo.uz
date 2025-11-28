@@ -496,7 +496,7 @@
                             <li><a href="{{ route('TovarQoldigi.index') }}"> Товарлар тахлили</a></li>
                             <li><a href="{{ route('KunlikOfficeXarajatlar.index') }}">Харажатлар хисоботи Офис</a></li>
                             @endif
-                            <li><a href="{{ route('kunlik.index') }}">Кунлик хисоботи</a></li>
+                            <li><a href="{{ route('kunlik.index') }}">Кунлик касса хисоботи</a></li>
                             <li><a href="{{ route('kunliktaxlil.index') }}">Кунлик тахлил учун</a></li>
                             <li><a href="{{ route('KunlikXarajatlar.index') }}">Харажатлар хисоботи Филиал</a></li>
                             <li><a href="{{ route('XisobotInvestor.index') }}">Хисобот Инвестор</a></li>

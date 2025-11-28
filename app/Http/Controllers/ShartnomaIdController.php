@@ -72,7 +72,7 @@ class ShartnomaIdController extends Controller
             $clientIds = $clients->pluck('id')->toArray();
             $shartnomalar = Shartnoma::where('filial_id', $filial)->whereIn('mijozlar_id', $clientIds)->get();
         }else{
-            $shartnomalar = Shartnoma::where('filial_id', $filial)->where('id', $id)->get();
+            $shartnomalar = Shartnoma::where('filial_id', $filial)->where('shid', $id)->get();
         }
 
         if ($shartnomalar->isNotEmpty()){
@@ -120,8 +120,8 @@ class ShartnomaIdController extends Controller
                 echo '
                         <tr id="modalshartshow" data-id="' . $shartnoma->id . '" data-fio="' . addslashes($shartnoma->mijozlar->last_name) . ' ' . addslashes($shartnoma->mijozlar->first_name) . ' ' . addslashes($shartnoma->mijozlar->middle_name) . '"  class="'.$trrang.'">
                             <td>' . $shartnoma->id . '</td>
-                            <td style="white-space: wrap; width: 10%;">' . $shartnoma->mijozlar->last_name . ' ' . $shartnoma->mijozlar->first_name . ' ' . $shartnoma->mijozlar->middle_name . '</td>
-                            <td style="white-space: wrap; width: 30%;">' . $shartnoma->mijozlar->tuman->name_uz . ' ' . $shartnoma->mijozlar->mfy->name_uz . ' ' . $shartnoma->mijozlar->manzil . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnoma->mijozlar->last_name . ' ' . $shartnoma->mijozlar->first_name . ' ' . $shartnoma->mijozlar->middle_name . '</td>
+                            <td style="white-space: pre-wrap">' . $shartnoma->mijozlar->tuman->name_uz . ' ' . $shartnoma->mijozlar->mfy->name_uz . ' ' . $shartnoma->mijozlar->manzil . '</td>
                             <td>' . $shartnoma->mijozlar->phone . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnoma->kun)) . '</td>
                             <td>' . $shartnoma->muddat . '</td>
