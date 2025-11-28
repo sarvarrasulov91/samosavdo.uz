@@ -29,9 +29,93 @@
                             </li>
                         </div>
                         <div class="card-body">
-                            <div class="people-list dz-scroll" id="tabpros">
+                            <div class="people-list dz-scroll">
+                                <table class="table table-bordered table-responsive-sm text-center align-middle ">
+                                    <thead>
+                                        <tr class="text-bold text-primary align-middle">
+                                            <th rowspan="2">ID</th>
+                                            <th rowspan="2">Филиал</th>
+                                            <th colspan="2">Ой бошига</th>
+                                            <th colspan="2">Тузилди</th>
+                                            <th colspan="2">Ёпилди</th>
+                                            <th colspan="2">Қўшилди</th>
+                                            <th colspan="2">Камайди</th>
+                                            <th colspan="2">Ой охирига</th>
+                                        </tr>
+                                        <tr class="text-bold text-primary align-middle">
+                                            <th>Сони</th>
+                                            <th>Суммаси</th>
+                                            <th>Сони</th>
+                                            <th>Суммаси</th>
+                                            <th>Сони</th>
+                                            <th>Суммаси</th>
+                                            <th>Сони</th>
+                                            <th>Суммаси</th>
+                                            <th>Сони</th>
+                                            <th>Суммаси</th>
+                                            <th>Сони</th>
+                                            <th>Суммаси</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabpros">
+
+                                    </tbody>
+                                </table>
+
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modalYillar" class="modal fade bd-example-modal-lg" data-bs-backdrop="static" data-bs-keyboard="true"
+             tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" style="max-width: 97%; font-size: 14px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal">
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="people-list dz-scroll">
+                            <table class="table table-bordered table-responsive-sm text-center align-middle ">
+                                <thead>
+                                <tr class="text-bold text-primary align-middle">
+                                    <th rowspan="2">Йиллар</th>
+                                    <th colspan="2">Йил бошига</th>
+                                    <th colspan="2">Тузилди</th>
+                                    <th colspan="2">Ёпилди</th>
+                                    <th colspan="2">Қўшилди</th>
+                                    <th colspan="2">Камайди</th>
+                                    <th colspan="2">Йил охирига</th>
+                                </tr>
+                                <tr class="text-bold text-primary align-middle">
+                                    <th>Сони</th>
+                                    <th>Суммаси</th>
+                                    <th>Сони</th>
+                                    <th>Суммаси</th>
+                                    <th>Сони</th>
+                                    <th>Суммаси</th>
+                                    <th>Сони</th>
+                                    <th>Суммаси</th>
+                                    <th>Сони</th>
+                                    <th>Суммаси</th>
+                                    <th>Сони</th>
+                                    <th>Суммаси</th>
+                                </tr>
+                                </thead>
+                                <tbody id="modalshowyil">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger light" data-bs-dismiss="modal"><i
+                                class="flaticon-381-exit"></i> Қайтиш</button>
                     </div>
                 </div>
             </div>
@@ -113,17 +197,46 @@
                     })
                 })
 
-
-                $(document).on('click', '#modalfil', function() {
+                $(document).on('click', '#modalFilYil', function() {
                     var id = $(this).data('filial_id');
                     var filial_name = $(this).data('filial_name');
-                    $('#modaloylar').modal('show');
+
+                    $('#modalYillar').modal('show');
+
                     $('.modal-title').html(id + ' -> ' + filial_name);
+
+                    $.ajax({
+                        url: "{{ route('SHartTahlil.store') }}",
+                        method: "POST",
+                        data: {
+                            id: id,
+                            _token: "{{ csrf_token() }}",
+                        },
+                        success: function(data) {
+                            $('#modalshowyil').html(data);
+
+                        }
+                    })
+                })
+
+
+                $(document).on('click', '#modalfil', function() {
+
+                    var id = $(this).data('filial_id');
+                    var yil = $(this).data('xisyil');
+
+                    var filial_name = $(this).data('filial_name');
+
+                    $('#modaloylar').modal('show');
+
+                    $('.modal-title').html(yil + ' -> ' + filial_name);
+
                     $.ajax({
                         url: "{{ route('SHartTahlil.index') }}/" + id,
                         method: "GET",
                         data: {
-                            id: id,
+                            yil: yil,
+                            _token: "{{ csrf_token() }}",
                         },
                         success: function(data) {
                             $('#modalshow').html(data);
