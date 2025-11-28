@@ -114,16 +114,15 @@ class YopilganShartnomalarController extends Controller
                         $foiz = (($foiz / 12) * $shartnom->muddat);
                         $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
-                        $date111 = new DateTime($shartnom->kun);
-                        $date222 = new DateTime($shartnom->tug_sana);
-                        $interval = $date111->diff($date222);
+                        $date1 = new DateTime($shartnom->kun);
+                        $date2 = new DateTime($shartnom->tug_sana);
+                        $interval = $date1->diff($date2);
                         $dukun = $interval->days;
                         $birkunlikfoiz = $xis_foiz / $dukun;
 
-                        $krxiob22=0;
-                        $date1111 = new DateTime($shartnom->kun);
-                        $date2222 = new DateTime(date('Y-m-d', strtotime($shartnom->yo_sana)));
-                        $interval1 = $date1111->diff($date2222);
+                        $krxiob22 = 0;
+                        $date22 = new DateTime(date('Y-m-d', strtotime($shartnom->yo_sana)));
+                        $interval1 = $date1->diff($date22);
                         $dukun22 = $interval1->days;
 
                         $krxiob22 = ($birkunlikfoiz * $dukun22);
