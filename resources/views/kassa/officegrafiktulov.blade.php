@@ -33,7 +33,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                
+
                                 <div class="col-2">
                                     <button id="saqlash" class="btn btn-primary btn-xs"> Тасдиқлаш </button>
                                 </div>
@@ -42,7 +42,7 @@
                                 </div>
 
                             </div>
-                           
+
                         </div>
                         <div class="card-body">
                             <div class="people-list dz-scroll" id="tabpros" style="overflow: auto;">
@@ -84,16 +84,13 @@
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                     })
                 })
-                
+
                 $("#filial").select2({
                     placeholder: "Филиал...",
                 });
 
-
                 $("#yakunkun").val(new Date().toISOString().substring(0, 10));
                 $("#boshkun").val(new Date().toISOString().substring(0, 8) + '01');
-
-
 
                 $('#saqlash').on('click', function() {
                     var boshkun = $('#boshkun').val();
@@ -131,11 +128,12 @@
 
             $(document).on('click', '#kivitpechat', function() {
                 var id = $(this).data('id');
+                var shid = $(this).data('shid');
                 var fio = $(this).data('fio');
 
                 var filial = $('#filial').val();
                 var csrf = document.querySelector('meta[name="csrf-token"]').content;
-                $('#modal-title-pechat').html(id + ' - ' + fio);
+                $('#modal-title-pechat').html(shid + ' - ' + fio);
                 $.ajax({
                     url: "{{ route('officegrafiktulov.index') }}/" + id,
                     method: "PUT",

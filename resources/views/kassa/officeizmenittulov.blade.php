@@ -274,7 +274,7 @@
                     });
                     $.ajax({
                         url: "{{ route('officeizmenittulov.index') }}/" + id,
-                        method: "PUT",
+                        method: "DELETE",
                         data: {
                             id: id,
                             status: status,

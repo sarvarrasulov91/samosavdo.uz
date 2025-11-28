@@ -4,14 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\xissobotoy;
 use App\Models\Tulovlar;
-use App\Models\Mijozlar;
-use App\Models\lavozim;
 use App\Models\filial;
-use App\Models\Shartnoma;
-use App\Models\User;
-use App\Models\Savdo;
 
 class OfficeGrafikTulovController extends Controller
 {
@@ -30,7 +24,7 @@ class OfficeGrafikTulovController extends Controller
 
         }
 
-        return view('kassa.officebrontulov', ['filial' => $filial]);
+        return view('kassa.officegrafiktulov', ['filial' => $filial]);
     }
 
     /**
@@ -46,121 +40,99 @@ class OfficeGrafikTulovController extends Controller
      */
     public function store(Request $request)
     {
+        $filial = $request->filial;
         $boshkun = $request->boshkun;
         $yakunkun = $request->yakunkun;
 
-        echo'
-            <table class="table table-bordered table-responsive-sm text-center align-middle ">
-                <thead>
-                    <tr class="text-bold text-primary">
-                        <th>ID</th>
-                        <th>Куни</th>
-                        <th>Мижоз ФИО</th>
-                        <th>Тулов тури</th>
-                        <th>Шарт-№</th>
-                        <th>Накд</th>
-                        <th>Пластик</th>
-                        <th>ХР</th>
-                        <th>Клик</th>
-                        <th>Авто тулов</th>
-                        <th>Чегирма</th>
-                        <th>Жами</th>
-                        <th>Масъул ходим</th>
-                        <th>Тулов</th>
-                    </tr>
-                </thead>
-                <tbody id="tab1">';
+        $model = Tulovlar::with(['shartnoma.mijozlar', 'user'])
+            ->whereBetween('kun', [$boshkun, $yakunkun])
+            ->where('status', 'Актив')
+            ->where('tulovturi', 'Шартнома')
+            ->where('filial_id', $filial)
+            ->orderBy('id', 'desc')
+            ->get();
 
-                    $i=1;
-                    $naqd=0;
-                    $plastik=0;
-                    $hr=0;
-                    $click=0;
-                    $avtot=0;
-                    $chegirma=0;
-                    $jami=0;
+        // Summalar
+        $naqd     = $model->sum('naqd');
+        $plastik  = $model->sum('pastik');
+        $hr       = $model->sum('hr');
+        $click    = $model->sum('click');
+        $avtot    = $model->sum('avtot');
+        $chegirma = $model->sum('chegirma');
+        $jami     = $model->sum('umumiysumma');
 
-                    $unaqd=0;
-                    $uplastik=0;
-                    $uhr=0;
-                    $uclick=0;
-                    $uavtot=0;
-                    $uchegirma=0;
-                    $ujami=0;
+        $i = 1;
 
-                    $model = Tulovlar::whereBetween('kun', [$boshkun, $yakunkun])
-                        ->where('status', 'Актив')
-                        ->where('tulovturi', 'Шартнома')
-                        ->where('filial_id', $request->filial)
-                        ->orderBy('id', 'desc')
-                        ->get();
+        echo '
+        <table class="table table-bordered table-responsive-sm text-center align-middle ">
+            <thead>
+                <tr class="text-bold text-primary">
+                    <th>ID</th>
+                    <th>Куни</th>
+                    <th>Мижоз ФИО</th>
+                    <th>Тулов тури</th>
+                    <th>Шарт-№</th>
+                    <th>Накд</th>
+                    <th>Пластик</th>
+                    <th>ХР</th>
+                    <th>Клик</th>
+                    <th>Авто тулов</th>
+                    <th>Чегирма</th>
+                    <th>Жами</th>
+                    <th>Масъул ходим</th>
+                    <th>Тулов</th>
+                </tr>
 
-                    foreach ($model as $mode){
+            </thead>
+            <tbody id="tab1">';
 
-                        $shartnoma = Shartnoma::where('id', $mode->shartnoma_id)->where('filial_id', $request->filial)->first();
+        foreach ($model as $mode) {
+            $mijoz = $mode->shartnoma->mijozlar;
+            echo '
+                <tr>
+                    <td>' . $i++ . '</td>
+                    <td>' . date('d.m.Y H:i:s', strtotime($mode->created_at)) . '</td>
+                    <td>' . $mijoz->last_name . ' ' . $mijoz->first_name . ' ' . $mijoz->middle_name . '</td>
+                    <td>' . $mode->tulovturi . '</td>
+                    <td>' . $mode->shid . '</td>
+                    <td>' . number_format($mode->naqd, 0, ',', ' ') . '</td>
+                    <td>' . number_format($mode->pastik, 0, ',', ' ') . '</td>
+                    <td>' . number_format($mode->hr, 0, ',', ' ') . '</td>
+                    <td>' . number_format($mode->click, 0, ',', ' ') . '</td>
+                    <td>' . number_format($mode->avtot, 0, ',', ' ') . '</td>
+                    <td>' . number_format($mode->chegirma, 0, ',', ' ') . '</td>
+                    <td class="fw-bold">' . number_format($mode->umumiysumma, 0, ',', ' ') . '</td>
+                    <td>' . $mode->user->name . '</td>
+                    <td>
+                        <button
+                            id="kivitpechat"
+                                data-id="' . $mode->shartnoma_id .'"
+                                data-shid="' . $mode->shid .'"
+                                data-fio="' . $mijoz->last_name . ' ' . $mijoz->first_name . ' ' . $mijoz->middle_name .'"
+                                data-bs-toggle="modal"
+                                class="btn btn-outline-primary btn-sm me-2 "
+                                data-bs-target="#pechat">
+                                <i class="flaticon-381-search-1"></i>
+                            </button>
 
-                        echo'
-                        <tr>
-                            <td>' . $i++ . '</td>
-                            <td style="white-space: pre-wrap">' . date('d.m.Y H:i:s', strtotime($mode->created_at)) . '</td>
-                            <td style="white-space: pre-wrap">' .$shartnoma->mijozlar->last_name. ' ' .$shartnoma->mijozlar->first_name. ' ' .$shartnoma->mijozlar->middle_name . '</td>
-                            <td>' . $mode->tulovturi . '</td>
-                            <td>' . $mode->shid . '</td>
-                            <td>' . number_format($mode->naqd, 0, ',', ' ') . '</td>
-                            <td>' . number_format($mode->pastik, 0, ',', ' ') . '</td>
-                            <td>' . number_format($mode->hr, 0, ',', ' ') . '</td>
-                            <td>' . number_format($mode->click, 0, ',', ' ') . '</td>
-                            <td>' . number_format($mode->avtot, 0, ',', ' ') . '</td>
-                            <td>' . number_format($mode->chegirma, 0, ',', ' ') . '</td>
-                            <td class="fw-bold">' . number_format($mode->umumiysumma, 0, ',', ' ') . '</td>
-                            <td style="white-space: pre-wrap">' . $mode->User->name . '</td>
-                            <td>
-                                <button id="kivitpechat" data-id="' . $shartnoma->id .'" data-fio="' . $shartnoma->mijozlar->last_name . ' ' . $shartnoma->mijozlar->first_name . ' ' . $shartnoma->mijozlar->middle_name .'"
-                                class="btn btn-outline-primary btn-sm me-2 " data-bs-toggle="modal"
-                                data-bs-target="#pechat"><i class="flaticon-381-search-1"></i></button>
-                            </td>
-                        </tr>
-                        ';
+                    </td>
+                </tr>';
+        }
 
-                        $naqd += $mode->naqd;
-                        $plastik += $mode->pastik;
-                        $hr += $mode->hr;
-                        $click += $mode->click;
-                        $avtot += $mode->avtot;
-                        $chegirma += $mode->chegirma;
-                        $jami += $mode->umumiysumma;
-                    }
-                    $unaqd += $naqd;
-                    $uplastik += $plastik;
-                    $uhr += $hr;
-                    $uclick += $click;
-                    $uavtot += $avtot;
-                    $uchegirma += $chegirma;
-                    $ujami += $jami;
-
-                    echo'
-                        <tr class="fw-bold">
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>' . number_format($unaqd, 0, ',', ' ') . '</td>
-                            <td>' . number_format($uplastik, 0, ',', ' ') . '</td>
-                            <td>' . number_format($uhr, 0, ',', ' ') . '</td>
-                            <td>' . number_format($uclick, 0, ',', ' ') . '</td>
-                            <td>' . number_format($uavtot, 0, ',', ' ') . '</td>
-                            <td>' . number_format($uchegirma, 0, ',', ' ') . '</td>
-                            <td>' . number_format($ujami, 0, ',', ' ') . '</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        ';
-
-                    echo'
-                </tbody>
-            </table>
-        ';
+        echo '
+                <tr class="fw-bold">
+                    <td colspan="5"></td>
+                    <td>' . number_format($naqd, 0, ',', ' ') . '</td>
+                    <td>' . number_format($plastik, 0, ',', ' ') . '</td>
+                    <td>' . number_format($hr, 0, ',', ' ') . '</td>
+                    <td>' . number_format($click, 0, ',', ' ') . '</td>
+                    <td>' . number_format($avtot, 0, ',', ' ') . '</td>
+                    <td>' . number_format($chegirma, 0, ',', ' ') . '</td>
+                    <td>' . number_format($jami, 0, ',', ' ') . '</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tbody>
+        </table>';
     }
 
     /**
@@ -184,91 +156,113 @@ class OfficeGrafikTulovController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Shartnoma uchun tulangan tulovlarni korish
-        echo'
-        <h5 class=" text-center text-uppercase" style="color: RoyalBlue;">Шартнома учун тўланган тўловлар</h5>
-            <table class="table table-hover table-bordered text-center text-muted">
-                <thead>
-                    <tr class="text-primary">
-                            <th>№</th>
-                        <th>Номи</th>
-                        <th>Куни</th>
-                        <th>Нақд</th>
-                        <th>Платик</th>
-                        <th>Х-р</th>
-                        <th>Клик</th>
-                        <th>Авто</th>
-                        <th>Чегирма</th>
-                        <th>Жами</th>
-                        <th>Холати</th>
-                    </tr>
-                </thead>
-                <tbody id="tab1">';
+        echo '
+        <h5 class="text-center text-uppercase" style="color: RoyalBlue;">
+            Шартнома учун тўланган тўловлар
+        </h5>
 
-            $tulovlarshj = Tulovlar::where('filial_id', $request->filial)
-                ->where('shartnoma_id', $id)
-                ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
-                ->orderBy('id', 'desc')
-                ->get();
+        <table class="table table-hover table-bordered text-center text-muted">
+            <thead>
+                <tr class="text-primary">
+                    <th>№</th>
+                    <th>Номи</th>
+                    <th>Куни</th>
+                    <th>Нақд</th>
+                    <th>Пластик</th>
+                    <th>Х-р</th>
+                    <th>Клик</th>
+                    <th>Авто</th>
+                    <th>Чегирма</th>
+                    <th>Жами</th>
+                    <th>Холати</th>
+                </tr>
+            </thead>
+            <tbody id="tab1">';
 
-            $i = 1;
-            $jnaqd = 0;
-            $jpastik = 0;
-            $jhr = 0;
-            $jclick = 0;
-            $javtot = 0;
-            $jchegirma = 0;
-            $colorqator = " ";
+                $tulovlar = Tulovlar::where('filial_id', $request->filial)
+                    ->where('shartnoma_id', $id)
+                    ->whereIn('tulovturi', ['Шартнома', 'Олдиндан тўлов', 'Брон'])
+                    ->orderBy('id', 'desc')
+                    ->get();
 
-            foreach ($tulovlarshj as $tulovlarsh) {
+                $i = 1;
 
-                if($tulovlarsh->status=='Актив' && $tulovlarsh->tulovturi=='Шартнома' OR $tulovlarsh->status=='Актив' && $tulovlarsh->tulovturi=='Олдиндан тўлов'){
-                    $colorqator = " ";
-                    $jnaqd += $tulovlarsh->naqd;
-                    $jpastik += $tulovlarsh->pastik;
-                    $jhr += $tulovlarsh->hr;
-                    $jclick += $tulovlarsh->click;
-                    $javtot += $tulovlarsh->avtot;
-                    $jchegirma += $tulovlarsh->chegirma;
-                }else{
-                    $colorqator = "text-danger";
+                    // Summalar
+                $sum = [
+                    'naqd'     => 0,
+                    'plastik'  => 0,
+                    'hr'       => 0,
+                    'click'    => 0,
+                    'avtot'    => 0,
+                    'chegirma' => 0,
+                ];
+
+                foreach ($tulovlar as $tl) {
+
+                    $aktiv = ($tl->status == 'Актив')
+                        && in_array($tl->tulovturi, ['Шартнома', 'Олдиндан тўлов']);
+
+                    // Yig‘indilarga qo‘shish
+                    if ($aktiv) {
+                        $sum['naqd']     += $tl->naqd;
+                        $sum['plastik']  += $tl->plastik;   // ✔ to‘g‘rilandi
+                        $sum['hr']       += $tl->hr;
+                        $sum['click']    += $tl->click;
+                        $sum['avtot']    += $tl->avtot;
+                        $sum['chegirma'] += $tl->chegirma;
+                    }
+
+                    $rowClass = $aktiv ? '' : 'text-danger';
+
+                    echo "
+                    <tr class='text-center align-middle $rowClass'>
+                        <td>$i</td>
+                        <td>{$tl->tulovturi}</td>
+                        <td>" . date('d.m.Y', strtotime($tl->kun)) . "</td>
+                        <td>" . number_format($tl->naqd, 0, ',', ' ') . "</td>
+                        <td>" . number_format($tl->plastik, 0, ',', ' ') . "</td>
+                        <td>" . number_format($tl->hr, 0, ',', ' ') . "</td>
+                        <td>" . number_format($tl->click, 0, ',', ' ') . "</td>
+                        <td>" . number_format($tl->avtot, 0, ',', ' ') . "</td>
+                        <td>" . number_format($tl->chegirma, 0, ',', ' ') . "</td>
+                        <td>" . number_format(
+                                $tl->naqd +
+                                $tl->plastik +
+                                $tl->hr +
+                                $tl->click +
+                                $tl->avtot
+                                , 0, ',', ' ') . "</td>
+                        <td>{$tl->status}</td>
+                    </tr>";
+
+                    $i++;
                 }
 
+                // Jami
                 echo "
-                            <tr class='text-center align-middle $colorqator'>
-                                <td>" . $i . "</td>
-                                <td>" . $tulovlarsh->tulovturi . "</td>
-                                <td>" . date('d.m.Y', strtotime($tulovlarsh->kun)) . "</td>
-                                <td>" . number_format($tulovlarsh->naqd, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->pastik, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->hr, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->click, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->avtot, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->chegirma, 0, ',', ' ') . "</td>
-                                <td>" . number_format($tulovlarsh->naqd + $tulovlarsh->pastik+$tulovlarsh->hr+$tulovlarsh->click+$tulovlarsh->avtot, 0, ',', ' ') . "</td>
-                                <td>" . $tulovlarsh->status . "</td>
-                            </tr>";
-                $i++;
-            }
-            echo '
-                        <tr class="text-center align-middle fw-bold">
-                            <td></td>
-                            <td>ЖАМИ</td>
-                            <td></td>
-                            <td>' . number_format($jnaqd, 0, ",", " ") . '</td>
-                            <td>' . number_format($jpastik, 0, ",", " ") . '</td>
-                            <td>' . number_format($jhr, 0, ",", " ") . '</td>
-                            <td>' . number_format($jclick, 0, ",", " ") . '</td>
-                            <td>' . number_format($javtot, 0, ",", " ") . '</td>
-                            <td>' . number_format($jchegirma, 0, ",", " ") . '</td>
-                            <td>' . number_format($jnaqd+$jpastik+$jhr+$jclick+$javtot, 0, ",", " ") . '</td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <br>
-            ';
-        return;
+                <tr class='fw-bold text-center align-middle'>
+                    <td></td>
+                    <td>ЖАМИ</td>
+                    <td></td>
+                    <td>" . number_format($sum['naqd'], 0, ',', ' ') . "</td>
+                    <td>" . number_format($sum['plastik'], 0, ',', ' ') . "</td>
+                    <td>" . number_format($sum['hr'], 0, ',', ' ') . "</td>
+                    <td>" . number_format($sum['click'], 0, ',', ' ') . "</td>
+                    <td>" . number_format($sum['avtot'], 0, ',', ' ') . "</td>
+                    <td>" . number_format($sum['chegirma'], 0, ',', ' ') . "</td>
+                    <td>" . number_format(
+                            $sum['naqd'] +
+                            $sum['plastik'] +
+                            $sum['hr'] +
+                            $sum['click'] +
+                            $sum['avtot']
+                            , 0, ',', ' ') . "</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        ";
+
     }
 
     /**
