@@ -92,6 +92,10 @@ class SavdolarController extends Controller
                 $bonussumma = round((($request->modelsumma - $chegirmamiqdor) * ($bonusFilial / 100)), -3);
             }
 
+            if ($bonussumma > 0 ){
+                $chegirmamiqdor = 0;
+            }
+
             $zaqis = new Savdo;
             $zaqis->kun = today();
             $zaqis->unix_id = $request->unix_id;

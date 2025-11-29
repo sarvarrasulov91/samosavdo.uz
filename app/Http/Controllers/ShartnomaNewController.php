@@ -198,8 +198,14 @@ class ShartnomaNewController extends Controller
         $foiz = (($foiz_stavka / 12) * $request->muddat);
         $foizSumma = round($msumma * $foiz / 100, 0);
 
-        $maxId = Shartnoma::where('filial_id', Auth::user()->filial_id)->latest('id')->value('shid');
-        $maxId++;
+        $maxId = Shartnoma::where('filial_id', Auth::user()->filial_id)
+            ->max('shid'); // bu eng yaxshi usul
+
+        if (Auth::user()->filial_id == 2){
+            $maxId = $maxId ?? 100000; // shid bo‘lmasa 100000 dan boshlanadi
+        }
+
+        $maxId = $maxId + 1;
 
         try {
             DB::beginTransaction();
