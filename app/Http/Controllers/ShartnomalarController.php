@@ -700,17 +700,18 @@ class ShartnomalarController extends Controller
         $foiz = (($foiz / 12) * $shartnom->muddat);
         $xis_foiz = ((($savdosumma - $chegirma) * $foiz) / 100);
 
-        $filial = filial::where('id', Auth::user()->filial_id)->get();
-        foreach ($filial as $filia) {
-            $ytt = $filia->ytt;
-            $manzil = $filia->manzil;
-            $yurmanzil = $filia->yurmanzil;
-            $xr = $filia->xr;
-            $inn = $filia->inn;
-            $bankname = $filia->bankname;
-            $mfo = $filia->mfo;
-            $telefon = $filia->telefon;
-        };
+        $filial = filial::where('id', Auth::user()->filial_id)->first();
+
+        $ytt = $filial->ytt;
+        $guvohnoma = $filial->guvohnoma;
+        $manzil = $filial->manzil;
+        $yurmanzil = $filial->yurmanzil;
+        $xr = $filial->xr;
+        $inn = $filial->inn;
+        $bankname = $filial->bankname;
+        $mfo = $filial->mfo;
+        $telefon = $filial->telefon;
+
 
         echo '
             <div class="modal-body m-10">
@@ -730,7 +731,7 @@ class ShartnomalarController extends Controller
                 </div>
                 <br>
                 <p style="text-align:justify; font-size: 12px; text-indent: 30px; line-height: normal;  margin-bottom: -3px;">
-                    Бир томондан Фаргона вилояти Богдод тумани Давлат хизматлари маркази томонидан 2021-йил 26-Апрелда 5798725-сон билан берилган гувоҳнома асосида фаолият кўрсатувчи
+                    Бир томондан '.$guvohnoma.' билан берилган гувоҳнома асосида фаолият кўрсатувчи
                     '.$ytt.' (кейинги ўринларда «Сотувчи») ва ' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . 'да яшовчи фуқаро
                         ' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name . '(Ҳужжат серия
                         ' . $shartnom->mijozlar->passport_sn . ' ' . $shartnom->mijozlar->passport_iib . ' томонидан ' . date("d.m.Y", strtotime($shartnom->mijozlar->passport_date)) . ' йилда берилган) ' . $shartnom->mijozlar->ish_joy . ' ходими лавозимида ишловчи (кейинги ўринларда «Харидор») иккинчи томондан ушбу шартномани тарафлар ўртасида ўзаро келишув асосида куйидагилар тўғрисида тузилди.
@@ -742,6 +743,7 @@ class ShartnomalarController extends Controller
                     1.1. «Сотувчи» куйидаги маҳсулотларни «Харидор»га ' . $shartnom->muddat . ' ой муддат давомида кийматини бўлиб тўлаш шарти билан сотади.
                 <p>
                 <table class="table-sm table-hover" style="font-size: 12px; text-align: center; width:100%; border: 1px solid black;">
+                    <thead>
                         <tr class="align-middle">
                             <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-size: 8pt; width: 5%;">№</th>
                             <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-size: 8pt; width: 10%;">ID</th>
