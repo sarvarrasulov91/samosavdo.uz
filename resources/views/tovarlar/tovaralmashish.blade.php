@@ -159,7 +159,7 @@
                         var filial = $('#filial').val();
 
                         if (krimt.length != 17 && filial == 0 && krimt.length != 19 ) {
-                            toastr.success("Хатолик!!! Маълумотларни тўлиқ киритмадингиз.");
+                            toastr.error("Хатолик!!! Маълумотларни тўлиқ киритмадингиз.");
                         } else {
                             $.ajax({
                                 url: "{{ route('tovaralmashish.store') }}",
