@@ -77,7 +77,7 @@ class TovarAlmashishController extends Controller
             ->max('soni');
 
         $soninar++;
-        $filialId = str_pad($filial2, 0, "0", STR_PAD_LEFT);
+        $filialId = str_pad($filial2, 2, "0", STR_PAD_LEFT);
         $turid2 = str_pad($ktovar->tur_id, 4, "0", STR_PAD_LEFT);
         $brendid2 = str_pad($ktovar->brend_id, 4, "0", STR_PAD_LEFT);
         $model2 = str_pad($ktovar->tmodel_id, 5, "0", STR_PAD_LEFT);
