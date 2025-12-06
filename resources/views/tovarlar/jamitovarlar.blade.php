@@ -97,7 +97,7 @@
                                                 <td> {{ $natsenka }}</td>
                                                 <td> {{ $trans_xarajat }}</td>
                                                 <td> {{ round($kirim_narxi * $valyuta * (100 + $natsenka + $trans_xarajat) / 100, -3)}}</td>
-                                                <td> {{ $mode->shatnomaid }}</td>
+                                                <td> {{ $mode->shid }}</td>
                                                 <td> {{ $mode->status }}</td>
                                                 <td> {{ $mode->filial->fil_name }}</td>
                                                 <td> {{ $mode->pastavshik->pastav_name }}</td>
