@@ -16,7 +16,7 @@ class TovarlarJamiController extends Controller
     {
         if (Auth::user()->lavozim_id == 2 && Auth::user()->status == 'Актив') {
 
-            $model2 = KirimTovar::where('status', 'Сотилмаган')
+            $model2 = KirimTovar::whereNotIn('status', ['Удалит', 'Актив'])
                 ->where('filial_id', Auth::user()->filial_id)
                 ->orderBy('id', 'desc')->get();
 
