@@ -157,24 +157,19 @@ class ClientController extends Controller
      */
     public function edit(string $id)
     {
-
         $mfy = mfy::get();
-        $xis_oyi = xissobotoy::latest('id')->value('xis_oy');
         $viloyat = viloyat::get();
         $tuman = tuman::get();
         $client = Mijozlar::findOrFail($id);
         $ishJoy = MijozlarIshJoy::get();
-        $lavozim_name = lavozim::where('id', Auth::user()->lavozim_id)->value('lavozim');
-        $filial_name = filial::where('id', Auth::user()->filial_id)->value('fil_name');
+        $filial = filial::all();
 
         return view('clients.edit', [
-            'filial_name' => $filial_name,
-            'lavozim_name' => $lavozim_name,
-            'client'=>$client,
-            'xis_oyi' => $xis_oyi,
+            'client' => $client,
             'viloyat' => $viloyat,
             'tuman' => $tuman,
-            'mfy'=>$mfy,
+            'mfy' => $mfy,
+            'filial' => $filial,
             'ishJoy' => $ishJoy
         ]);
     }
@@ -234,6 +229,7 @@ class ClientController extends Controller
             'ish_tashkiloti' => $request->ish_tashkiloti,
             'kasb' => $request->kasb,
             'maosh' => $request->oylik,
+            'filial_id' => $request->branch
            ]);
 
             return redirect()->route('showClient', ['id' => $id])->with('message', "Malumot saqlandi.");
