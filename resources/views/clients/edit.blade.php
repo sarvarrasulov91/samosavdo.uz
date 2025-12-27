@@ -65,7 +65,7 @@
                                             <label for="tSana">Мижоз туғилган санаси
                                                 <span class="text-danger">*</span>
                                             </label>
-                                            <input class="form-control" type="date" name="t_sana" value="{{$client->t_sana}}" required /> 
+                                            <input class="form-control" type="date" name="t_sana" value="{{$client->t_sana}}" required />
                                         </div>
                                         <div class="col-md-3 mb-3">
                                             <label for="pSeriya">Паспорт серия рақам
@@ -84,7 +84,7 @@
                                             <label for="passport_date">Паспорт берилган санаси
                                                 <span class="text-danger">*</span>
                                             </label>
-                                            <input class="form-control" type="date" name="passport_date" id="passport_date" value="{{$client->passport_date}}" required /> 
+                                            <input class="form-control" type="date" name="passport_date" id="passport_date" value="{{$client->passport_date}}" required />
                                         </div>
                                         <div class="col-md-3 mb-3">
                                             <label for="passport_date">Паспорт ИИБ
@@ -108,7 +108,7 @@
                                             <input class="form-control" type="number" value="{{$client->pinfl}}"
                                                 oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
                                                 name="pinfl" id="pinfl" minlength="14" maxlength="14"
-                                                max="99999999999999" min="10000000000000" placeholder="ЖШШИРни киритинг" 
+                                                max="99999999999999" min="10000000000000" placeholder="ЖШШИРни киритинг"
                                                 required />
                                         </div>
                                         <div class="col-md-3 mb-3">
@@ -131,7 +131,7 @@
                                             <select class="form-control" name="tuman" id="tuman" style="width: 100%"
                                                 required>
                                                 <option value="{{$client->tuman_id}}">{{$client->tuman->name_uz}}</option>
-                                               
+
                                             </select>
                                         </div>
                                         <div class="col-md-3 mb-3">
@@ -142,7 +142,7 @@
                                                 required>
                                                 <option value="{{$client->mfy_id}}"> {{ $client->mfy->name_uz }}</option>
                                             </select>
-        
+
                                         </div>
                                         <div class="col-md-3 mb-3">
                                             <label for="manzil">Мижоз манзили
@@ -158,7 +158,7 @@
                                             <select class="form-control" name="ish_tuman" id="ish_tuman" style="width: 100%"
                                                 required>
                                                 <option value="{{$client->ish_tumanid}}" > {{$client->tuman->name_uz}} </option>
-                                                
+
                                             </select>
                                         </div>
                                         <div class="col-md-3 mb-3">
@@ -188,6 +188,18 @@
                                                 placeholder="Касбини киритинг" required />
                                         </div>
                                         <div class="col-md-3 mb-3">
+                                            <label for="Branch">Филиал
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-control" name="branch" id="branch" > {{$client->filial_id}}
+                                                <option value="{{$client->filial_id}}">{{$client->filial->fil_name}}</option>
+                                                @foreach ($filial as $fil)
+                                                    <option value="{{ $fil->id }}">
+                                                        {{ $fil->fil_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
                                             <label for="oylik">Мижоз ойлиги
                                                 <span class="text-danger">*</span>
                                             </label>
@@ -201,9 +213,9 @@
                                             <input class="form-control" type="number" name="mobile_nomer" value="{{$client->phone}}"
                                                 oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
                                                 minlength="9" maxlength="9" min="100000000" max="999999999" id="mobileNomer"
-                                                placeholder="991234567" required /> 
+                                                placeholder="991234567" required />
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-3 mb-3">
                                             <label for="qoshimchaNomer">Мобиле номер
                                                 <span class="text-danger">*</span>
                                             </label>
@@ -215,7 +227,7 @@
                                         </div>
                                     </div>
                                 </form>
-                                
+
                             </div>
                         </div>
                     </div>
@@ -223,7 +235,7 @@
             </div>
         </div>
 
-       
+
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
@@ -268,7 +280,7 @@
             $(document).ready(function () {
             //change selectboxes to selectize mode to be searchable
             $("select").select2();
-            });     
+            });
 
         </script>
     @endsection
