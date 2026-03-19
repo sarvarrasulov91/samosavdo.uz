@@ -11,7 +11,7 @@ use App\Models\filial;
 
 
 
-class fondController extends Controller
+class FondController extends Controller
 {
     /**
      * Display a listing of the resource.

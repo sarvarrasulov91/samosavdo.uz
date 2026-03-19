@@ -144,20 +144,33 @@ class NaqdSavdoController extends Controller
                     if ($tekshirtovar>0){
                         echo '
                             <td>
-                                <button id="kivitpechat" data-id="' . $naqdsavdojam->id .'" data-fio="' . $naqdsavdojam->mijozlar->last_name . ' ' . $naqdsavdojam->mijozlar->first_name . ' ' . $naqdsavdojam->mijozlar->middle_name .'"
-                                class="btn btn-outline-primary btn-sm me-2 " data-bs-toggle="modal"
-                                data-bs-target="#pechat"><i class="flaticon-381-search-1"></i></button>
+                                <button id="kivitpechat"
+                                    data-id="' . $naqdsavdojam->id .'"
+                                    data-fio="' . $naqdsavdojam->mijozlar->full_name.'"
+                                    class="btn btn-outline-primary btn-sm me-2 "
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#pechat">
+                                    <i class="flaticon-381-search-1"></i>
+                                </button>
 
-                                <button id="tovarudalit" data-id="' . $naqdsavdojam->id .'" data-savdoid="' . $naqdsavdojam->savdoraqami_id .'"
-                                class="btn btn-outline-danger btn-sm me-2"><i class="flaticon-381-trash-1"></i></button>
+                                <button id="tovarudalit"
+                                    data-id="' . $naqdsavdojam->id .'"
+                                    data-savdoid="' . $naqdsavdojam->savdoraqami_id .'"
+                                    class="btn btn-outline-danger btn-sm me-2">
+                                    <i class="flaticon-381-trash-1"></i>
+                                </button>
                             </td>
                         ';
                     }else{
                         echo'
                             <td>
-                                <button id="kivitpechat" data-id="' . $naqdsavdojam->id .'" data-fio="' . $naqdsavdojam->mijozlar->last_name . ' ' . $naqdsavdojam->mijozlar->first_name . ' ' . $naqdsavdojam->mijozlar->middle_name .'"
-                                class="btn btn-outline-primary btn-sm me-2 " data-bs-toggle="modal"
-                                data-bs-target="#pechat"><i class="flaticon-381-search-1"></i></button>
+                                <button id="kivitpechat"
+                                    data-id="' . $naqdsavdojam->id .'"
+                                    data-fio="' . $naqdsavdojam->mijozlar->full_name . '"
+                                    class="btn btn-outline-primary btn-sm me-2 " data-bs-toggle="modal"
+                                    data-bs-target="#pechat">
+                                    <i class="flaticon-381-search-1"></i>
+                                </button>
                             </td>
                         ';
                     }
@@ -280,58 +293,6 @@ class NaqdSavdoController extends Controller
     public function show(string $id)
     {
 
-
-        function num2str($num)
-        {
-            $nul = '00';
-            $ten = array(
-                array('', 'бир', 'икки', 'уч', 'тўрт', 'беш', 'олти', 'етти', 'саккиз', 'тўққиз'),
-                array('', 'бир', 'икки', 'уч', 'тўрт', 'беш', 'олти', 'етти', 'саккиз', 'тўққиз')
-            );
-            $a20 = array('ўн', 'ўн бир', 'ўн икки', 'ўн уч', 'ўн турт', 'ўн беш', 'ўн олти', 'ўн етти', 'ўн саккиз', 'ун тўққиз');
-            $tens = array(2 => 'йигирма', 'ўттиз', 'қирқ', 'эллик', 'олтмиш', 'етмиш', 'саксон', 'тўқсон');
-            $hundred = array('', 'бир юз', 'икки юз', 'уч юз', 'тўрт юз', 'беш юз', 'олти юз', 'етти юз', 'саккиз юз', 'тўққиз юз');
-            $unit = array(
-                array('тийин' , 'тийин',   'тийин',     1),
-                array('сўм',    'сўм',     'сўм',     0),
-                array('минг',   'минг',    'минг',      1),
-                array('милион',  'милион',  'милион',  0),
-                array('миллиард', 'миллиард', 'миллиард', 0),
-            );
-
-            list($rub, $kop) = explode('.', sprintf("%015.2f", floatval($num)));
-            $out = array();
-            if (intval($rub) > 0) {
-                foreach (str_split($rub, 3) as $uk => $v) {
-                    if (!intval($v)) continue;
-                    $uk = sizeof($unit) - $uk - 1;
-                    $gender = $unit[$uk][3];
-                    list($i1, $i2, $i3) = array_map('intval', str_split($v, 1));
-                    // mega-logic
-                    $out[] = $hundred[$i1]; // 1xx-9xx
-                    if ($i2 > 1) $out[] = $tens[$i2] . ' ' . $ten[$gender][$i3]; // 20-99
-                    else $out[] = $i2 > 0 ? $a20[$i3] : $ten[$gender][$i3]; // 10-19 | 1-9
-                    // units without rub & kop
-                    if ($uk > 1) $out[] = morph($v, $unit[$uk][0], $unit[$uk][1], $unit[$uk][2]);
-                }
-            } else {
-                $out[] = $nul;
-            }
-            $out[] = morph(intval($rub), $unit[1][0], $unit[1][1], $unit[1][2]); // rub
-            $out[] = $kop . ' ' . morph($kop, $unit[0][0], $unit[0][1], $unit[0][2]); // kop
-            return trim(preg_replace('/ {2,}/', ' ', join(' ', $out)));
-        }
-
-        function morph($n, $f1, $f2, $f5)
-        {
-            $n = abs(intval($n)) % 100;
-            if ($n > 10 && $n < 20) return $f5;
-            $n = $n % 10;
-            if ($n > 1 && $n < 5) return $f2;
-            if ($n == 1) return $f1;
-            return $f5;
-        }
-
         $filia = filial::where('id', Auth::user()->filial_id)->first();
         $ytt=$filia->ytt;
         $manzil=$filia->manzil;
@@ -377,7 +338,7 @@ class NaqdSavdoController extends Controller
                     </tr>
                     <tr class="align-middle text-muted">
                         <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;">Тўловчи:</td>
-                        <td colspan="5"><b style="text-transform: uppercase;">'.$naqdsavdojam->mijozlar->last_name.' '.$naqdsavdojam->mijozlar->first_name.' '.$naqdsavdojam->mijozlar->middle_name.'</b></td>
+                        <td colspan="5"><b style="text-transform: uppercase;">'.$naqdsavdojam->mijozlar->full_name.'</b></td>
                     </tr>
                     <tr class="align-middle text-muted">
                     <td style="border: 1px solid black; border-collapse: collapse; padding: 5px;">Тўлов куни:</td>
@@ -407,7 +368,7 @@ class NaqdSavdoController extends Controller
                         <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; color: red;"><b>'.number_format($tulovla->chegirma,2,","," ").'</b></td>
                     </tr>
                     <tr class="align-middle text-muted">
-                        <td style="text-align: center; text-transform: uppercase;" colspan="7"><b>'.num2str($tulovla->umumiysumma).'</b></td>
+                        <td style="text-align: center; text-transform: uppercase;" colspan="7"><b>'.numToStr($tulovla->umumiysumma).'</b></td>
                     </tr>
                 </tbody>
             </table>
@@ -443,7 +404,7 @@ class NaqdSavdoController extends Controller
                             <tr class='text-center align-middle m-2'>
                                 <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . $i . "</td>
                                 <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . $savdomode->tmodel_id . "</td>
-                                <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
+                                <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . $savdomode->tmodel->full_name . "</td>
                                 <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . $savdomode->shtrix_kod . "</td>
                                 <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . $savdomode->status . "</td>
                                 <td style='border: 1px solid black; border-collapse: collapse; padding: 5px;'>" . number_format(1, 0, ',', ' ') . "</td>
@@ -495,7 +456,7 @@ class NaqdSavdoController extends Controller
                 <tr class='text-center align-middle'>
                     <td>" . $i . "</td>
                     <td>" . date('d.m.Y', strtotime($savdomode->created_at)) . "</td>
-                    <td>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
+                    <td>" . $savdomode->tmodel->full_name . "</td>
                     <td>" . number_format($savdomode->msumma, 0, ',', ' ') . "</td>
                 </tr>";
             $jami += $savdomode->msumma;

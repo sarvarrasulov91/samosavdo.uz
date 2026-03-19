@@ -149,9 +149,10 @@ class ShartnomaIdController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        //
+        $filial = $request->filial;
+        return view('partials.talabnoma', compact('id', 'filial'));
     }
 
     /**

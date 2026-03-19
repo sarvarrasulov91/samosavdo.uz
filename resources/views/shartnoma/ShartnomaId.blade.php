@@ -442,5 +442,43 @@
                 }
             })
 
+            $(document).on('click', '#shtalabnoma', function() {
+
+                var id = $(this).data('shid');
+                var filial = $('#filial').val();
+
+                $('#talabnomaPechatModal').modal('show');
+
+                $.ajax({
+                    url: "{{ route('ShartnomaId.index') }}/" + id,
+                    method: "GET",
+                    data: {
+                        id: id,
+                        filial: filial
+                    },
+                    success: function(data) {
+                        $("#talabnomaPechat").html(data);
+                    },
+                    error: function(err) {
+                        console.error("Error fetching data for shtalabnoma: ", err);
+                    }
+                })
+            });
+
+            function printCertificate() {
+                // Check if the element exists
+                if ($("#talabnomaPechat").length === 0) {
+                    console.error("Element with ID 'pechat' not found.");
+                    return;
+                }
+
+                var options = {
+                    mode: 'iframe', // Change to 'popup' if needed
+                    popClose: false // Set to true if you are using popup mode
+                };
+
+                $("#talabnomaPechat").printArea(options);
+            }
+
         </script>
 @endsection

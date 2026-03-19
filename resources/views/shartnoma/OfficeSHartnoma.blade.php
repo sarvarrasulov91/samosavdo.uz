@@ -77,6 +77,35 @@
         </div>
 
 
+        <!-- shartnoma pechat qilish -->
+        <div id="talabnomaPechatModal" class="modal fade bd-example-modal-lg" data-bs-backdrop="static"
+             data-bs-keyboard="false" tabindex="-2" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" style="max-width: 85%; font-size: 13px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 id="modal-title-filial" class="modal-title"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal">
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="people-list dz-scroll" style="background: #cccc;">
+                            <div id="talabnomaPechat">
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button onclick="printCertificate()" class="btn btn-primary"><i class="fa fa-print"></i> Чоп
+                                этиш</button>
+                            <button onclick="exportHTML()" class="btn btn-primary"><i class="fa fa-file-word"></i>
+                                Word</button>
+                            <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">Қайтиш</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
@@ -353,6 +382,45 @@
                     })
                 }
             })
+
+
+            $(document).on('click', '#shtalabnoma', function() {
+
+                var id = $(this).data('shid');
+                var filial = $('#filial').val();
+
+                $('#talabnomaPechatModal').modal('show');
+
+                $.ajax({
+                    url: "{{ route('ShartnomaId.index') }}/" + id,
+                    method: "GET",
+                    data: {
+                        id: id,
+                        filial: filial
+                    },
+                    success: function(data) {
+                        $("#talabnomaPechat").html(data);
+                    },
+                    error: function(err) {
+                        console.error("Error fetching data for shtalabnoma: ", err);
+                    }
+                })
+            });
+
+            function printCertificate() {
+                // Check if the element exists
+                if ($("#talabnomaPechat").length === 0) {
+                    console.error("Element with ID 'pechat' not found.");
+                    return;
+                }
+
+                var options = {
+                    mode: 'iframe', // Change to 'popup' if needed
+                    popClose: false // Set to true if you are using popup mode
+                };
+
+                $("#talabnomaPechat").printArea(options);
+            }
 
         </script>
     @endsection

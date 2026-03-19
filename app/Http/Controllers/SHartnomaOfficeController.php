@@ -136,7 +136,7 @@ class SHartnomaOfficeController extends Controller
                         <div class="card-body">
                             <div class="c-profile text-center">
                                 <img src="images/user1.jpg" class="rounded-circle mb-2">
-                                <h3 class="text-primary">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . '<br>' . $shartnom->mijozlar->middle_name . '
+                                <h3 class="text-primary">' . $shartnom->mijozlar->full_name . '
                                     <a href="' . route('showClient', ['id' => $shartnom->mijozlar_id]) . '" class="ms-2">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path fill-rule="evenodd" clip-rule="evenodd" d="M21.25 16.3341V7.66512C21.25 4.64512 19.111 2.75012 16.084 2.75012H7.916C4.889 2.75012 2.75 4.63512 2.75 7.66512L2.75 16.3341C2.75 19.3641 4.889 21.2501 7.916 21.2501H16.084C19.111 21.2501 21.25 19.3641 21.25 16.3341Z" stroke="#130F26" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -151,7 +151,7 @@ class SHartnomaOfficeController extends Controller
                                 <ul>
                                     <li>
                                         <span>Маънзили</span>
-                                        <p class="text-primary">' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->manzil . '</p>
+                                        <p class="text-primary">' . $shartnom->mijozlar->full_address . '</p>
                                     </li>
                                     <li>
                                         <span>Пасспорт</span>
@@ -212,7 +212,7 @@ class SHartnomaOfficeController extends Controller
                             if ($shartnom->status == 'Ёпилган'){
                             echo'
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span class="text-muted">Просрочка</span> <span class="badge-pill text-primary">' . number_format(0, 2, ',', ' ') . '</span>
+                                <span class="text-muted">Просрочка</span> <span class="badge-pill text-danger">' . number_format(0, 2, ',', ' ') . '</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">Ёпилиш скидка</span> <span class="badge-pill text-primary">' . $shartnom->skidka . '</span>
@@ -220,7 +220,7 @@ class SHartnomaOfficeController extends Controller
                             }else{
                                 echo'
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span class="text-muted">Просрочка</span> <span class="badge-pill text-primary">' . number_format($joqarzm, 2, ',', ' ') . '</span>
+                                <span class="text-muted">Просрочка</span> <span class="badge-pill text-danger">' . number_format($joqarzm, 2, ',', ' ') . '</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">Жами ёпилиши</span> <span class="badge-pill text-primary">' . $zadd13 . '</span>
@@ -237,6 +237,11 @@ class SHartnomaOfficeController extends Controller
                                     <button id="shartnoma_delete" data-shid="'.$shartnom->id.'" type="button" class="btn btn-danger light text-center">Shartnomani udalit qilish </button>
                                     <button id="shartnoma_yopish" data-shid="'.$shartnom->id.'" type="button" class="btn btn-success light text-center m-3">Shartnomani yopish </button>
                                 ';
+                                if($joqarzm > 0){
+                                    echo'
+                                        <button id="shtalabnoma" data-shid="' . $shartnom->id . '" data-filial="' . $filial . '" type="button" class="btn btn-warning light text-center p-3"> Talabnoma </button>
+                                    ';
+                                }
 
                             } elseif ($shartnom->status == 'Ёпилган') {
                                 echo'
@@ -710,7 +715,7 @@ class SHartnomaOfficeController extends Controller
                     2)  Ўзим тўғримдаги керакли малумотларни тўлиқ.<br>
 
                 </p>
-                <h4 style="text-align:left; margin-bottom: -15px;">' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name.  '  ______________________________________</h4>
+                <h4 style="text-align:left; margin-bottom: -15px;">' . $shartnom->mijozlar->full_name.  '  ______________________________________</h4>
 
                 </div>
             </div>
