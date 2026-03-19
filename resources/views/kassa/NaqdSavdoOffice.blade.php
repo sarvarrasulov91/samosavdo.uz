@@ -5,9 +5,8 @@
         <div class="page-titles" style="justify-content:center !important">
             <ol class="breadcrumb">
                 <li>
-                    <h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">Нақд савдоларга ўзгартириш
-                        киритиш
-                        бўлими
+                    <h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">
+                        Нақд савдоларга ўзгартириш киритиш бўлими
                     </h5>
                 </li>
             </ol>
@@ -18,32 +17,41 @@
                 <div class="col-12">
                     <div class="card h-auto">
                         <div class="page-titles">
-                            <li id="select_div" class="nav-item" role="presentation">
-                                <select id="filial" name="filial" class="multi-select form-control">
-                                    <option value="10">Филиал...</option>
-                                    @foreach ($filial as $filia)
-                                        <option value="{{ $filia->id }}">{{ $filia->fil_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </li>
-                            <style>
-                                #select_div {
-                                    width: 150px !important;
-                                }
-                            </style>
-                            <ol class="breadcrumb">
-                                <li>
+                            <div class="row w-100">
+
+                                <div class="col-lg-1">
+                                    <input type="date" name="boshkun" class="form-control form-control-sm" id="boshkun"
+                                           placeholder=" ">
+                                </div>
+
+                                <div class="col-lg-1">
+                                    <input type="date" name="yakunkun" class="form-control form-control-sm"
+                                           id="yakunkun" placeholder=" ">
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <select id="filial" name="filial" class="multi-select form-control">
+                                        <option value=""></option>
+                                        @foreach ($filial as $filia)
+                                            <option value="{{ $filia->id }}">{{ $filia->fil_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-2">
+                                    <button id="saqlash" class="btn btn-primary btn-xs"> Тасдиқлаш </button>
+                                </div>
+                                <div class="col-lg-6">
                                     <h5 class="bc-title text-primary">
                                         Нақд савдолар рўйхати
                                     </h5>
-                                </li>
-                            </ol>
-                            <li class="nav-item" role="presentation">
-                            </li>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="card-body">
-                            <div class="people-list dz-scroll" id="tabprosfil">
+                            <div class="people-list dz-scroll" id="tabprosfil" style="overflow: auto">
                             </div>
                         </div>
                     </div>
@@ -75,38 +83,68 @@
 
         <script src="/vendor/global/global.min.js"></script>
         <script>
-            function tabyuklash() {
-                var id = $('#filial').val();
-                var csrf = document.querySelector('meta[name="csrf-token"]').content;
-                if (id > 0) {
-                    $.ajax({
-                        url: "{{ route('NaqdSavdoOffice.index') }}/" + id,
-                        method: "GET",
-                        data: {
-                            filial: id,
-                            _token: csrf
-                        },
-                        success: function(data) {
-                            $('#tabprosfil').html(data);
 
-                        }
-                    })
+            function tabyuklash() {
+
+                var boshkun = $('#boshkun').val();
+                var yakunkun = $('#yakunkun').val();
+
+                var id = $('#filial').val();
+
+                if (boshkun > yakunkun) {
+                    return toastr.error('Sanani tanlashda xatolik.');
                 }
+
+                if (!id) {
+                    return toastr.error('Filialni tanlang.');
+                }
+
+
+                $.ajax({
+                    url: "{{ route('NaqdSavdoOffice.index') }}/" + id,
+                    method: "GET",
+                    data: {
+                        filial: id,
+                        boshkun: boshkun,
+                        yakunkun: yakunkun,
+                    },
+                    beforeSend: function() {
+                        $('#tabprosfil').html(`
+                            <div style="margin: 100px 0;" class="text-center d-block">
+                                <div class="mx-auto spinner-border text-primary"></div>
+                            </div>
+                        `);
+                    },
+                    success: function(data) {
+                        $('#tabprosfil').html(data);
+
+                    },
+                    error: function(xhr) {
+                        toastr.error("Ma'lumot yuklashda xatolik: " + xhr.status);
+                    }
+                });
+
             }
 
             $(document).ready(function() {
+
+                $("#boshkun").val(new Date().toISOString().substring(0, 8) + '01');
+                $("#yakunkun").val(new Date().toISOString().substring(0, 10));
+
                 $('#filial').select2();
-                tabyuklash();
+
                 $("#qidirish").keyup(function() {
+
                     var value = $(this).val().toLowerCase();
+
                     $("#tab1 tr").filter(function() {
                         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                     })
                 })
 
-                $("#filial").change(function() {
+                $('#saqlash').on('click', function() {
                     tabyuklash();
-                });
+                })
             })
 
 
@@ -124,9 +162,8 @@
                     data: {
                         _token: csrf,
                         id: id,
-                        fio: fio,
-                        filial: filial,
-                        savdoid: savdoid,
+                        filial_id: filial,
+                        savdo_id: savdoid,
                     },
                     success: function(data) {
                         $("#kvitpechat").html(data);

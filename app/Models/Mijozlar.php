@@ -59,5 +59,23 @@ class Mijozlar extends Model
         return $this->belongsTo(ish_tashkiloti::class);
     }
 
+    public function getFullNameAttribute()
+    {
+        return collect([
+            $this->last_name,
+            $this->first_name,
+            $this->middle_name
+        ])->filter()->implode(' ');
+    }
+
+    public function getFullAddressAttribute()
+    {
+        return collect([
+            optional($this->tuman)->name_oz,
+            optional($this->mfy)->name_oz,
+            $this->manzil
+        ])->filter()->implode(' ');
+    }
+
 
 }

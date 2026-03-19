@@ -46,9 +46,14 @@ class NaqdSavdoOfficeController extends Controller
      */
     public function store(Request $request)
     {
+        $savdoId = $request->savdo_id;
+        $filialId = $request->filial_id;
+        $id = $request->id;
+
         $savdomodel = Savdo::where('status', 'Нақд')
-            ->where('unix_id', $request->savdoid)
-            ->where('filial_id', Auth::user()->filial_id)
+            ->where('unix_id', $savdoId)
+            ->where('filial_id', $filialId)
+            ->where('shartnoma_id', $id)
             ->get();
 
         echo '<h3 class=" text-center text-primary ">' . $request->id . '</h3>
@@ -70,7 +75,7 @@ class NaqdSavdoOfficeController extends Controller
                 <tr class='text-center align-middle'>
                     <td>" . $i . "</td>
                     <td>" . date('d.m.Y', strtotime($savdomode->created_at)) . "</td>
-                    <td>" . $savdomode->tur->tur_name . ' ' . $savdomode->brend->brend_name . ' ' . $savdomode->tmodel->model_name . "</td>
+                    <td style='white-space: pre-wrap'>" . $savdomode->tmodel->full_name . "</td>
                     <td>" . number_format($savdomode->msumma, 0, ',', ' ') . "</td>
                     <td>" . $savdomode->shtrix_kod . "</td>
                 </tr>";
@@ -93,10 +98,12 @@ class NaqdSavdoOfficeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-
         $filial = $id;
+        $boshkun = $request->boshkun;
+        $yakunkun = $request->yakunkun;
+
         echo '
             <table class="table table-bordered text-center align-middle ">
                 <thead>
@@ -118,6 +125,7 @@ class NaqdSavdoOfficeController extends Controller
             ';
 
                 $naqdsavdojami = NaqdSavdo::where('status', 'Актив')
+                    ->whereBetween('kun', [$boshkun, $yakunkun])
                     ->where('filial_id', $filial)
                     ->orderBy('id', 'desc')
                     ->get();
@@ -134,14 +142,14 @@ class NaqdSavdoOfficeController extends Controller
                         ->sum('msumma');
 
                     $jnaqd = 0;
-                    $jplastik =0;
+                    $jplastik = 0;
                     $jhr = 0;
                     $jClick = 0;
                     $jchegirma = 0;
 
                     $tulovlar = Tulovlar::where('tulovturi', 'Нақд')
                         ->where('filial_id', $filial)
-                        ->where('shartnomaid', $id)
+                        ->where('shartnoma_id', $id)
                         ->where('status', 'Актив')
                         ->get();
 
@@ -167,23 +175,33 @@ class NaqdSavdoOfficeController extends Controller
                     echo'
                         <td>' . $naqdsavdojam->id .' </td>
                         <td>' . date("d.m.Y", strtotime($naqdsavdojam->kun)) . '</td>
-                        <td>' . $naqdsavdojam->mijozlar->last_name . ' ' . $naqdsavdojam->mijozlar->first_name . ' ' . $naqdsavdojam->mijozlar->middle_name . '</td>
+                        <td style="white-space: pre-wrap">' . $naqdsavdojam->mijozlar->full_name . '</td>
                         <td>' . $naqdsavdojam->savdoraqami_id . '</td>
-                        <td>' . number_format($savdosumma, 2, ",", " ") . '</td>
-                        <td>' . number_format($jnaqd, 2, ",", " ") . '</td>
-                        <td>' . number_format($jplastik, 2, ",", " ") . '</td>
-                        <td>' . number_format($jchegirma, 2, ",", " ") . '</td>
+                        <td>' . number_format($savdosumma, 0, ",", " ") . '</td>
+                        <td>' . number_format($jnaqd, 0, ",", " ") . '</td>
+                        <td>' . number_format($jplastik, 0, ",", " ") . '</td>
+                        <td>' . number_format($jchegirma, 0, ",", " ") . '</td>
                         <td>' . number_format($jnaqd + $jplastik + $jhr + $jClick + $jchegirma, 2, ",", " ") . '
                         </td>
-                        <td>' . number_format(($jnaqd + $jplastik + $jhr + $jClick + $jchegirma) -$savdosumma, 2, ",", " ") . '
+                        <td>' . number_format(($jnaqd + $jplastik + $jhr + $jClick + $jchegirma) -$savdosumma, 0, ",", " ") . '
                         </td>
                         <td>
-                            <button id="kivitpechat" data-id="' . $naqdsavdojam->id .'" data-savdoid="' . $naqdsavdojam->savdoraqami_id .'" data-fio="' . $naqdsavdojam->mijozlar->last_name . ' ' . $naqdsavdojam->mijozlar->first_name . ' ' . $naqdsavdojam->mijozlar->middle_name .'"
-                            class="btn btn-outline-primary btn-sm me-2 " data-bs-toggle="modal"
-                            data-bs-target="#pechat"><i class="flaticon-381-search-1"></i></button>
+                            <button id="kivitpechat"
+                                data-id="' . $naqdsavdojam->id .'"
+                                data-savdoid="' . $naqdsavdojam->savdoraqami_id .'"
+                                data-fio="' . $naqdsavdojam->mijozlar->full_name .'"
+                                class="btn btn-outline-primary btn-sm me-2 "
+                                data-bs-toggle="modal"
+                                data-bs-target="#pechat">
+                                <i class="flaticon-381-search-1"></i>
+                            </button>
 
-                            <button id="tovarudalit" data-id="' . $naqdsavdojam->id .'" data-savdoid="' . $naqdsavdojam->savdoraqami_id .'"
-                            class="btn btn-outline-danger btn-sm me-2"><i class="flaticon-381-trash-1"></i></button>
+                            <button id="tovarudalit"
+                                data-id="' . $naqdsavdojam->id .'"
+                                data-savdoid="' . $naqdsavdojam->savdoraqami_id .'"
+                                class="btn btn-outline-danger btn-sm me-2">
+                                <i class="flaticon-381-trash-1"></i>
+                            </button>
                         </td>
                     </tr>
                     ';

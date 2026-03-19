@@ -45,4 +45,13 @@ class tmodel extends Model
         return $this->hasOne(tmqaytarish::class);
     }
 
+    public function getFullNameAttribute(): string
+    {
+        return trim(
+            ($this->tur?->tur_name ?? '') . ' ' .
+            ($this->brend?->brend_name ?? '') . ' ' .
+            ($this->model_name ?? '')
+        );
+    }
+
 }
