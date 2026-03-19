@@ -15,7 +15,7 @@
 
     h1, h2 {
         text-align: center;
-        margin: 10px;
+        margin: 0;
         padding: 0;
     }
 
@@ -89,7 +89,7 @@
             {{date("d.m.Y", strtotime($shartnom->mijozlar->passport_date))}} йилда берилган), Сиз ва {{$filial->manzil}}да фаолият кўрсатувчи <b>{{$mchjName}}</b>
             ўртасида <b>{{ date('d.m.Y', strtotime($shartnom->kun)) }}</b> куни <b>{{$shartnom->muddat}}</b> ой муддатга
             жами суммаси <b>{{ number_format($shartnomaSumma, 0, ",", " ") }} ({{numToStr($shartnomaSumma)}})</b> сўмлик
-            № <b>{{$shartnom->id}}</b>-сонли "Муддатли тулов шартнома"си тузилган.
+            № <b>{{$shartnom->shid}}</b>-сонли "Муддатли тулов шартнома"си тузилган.
         </p>
         <p>
             Шартноманинг 1.1 ва 3.2-бандларига кўра, сиз  маҳсулотни  қабул қилиб олгач хар ойнинг графикда курсатилган
