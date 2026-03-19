@@ -16,7 +16,7 @@
     h1, h2 {
         text-align: center;
         margin: 10px;
-        padding: 10px;
+        padding: 0;
     }
 
     .palata > p {
@@ -39,7 +39,7 @@
 <div id="certificate" class="container-fluid bg-white p-4">
 
     <h1 style="color: green; font-size: 32px; font-weight: 700; text-align: center;">"SAMO SAVDO MARKAZI"</h1>
-<br>
+
     <div style="border: 1px solid black; margin-bottom: 15px;"></div>
 
     <div class="ps-2 raqamlash mb-3">
