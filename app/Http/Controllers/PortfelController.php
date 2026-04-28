@@ -99,7 +99,6 @@ class PortfelController extends Controller
                         $tulov = Tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
                         $tulovinfo = Tulovlar::where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
-                        $tsumma = 0;
                         $tsumma = $tulovinfo->umumiysumma ?? 0;
                         if( $tsumma > 0 ){
                             $tkunpros = date('d.m.Y', strtotime($tulovinfo->kun));
