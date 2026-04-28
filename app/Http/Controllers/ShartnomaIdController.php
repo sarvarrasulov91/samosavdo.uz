@@ -118,10 +118,12 @@ class ShartnomaIdController extends Controller
                 }
 
                 echo '
-                        <tr id="modalshartshow" data-id="' . $shartnoma->id . '" data-shid="' . $shartnoma->shid . '" data-fio="' . addslashes($shartnoma->mijozlar->last_name) . ' ' . addslashes($shartnoma->mijozlar->first_name) . ' ' . addslashes($shartnoma->mijozlar->middle_name) . '"  class="'.$trrang.'">
+                        <tr id="modalshartshow" data-id="' . $shartnoma->id . '"
+                            data-shid="' . $shartnoma->shid . '"
+                            data-fio="' . addslashes($shartnoma->mijozlar->full_name) . '"  class="'.$trrang.'">
                             <td>' . $shartnoma->shid . '</td>
-                            <td style="white-space: pre-wrap;">' . $shartnoma->mijozlar->last_name . ' ' . $shartnoma->mijozlar->first_name . ' ' . $shartnoma->mijozlar->middle_name . '</td>
-                            <td style="white-space: pre-wrap">' . $shartnoma->mijozlar->tuman->name_uz . ' ' . $shartnoma->mijozlar->mfy->name_uz . ' ' . $shartnoma->mijozlar->manzil . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnoma->mijozlar->full_name . '</td>
+                            <td style="white-space: pre-wrap">' . $shartnoma->mijozlar->full_address . '</td>
                             <td>' . $shartnoma->mijozlar->phone . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnoma->kun)) . '</td>
                             <td>' . $shartnoma->muddat . '</td>

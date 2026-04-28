@@ -191,7 +191,7 @@ class PortfelController extends Controller
                             echo'
                             <tr class="' . $trrang . '">
                                 <td>' . $shartnom->mijozlar_id . '</td>
-                                <td>' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
+                                <td>' . $shartnom->mijozlar->full_name . '</td>
                                 <td>' . $shartnom->shid . '</td>
                                 <td>' . $shartnom->mijozlar->passport_sn . '</td>
                                 <td>' . $shartnom->mijozlar->pinfl . '</td>
@@ -223,7 +223,7 @@ class PortfelController extends Controller
                                 <td>' . number_format($joqarzm, 0, ',', ' ') . '</td>
                                 <td>' . $shartnom->izox . '</td>
                                 <td>
-                                    <button id="kivitpechat" data-id="' . $shartnom->id .'" data-fio="' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name .'"
+                                    <button id="kivitpechat" data-id="' . $shartnom->id .'" data-fio="' . $shartnom->mijozlar->full_name . '"
                                     class="btn btn-outline-primary btn-sm me-2 " data-bs-toggle="modal"
                                     data-bs-target="#pechat"><i class="flaticon-381-search-1"></i></button>
                                 </td>
