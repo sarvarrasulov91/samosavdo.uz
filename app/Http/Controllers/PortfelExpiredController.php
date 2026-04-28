@@ -130,12 +130,11 @@ class PortfelExpiredController extends Controller
 
                     $savdosumma = Savdo::where('filial_id', $id)->where('status', 'Шартнома')->where('shartnoma_id', $shartnom->id)->sum('msumma');
 
-                    $oldindantulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('umumiysumma');
-                    $chegirma = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnomaid', $shartnom->id)->sum('chegirma');
-                    $tulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
-                    $tulovinfo = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnomaid', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
+                    $oldindantulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('umumiysumma');
+                    $chegirma = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Олдиндан тўлов')->where('status', 'Актив')->where('shartnoma_id', $shartnom->id)->sum('chegirma');
+                    $tulov = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->sum('umumiysumma');
+                    $tulovinfo = Tulovlar::where('filial_id', $id)->where('tulovturi', 'Шартнома')->where('shartnoma_id', $shartnom->id)->where('status', 'Актив')->orderBy('id', 'desc')->first();
 
-                    $tsumma = 0;
                     $tsumma = $tulovinfo->umumiysumma ?? 0;
                     if($tsumma > 0){
                         $tkunpros = date('d.m.Y', strtotime($tulovinfo->kun));

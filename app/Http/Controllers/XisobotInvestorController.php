@@ -149,7 +149,7 @@ class XisobotInvestorController extends Controller
                         $oldindantulovinfo = Tulovlar::where('filial_id', $filial->id)
                             ->where('tulovturi', 'Олдиндан тўлов')
                             ->where('status', 'Актив')
-                            ->where('shartnomaid', $shart->id)
+                            ->where('shartnoma_id', $shart->id)
                             ->get();
 
                         $oldindantulov = $oldindantulovinfo->sum('umumiysumma');
@@ -193,7 +193,7 @@ class XisobotInvestorController extends Controller
                         $chegirmasum = Tulovlar::where('filial_id', $filial->id)
                             ->where('tulovturi', 'Нақд')
                             ->where('status', 'Актив')
-                            ->where('shartnomaid', $naqd->id)
+                            ->where('shartnoma_id', $naqd->id)
                             ->sum('chegirma');
 
                         $chegirmasumma += $chegirmasum;
@@ -201,14 +201,6 @@ class XisobotInvestorController extends Controller
                     }
                         $unssumma += $nssumma;
                         $uchegirmasumma += $chegirmasumma;
-
-                    // Oy boshiga qoldiq tovarlarni hisoblash
-                    //$tovarlar = new kirimTovar($filial->id);
-                    // $ktovarOyBoshiDollar = $tovarlar->where('valyuta_id', '2')->where('kun', '<', $boshkun)
-                    //     ->where(function ($query) {
-                    //         $query->where('status', 'Сотилмаган')
-                    //             ->orWhere('status', 'Асосий восита');
-                    //     })->sum('narhi');
 
                     $ktovarOyBoshiDollar = KirimTovar::where('filial_id', $filial->id)
                         ->where(function ($query) use ($boshkun){
@@ -237,6 +229,7 @@ class XisobotInvestorController extends Controller
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
+
                     $ktovarKirimSum = KirimTovar::where('filial_id', $filial->id)
                         ->whereBetween('kun', [$boshkun, $yakunkun])
                         ->where('valyuta_id', '1')
@@ -254,6 +247,7 @@ class XisobotInvestorController extends Controller
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
+
                     $ktovarChiqimSum = KirimTovar::where('filial_id', $filial->id)
                         ->whereBetween('ch_kun', [$boshkun, $yakunkun])
                         ->where('valyuta_id', '1')
@@ -387,7 +381,7 @@ class XisobotInvestorController extends Controller
                          $oldindantulovinfo = Tulovlar::where('filial_id', $filial)
                              ->where('tulovturi', 'Олдиндан тўлов')
                              ->where('status', 'Актив')
-                             ->where('shartnomaid', $shart->id)
+                             ->where('shartnoma_id', $shart->id)
                              ->get();
 
                          $oldindantulov = $oldindantulovinfo->sum('umumiysumma');
@@ -424,7 +418,11 @@ class XisobotInvestorController extends Controller
 
                         $nssumma += $savdosumma;
 
-                        $chegirmasum = Tulovlar::where('filial_id', $filial)->where('tulovturi', 'Нақд')->where('status', 'Актив')->where('shartnomaid', $naqd->id)->sum('chegirma');
+                        $chegirmasum = Tulovlar::where('filial_id', $filial)
+                            ->where('tulovturi', 'Нақд')
+                            ->where('status', 'Актив')
+                            ->where('shartnoma_id', $naqd->id)
+                            ->sum('chegirma');
                         $chegirmasumma += $chegirmasum;
 
                     }
@@ -432,7 +430,7 @@ class XisobotInvestorController extends Controller
                     $uchegirmasumma += $chegirmasumma;
 
                     // Oy boshiga qoldiq tovarlarni hisoblash
-                    $tovarlar = new KirimTovar($filial);
+
                     $ktovarOyBoshiDollar = KirimTovar::where('filial_id', $filial)
                         ->where(function ($query) use ($boshkun){
                             $query->where('valyuta_id', '2')->where('kun', '<', $boshkun)->where('status', 'Сотилмаган');
@@ -457,6 +455,7 @@ class XisobotInvestorController extends Controller
                         ->where('status', '!=', 'Удалит')
                         ->where('status', '!=', 'Актив')
                         ->sum('narhi');
+
                     $ktovarKirimSum = KirimTovar::where('filial_id', $filial)
                         ->where('kun', $boshkun)
                         ->where('valyuta_id', '1')
