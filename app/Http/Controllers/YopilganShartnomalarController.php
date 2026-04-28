@@ -75,6 +75,7 @@ class YopilganShartnomalarController extends Controller
                         <th>Jami<br>tulov</th>
                         <th>Skidka</th>
                         <th>Farqi</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="tab1">';
@@ -138,9 +139,7 @@ class YopilganShartnomalarController extends Controller
 
                         echo'
                             <td>' . $shartnom->id . '</td>
-                            <td style="white-space: pre-wrap;">
-                                ' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                            </td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->full_name . '</td>
                             <td>' . $shartnom->shid . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
                             <td>' . $shartnom->muddat . '</td>
@@ -153,6 +152,7 @@ class YopilganShartnomalarController extends Controller
                             <td>' . number_format($tulov, 2, ",", " ") . '</td>
                             <td>' . number_format($shartnom->skidka, 2, ",", " ") . '</td>
                             <td>' . number_format(($savdosumma - $chegirma+$xis_foiz)-($oldindantulov+$tulov+$shartnom->skidka), 2, ",", " ") . '</td>
+                            <td>' . $shartnom->status . '</td>
                         </tr>
                         ';
                     }

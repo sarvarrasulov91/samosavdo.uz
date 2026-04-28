@@ -86,13 +86,13 @@ class ShartnomaNewController extends Controller
                             data-id="'.$shartnom->id.'"
                             data-shid="'.$shartnom->shid.'"
                             data-filialid="'.$shartnom->filial_id.'"
-                            data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"
+                            data-fio="'.addslashes($shartnom->mijozlar->full_name) . '"
                             class="'.$trrang.'" data-bs-toggle="modal"
                             data-bs-target="#shartnoma_show">
 
                             <td>' . $shartnom->shid . '</td>
-                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '</td>
-                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->tuman->name_uz .' '. $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->full_name . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->full_address.' </td>
                             <td>' . $shartnom->mijozlar->phone . '</td>
                             <td>' . $shartnom->tashrif->tashrif_name . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>

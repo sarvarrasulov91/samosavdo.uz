@@ -80,13 +80,13 @@ class ShartnomalarController extends Controller
                             data-id="'.$shartnom->id.'"
                             data-shid="'.$shartnom->shid.'"
                             data-filialid="'.$shartnom->filial_id.'"
-                            data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"
+                            data-fio="'.addslashes($shartnom->mijozlar->full_name) . '"
                             class="'.$trrang.'" data-bs-toggle="modal"
                             data-bs-target="#shartnoma_show">
 
                             <td>' . $shartnom->shid . '</td>
-                            <td style="white-space: pre-wrap">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '</td>
-                            <td style="white-space: pre-wrap">' . $shartnom->mijozlar->tuman->name_uz .' '. $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
+                            <td style="white-space: pre-wrap">' . $shartnom->mijozlar->full_name . '</td>
+                            <td style="white-space: pre-wrap">' . $shartnom->mijozlar->full_address .'</td>
                             <td>' . $shartnom->mijozlar->phone . '</td>
                             <td>' . $shartnom->tashrif->tashrif_name . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
@@ -732,9 +732,11 @@ class ShartnomalarController extends Controller
                 <br>
                 <p style="text-align:justify; font-size: 12px; text-indent: 30px; line-height: normal;  margin-bottom: -3px;">
                     Бир томондан '.$guvohnoma.' билан берилган гувоҳнома асосида фаолият кўрсатувчи
-                    '.$ytt.' (кейинги ўринларда «Сотувчи») ва ' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . 'да яшовчи фуқаро
-                        ' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name . '(Ҳужжат серия
-                        ' . $shartnom->mijozlar->passport_sn . ' ' . $shartnom->mijozlar->passport_iib . ' томонидан ' . date("d.m.Y", strtotime($shartnom->mijozlar->passport_date)) . ' йилда берилган) ' . $shartnom->mijozlar->ish_joy . ' ходими лавозимида ишловчи (кейинги ўринларда «Харидор») иккинчи томондан ушбу шартномани тарафлар ўртасида ўзаро келишув асосида куйидагилар тўғрисида тузилди.
+                    '.$ytt.' (кейинги ўринларда «Сотувчи») ва ' . $shartnom->mijozlar->full_address . ' да яшовчи фуқаро
+                        ' . $shartnom->mijozlar->full_name . ' (Ҳужжат серия ' . $shartnom->mijozlar->passport_sn . ' ' . $shartnom->mijozlar->passport_iib . '
+                        томонидан ' . date("d.m.Y", strtotime($shartnom->mijozlar->passport_date)) . ' йилда берилган) ' . $shartnom->mijozlar->ish_joy . '
+                        ходими лавозимида ишловчи (кейинги ўринларда «Харидор») иккинчи томондан ушбу шартномани тарафлар ўртасида ўзаро
+                        келишув асосида куйидагилар тўғрисида тузилди.
                 </p>
                 <h5 style="text-align: center; font-size: 14px; margin-bottom: -5px;">
                     <b>1. ШАРТНОМА МАЗМУНИ.</b>
@@ -933,11 +935,11 @@ class ShartnomalarController extends Controller
                 </tr>
                 <tr class="align-middle" style="text-align: left">
                     <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">' . $ytt . '</th>
-                    <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">Ф.И.Ш.: ' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name . '</th>
+                    <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">Ф.И.Ш.: ' . $shartnom->mijozlar->full_name . '</th>
                 </tr>
                 <tr class="align-middle" style="text-align: left">
                     <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">Фаолият манзили: ' . $manzil . '</th>
-                    <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">Манзил: ' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</th>
+                    <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">Манзил: ' . $shartnom->mijozlar->full_address . '</th>
                 </tr>
                 <tr class="align-middle" style="text-align: left">
                     <th style="padding: 0.2375rem 0.125rem; border: 1px solid #e6e6e6; border-collapse: collapse; font-size: 8pt">Юридик манзил: ' . $yurmanzil . '</th>
@@ -1105,10 +1107,10 @@ class ShartnomalarController extends Controller
                             </td>
                             <td id="manst">
                                 <p style="text-align: left; padding-right: 30px; margin-bottom: -5px;">
-                                    Ф.И.Ш: <strong>'. $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name .'</strong>
+                                    Ф.И.Ш: <strong>'. $shartnom->mijozlar->full_name . '</strong>
                                 </p>
                                 <p style="text-align: left; padding-right: 30px; margin-bottom: -5px;">
-                                    Манзил: <strong>'. $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil .'</strong>
+                                    Манзил: <strong>'. $shartnom->mijozlar->full_address . '</strong>
                                 </p>
                                 <p style="text-align: left; padding-right: 30px; margin-bottom: -5px;">
                                     Паспорт маълумотлари:

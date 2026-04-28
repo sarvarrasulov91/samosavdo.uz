@@ -71,8 +71,8 @@ class Mijozlar extends Model
     public function getFullAddressAttribute()
     {
         return collect([
-            optional($this->tuman)->name_oz,
-            optional($this->mfy)->name_oz,
+            optional($this->tuman)->name_uz,
+            optional($this->mfy)->name_uz,
             $this->manzil
         ])->filter()->implode(' ');
     }

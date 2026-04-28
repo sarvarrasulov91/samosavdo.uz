@@ -580,12 +580,14 @@ class SHartnomaOfficeController extends Controller
                         $otulovchegirmasummasi = $oldindantulov->sum('chegirma');
 
                         echo'
-                        <tr id="modalshartshow" data-id="'.$shartnom->id.'" data-shid="'.$shartnom->shid.'" data-fio="'.addslashes($shartnom->mijozlar->last_name) . ' ' . addslashes($shartnom->mijozlar->first_name) . ' ' . addslashes($shartnom->mijozlar->middle_name).'"  class="'.$trClass.'">
+                        <tr id="modalshartshow" data-id="'.$shartnom->id.'"
+                            data-shid="'.$shartnom->shid.'"
+                            data-fio="'.addslashes($shartnom->mijozlar->full_name) . '"
+                            class="'.$trClass.'">
+
                             <td>' . $shartnom->shid . '</td>
-                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
-                            </td>
-                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->tuman->name_uz .' '. $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '
-                            </td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->full_name . '</td>
+                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->full_address .'</td>
                             <td>' . $shartnom->mijozlar->phone . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
                             <td>' . $shartnom->muddat . '</td>
@@ -634,7 +636,7 @@ class SHartnomaOfficeController extends Controller
                     <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-size:14px; " id="tovarjad">
                         <tr id="#jadst">
                             <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Ф.И.Ш.</th>
-                            <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" colspan="4">' . $shartnom->mijozlar->last_name . " " . $shartnom->mijozlar->first_name . " " . $shartnom->mijozlar->middle_name. '</th>
+                            <th style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" colspan="4">' . $shartnom->mijozlar->full_name . '</th>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;">Туғилган йил</td>
@@ -653,7 +655,7 @@ class SHartnomaOfficeController extends Controller
                         </tr>
                         <tr id="#jadst">
                             <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Манзил</td>
-                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' . $shartnom->mijozlar->tuman->name_uz . ' ' . $shartnom->mijozlar->mfy->name_uz . ' ' . $shartnom->mijozlar->manzil . '</td>
+                            <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center; font-weight: bold;" colspan="4" id="#jadst">' . $shartnom->mijozlar->full_address . '</td>
                         </tr>
                         <tr id="#jadst">
                             <td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: center;" id="#jadst">Телефон</td>
