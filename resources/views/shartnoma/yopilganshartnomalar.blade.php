@@ -5,8 +5,8 @@
         <div class="page-titles" style="justify-content:center !important">
             <ol class="breadcrumb">
                 <li>
-                    <h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">Ёпилган ва ўчирилган
-                        шартномаларни кўриб олиш бўлими
+                    <h5 class="heading mb-0 text-primary text-center text-uppercase fw-bold">
+                        Yopilgan shartnomalar
                     </h5>
                 </li>
             </ol>
@@ -19,7 +19,7 @@
                         <div class="page-titles">
                             <li id="select_div" class="nav-item" role="presentation">
                                 <select id="filial" name="filial" class="multi-select form-control">
-                                    <option value="0">Филиал...</option>
+                                    <option value="0">Filial...</option>
                                     @foreach ($filial as $filia)
                                         <option value="{{ $filia->id }}">{{ $filia->fil_name }}
                                         </option>
@@ -36,7 +36,7 @@
                             <ol class="breadcrumb">
                                 <li>
                                     <h5 class="bc-title text-primary">
-                                        Ёпилган шартномалар рўйхати
+                                        Yopilgan shartnomalar ruyxati
                                     </h5>
                                 </li>
                             </ol>
