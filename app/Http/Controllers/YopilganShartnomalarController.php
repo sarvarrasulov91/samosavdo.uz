@@ -24,6 +24,7 @@ class YopilganShartnomalarController extends Controller
             $filial = filial::where('status', 'Актив')->where('id','!=','10')->get();
 
             return view('shartnoma.yopilganshartnomalar', ['filial' => $filial ]);
+
         }else{
                 Auth::guard('web')->logout();
                 session()->invalidate();
@@ -61,25 +62,22 @@ class YopilganShartnomalarController extends Controller
                 <thead>
                     <tr class="text-bold text-primary align-middle">
                         <th>ID</th>
-                        <th>ФИО</th>
-                        <th>Cана</th>
-                        <th>Муд.</th>
-                        <th>Ёпилган<br>сана</th>
-                        <th>Товар<br>суммаси</th>
-                        <th>Шартнома<br>суммаси</th>
-                        <th>Олдиндан<br>тўлови</th>
-                        <th>Чегирма</th>
-                        <th>Хисобланди</th>
-                        <th>Жами<br>тўлови</th>
-                        <th>Муд.олд.ёпган<br>чегирма</th>
-                        <th>Фарқи</th>
+                        <th>FIO</th>
+                        <th>Shart.ID</th>
+                        <th>Shart.Sana</th>
+                        <th>Mudd.</th>
+                        <th>Yopilgan<br>sana</th>
+                        <th>Tovar<br>summa</th>
+                        <th>Shartnoma<br>summa</th>
+                        <th>Old<br>tulov</th>
+                        <th>Chegirma</th>
+                        <th>Hisob.Foiz</th>
+                        <th>Jami<br>tulov</th>
+                        <th>Skidka</th>
+                        <th>Farqi</th>
                     </tr>
                 </thead>
                 <tbody id="tab1">';
-
-
-                    $jamifarq = 0;
-                    $chjami = 0;
 
                     $shartnoma = Shartnoma::where('filial_id', $id)
                         ->whereIn('status', ['Ёпилган', 'Удалит'])
@@ -98,7 +96,7 @@ class YopilganShartnomalarController extends Controller
                         $tulovInfo = Tulovlar::where('filial_id', $id)
                             ->where('tulovturi', 'Олдиндан тўлов')
                             ->where('status', 'Актив')
-                            ->where('shartnomaid', $shartnom->id)
+                            ->where('shartnoma_id', $shartnom->id)
                             ->first();
 
                         $oldindantulov = $tulovInfo->umumiysumma ?? 0;
@@ -107,7 +105,7 @@ class YopilganShartnomalarController extends Controller
                         $tulov = Tulovlar::where('filial_id', $id)
                             ->where('tulovturi', 'Шартнома')
                             ->where('status', 'Актив')
-                            ->where('shartnomaid', $shartnom->id)
+                            ->where('shartnoma_id', $shartnom->id)
                             ->sum('umumiysumma');
 
                         //йиллик фойиз
@@ -121,6 +119,7 @@ class YopilganShartnomalarController extends Controller
                         $birkunlikfoiz = $xis_foiz / $dukun;
 
                         $krxiob22 = 0;
+
                         $date22 = new DateTime(date('Y-m-d', strtotime($shartnom->yo_sana)));
                         $interval1 = $date1->diff($date22);
                         $dukun22 = $interval1->days;
@@ -139,8 +138,10 @@ class YopilganShartnomalarController extends Controller
 
                         echo'
                             <td>' . $shartnom->id . '</td>
-                            <td style="white-space: pre-wrap;">' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
+                            <td style="white-space: pre-wrap;">
+                                ' . $shartnom->mijozlar->last_name . ' ' . $shartnom->mijozlar->first_name . ' ' . $shartnom->mijozlar->middle_name . '
                             </td>
+                            <td>' . $shartnom->shid . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->kun)) . '</td>
                             <td>' . $shartnom->muddat . '</td>
                             <td>' . date('d.m.Y', strtotime($shartnom->yo_sana)) . '</td>
@@ -154,32 +155,12 @@ class YopilganShartnomalarController extends Controller
                             <td>' . number_format(($savdosumma - $chegirma+$xis_foiz)-($oldindantulov+$tulov+$shartnom->skidka), 2, ",", " ") . '</td>
                         </tr>
                         ';
-                            $chjami += $shartnom->skidka;
-                            $jamifarq += ($savdosumma - $oldindantulov - $chegirma + $xis_foiz)-($oldindantulov+$tulov+$shartnom->skidka);
                     }
                     echo '
-                            <tr class="align-middle text-bold">
-                                <td></td>
-                                <td>ЖАМИ</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>' . number_format($chjami, 2, ",", " ") . '</td>
-                                <td>' . number_format($jamifarq, 2, ",", " ") . '</td>
-                            </tr>
+
                         </tbody>
                     </table>
                     ';
-
-                    return;
-
-
 
     }
 
