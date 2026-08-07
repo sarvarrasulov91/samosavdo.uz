@@ -45,6 +45,11 @@ class KirimTovar extends Model
         return $this->belongsTo(pastavshik::class);
     }
 
+    public function pastavshik2(): BelongsTo
+    {
+        return $this->belongsTo(pastavshik::class, 'pastavshik2_id');
+    }
+
     public function filial(): BelongsTo
     {
         return $this->belongsTo(filial::class);
