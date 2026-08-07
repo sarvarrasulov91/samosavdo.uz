@@ -382,7 +382,7 @@ class XisobotKunlikController extends Controller
 
         foreach ($shsqltulovlar2 as $shsqltulovlar) {
 
-            if($shsqltulovlar->turharajat_id!=14){
+            if($shsqltulovlar->turharajat_id != 14){
                 $bxharajat += $shsqltulovlar->summasi;
                 $bxnaqd += $shsqltulovlar->naqd;
                 $bxplastik += $shsqltulovlar->pastik;

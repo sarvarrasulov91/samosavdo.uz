@@ -57,6 +57,7 @@ class TovarlarSotilmaganOfficeController extends Controller
                     <th>Сотув нархи</th>
                     <th>Холати</th>
                     <th>Таъминотчи</th>
+                    <th>Таъминотчи2</th>
                     <th>Қайтариш</th>
                 </tr>
             </thead>
@@ -89,6 +90,7 @@ class TovarlarSotilmaganOfficeController extends Controller
                         <td>' . number_format(round($sotuvNarx, -3), 0, ",", " ")  . '</td>
                         <td>' . $mode->status . '</td>
                         <td>' . $mode->pastavshik->pastav_name . '</td>
+                        <td>' . $mode->pastavshik2->pastav_name . '</td>
                         <td>';
                         if (Auth::user()->lavozim_id == 1 && $mode->status == "Сотилмаган" ){
                             echo'

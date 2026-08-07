@@ -21,8 +21,8 @@ class DbBackup extends Command
         parent::__construct();
 
         $this->appName = config('app.name');
-        $this->token   = env('TELEGRAM_BOT_TOKEN');
-        $this->chatId  = env('TELEGRAM_CHAT_ID');
+        $this->token   = config('services.telegram.token');
+        $this->chatId  = config('services.telegram.chat_id');
     }
 
     public function handle(): int
